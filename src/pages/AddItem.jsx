@@ -22,6 +22,9 @@ export default function AddItem() {
   const [isForSale, setIsForSale] = useState(false);
   const [askingPrice, setAskingPrice] = useState('');
   const [directions, setDirections] = useState('');
+  const [location, setLocation] = useState(null);
+  const [locating, setLocating] = useState(false);
+  const [locationError, setLocationError] = useState('');
   const [aiLoading, setAiLoading] = useState(false);
   const [aiError, setAiError] = useState('');
   const [saving, setSaving] = useState(false);
@@ -44,6 +47,15 @@ export default function AddItem() {
     finally { setAiLoading(false); }
   }
 
+  function handleGetLocation() {
+    if (!navigator.geolocation) { setLocationError('Geolocation not supported by your browser.'); return; }
+    setLocating(true); setLocationError('');
+    navigator.geolocation.getCurrentPosition(
+      pos => { setLocation({ lat: pos.coords.latitude, lng: pos.coords.longitude }); setLocating(false); },
+      () => { setLocationError('Could not get location. Please allow location access.'); setLocating(false); }
+    );
+  }
+
   async function handleSave(e) {
     e.preventDefault();
     if (!name.trim()) { setError('Item name is required.'); return; }
@@ -60,7 +72,9 @@ export default function AddItem() {
         storeName: storeName.trim(), pricePaid: pricePaid ? Number(pricePaid) : null,
         room, isLendable, isForSale,
         askingPrice: isForSale && askingPrice ? Number(askingPrice) : null,
-        directions: directions.trim(), createdAt: serverTimestamp(),
+        directions: directions.trim(),
+        location: location || null,
+        createdAt: serverTimestamp(),
       });
       navigate('/my-stuff');
     } catch (err) { setError('Failed to save item. Please try again.'); console.error(err); }
@@ -122,6 +136,30 @@ export default function AddItem() {
 
           {isForSale && (
             <Field label="Asking Price ($)"><input type="number" min="0" step="0.01" placeholder="0.00" value={askingPrice} onChange={e => setAskingPrice(e.target.value)} /></Field>
+          )}
+
+          {/* Location pin — shown when lendable or for sale so buyers/borrowers can see distance */}
+          {(isLendable || isForSale) && (
+            <div className="mb-4">
+              <label className="block text-[0.75rem] font-semibold text-muted uppercase tracking-wider mb-1.5">📍 Pickup / Borrow Location</label>
+              {location ? (
+                <div className="flex items-center gap-3 p-3 bg-teal-light rounded-lg">
+                  <span className="text-teal text-xl">📍</span>
+                  <div className="flex-1">
+                    <div className="text-sm font-semibold text-teal">Location pinned!</div>
+                    <div className="text-[0.75rem] text-teal/80">{location.lat.toFixed(4)}, {location.lng.toFixed(4)}</div>
+                  </div>
+                  <button type="button" onClick={() => setLocation(null)} className="text-xs text-teal underline border-none bg-transparent cursor-pointer">Remove</button>
+                </div>
+              ) : (
+                <button type="button" onClick={handleGetLocation} disabled={locating}
+                  className="w-full flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg border-[1.5px] border-dashed border-teal text-teal font-semibold text-sm disabled:opacity-50 bg-transparent cursor-pointer">
+                  {locating ? <><span className="spinner" style={{width:14,height:14,borderWidth:2,borderColor:'currentColor'}} /> Getting location…</> : '📍 Pin My Location'}
+                </button>
+              )}
+              {locationError && <div className="text-coral text-xs mt-1.5">{locationError}</div>}
+              <p className="text-[0.72rem] text-muted mt-1.5">Helps buyers/borrowers see how far away they are. Only your general area is shown.</p>
+            </div>
           )}
 
           <button type="submit" disabled={saving}

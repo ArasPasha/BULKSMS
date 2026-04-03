@@ -1,297 +1,184 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import {
-  collection, query, where, onSnapshot, getDocs,
-  addDoc, updateDoc, doc, serverTimestamp, arrayUnion, getDoc, orderBy,
-} from 'firebase/firestore';
+import { collection, query, where, onSnapshot, getDocs, addDoc, updateDoc, doc, serverTimestamp, arrayUnion, getDoc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function Friends() {
   const { user, profile, refreshProfile } = useAuth();
   const navigate = useNavigate();
-
   const [searchEmail, setSearchEmail] = useState('');
   const [searchResult, setSearchResult] = useState(null);
   const [searchError, setSearchError] = useState('');
   const [searching, setSearching] = useState(false);
+  const [incoming, setIncoming] = useState([]);
+  const [outgoing, setOutgoing] = useState([]);
+  const [friends, setFriends] = useState([]);
+  const [friendItems, setFriendItems] = useState({});
 
-  const [incoming, setIncoming] = useState([]);   // pending requests TO me
-  const [outgoing, setOutgoing] = useState([]);   // pending requests FROM me
-  const [friends, setFriends] = useState([]);     // accepted friends profiles
-  const [friendItems, setFriendItems] = useState({}); // lendable items per friend
-
-  // Load incoming requests
   useEffect(() => {
     if (!user) return;
-    const q = query(
-      collection(db, 'friendRequests'),
-      where('toId', '==', user.uid),
-      where('status', '==', 'pending')
-    );
-    return onSnapshot(q, async snap => {
+    return onSnapshot(query(collection(db, 'friendRequests'), where('toId', '==', user.uid), where('status', '==', 'pending')), async snap => {
       const reqs = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-      // Enrich with sender profiles
-      const enriched = await Promise.all(reqs.map(async r => {
-        const s = await getDoc(doc(db, 'users', r.fromId));
-        return { ...r, fromProfile: s.exists() ? s.data() : null };
-      }));
+      const enriched = await Promise.all(reqs.map(async r => { const s = await getDoc(doc(db, 'users', r.fromId)); return { ...r, fromProfile: s.exists() ? s.data() : null }; }));
       setIncoming(enriched);
     });
   }, [user]);
 
-  // Load outgoing requests
   useEffect(() => {
     if (!user) return;
-    const q = query(
-      collection(db, 'friendRequests'),
-      where('fromId', '==', user.uid),
-      where('status', '==', 'pending')
-    );
-    return onSnapshot(q, snap => {
-      setOutgoing(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-    });
+    return onSnapshot(query(collection(db, 'friendRequests'), where('fromId', '==', user.uid), where('status', '==', 'pending')), snap => setOutgoing(snap.docs.map(d => ({ id: d.id, ...d.data() }))));
   }, [user]);
 
-  // Load friend profiles
   useEffect(() => {
     const ids = profile?.friends || [];
     if (!ids.length) { setFriends([]); return; }
-    Promise.all(ids.map(uid => getDoc(doc(db, 'users', uid)))).then(snaps => {
-      setFriends(snaps.filter(s => s.exists()).map(s => ({ uid: s.id, ...s.data() })));
-    });
+    Promise.all(ids.map(uid => getDoc(doc(db, 'users', uid)))).then(snaps => setFriends(snaps.filter(s => s.exists()).map(s => ({ uid: s.id, ...s.data() }))));
   }, [profile?.friends]);
 
-  // Load lendable items for each friend
   useEffect(() => {
     if (!friends.length) return;
-    const unsubs = friends.map(friend => {
-      const q = query(
-        collection(db, 'items'),
-        where('userId', '==', friend.uid),
-        where('isLendable', '==', true)
-      );
-      return onSnapshot(q, snap => {
-        setFriendItems(prev => ({
-          ...prev,
-          [friend.uid]: snap.docs.map(d => ({ id: d.id, ...d.data() })),
-        }));
-      });
-    });
+    const unsubs = friends.map(f => onSnapshot(query(collection(db, 'items'), where('userId', '==', f.uid), where('isLendable', '==', true)), snap => setFriendItems(prev => ({ ...prev, [f.uid]: snap.docs.map(d => ({ id: d.id, ...d.data() })) }))));
     return () => unsubs.forEach(u => u());
   }, [friends]);
 
   async function handleSearch(e) {
-    e.preventDefault();
-    if (!searchEmail.trim()) return;
-    setSearching(true);
-    setSearchResult(null);
-    setSearchError('');
+    e.preventDefault(); if (!searchEmail.trim()) return;
+    setSearching(true); setSearchResult(null); setSearchError('');
     try {
-      const q = query(collection(db, 'users'), where('email', '==', searchEmail.trim().toLowerCase()));
-      const snap = await getDocs(q);
-      if (snap.empty) {
-        setSearchError('No user found with that email.');
-      } else {
-        const found = { uid: snap.docs[0].id, ...snap.docs[0].data() };
-        if (found.uid === user.uid) {
-          setSearchError("That's you!");
-        } else if (profile?.friends?.includes(found.uid)) {
-          setSearchError('Already your friend.');
-        } else {
-          setSearchResult(found);
-        }
-      }
-    } catch {
-      setSearchError('Search failed. Try again.');
-    } finally {
-      setSearching(false);
-    }
+      const snap = await getDocs(query(collection(db, 'users'), where('email', '==', searchEmail.trim().toLowerCase())));
+      if (snap.empty) { setSearchError('No user found with that email.'); return; }
+      const found = { uid: snap.docs[0].id, ...snap.docs[0].data() };
+      if (found.uid === user.uid) { setSearchError("That's you!"); return; }
+      if (profile?.friends?.includes(found.uid)) { setSearchError('Already your friend.'); return; }
+      setSearchResult(found);
+    } catch { setSearchError('Search failed. Try again.'); }
+    finally { setSearching(false); }
   }
 
   async function sendRequest(toUser) {
-    // Check for existing pending request
-    const q = query(
-      collection(db, 'friendRequests'),
-      where('fromId', '==', user.uid),
-      where('toId', '==', toUser.uid),
-      where('status', '==', 'pending')
-    );
-    const existing = await getDocs(q);
+    const existing = await getDocs(query(collection(db, 'friendRequests'), where('fromId', '==', user.uid), where('toId', '==', toUser.uid), where('status', '==', 'pending')));
     if (!existing.empty) { setSearchError('Request already sent.'); return; }
-
-    await addDoc(collection(db, 'friendRequests'), {
-      fromId: user.uid,
-      toId: toUser.uid,
-      status: 'pending',
-      createdAt: serverTimestamp(),
-    });
-    setSearchResult(null);
-    setSearchEmail('');
+    await addDoc(collection(db, 'friendRequests'), { fromId: user.uid, toId: toUser.uid, status: 'pending', createdAt: serverTimestamp() });
+    setSearchResult(null); setSearchEmail('');
   }
 
   async function acceptRequest(req) {
     await updateDoc(doc(db, 'friendRequests', req.id), { status: 'accepted' });
-    // Add each other as friends
     await updateDoc(doc(db, 'users', user.uid), { friends: arrayUnion(req.fromId) });
     await updateDoc(doc(db, 'users', req.fromId), { friends: arrayUnion(user.uid) });
     await refreshProfile();
   }
 
-  async function declineRequest(req) {
-    await updateDoc(doc(db, 'friendRequests', req.id), { status: 'declined' });
-  }
+  async function declineRequest(req) { await updateDoc(doc(db, 'friendRequests', req.id), { status: 'declined' }); }
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <h1>Friends</h1>
+    <div className="pb-[calc(68px+8px)] min-h-dvh">
+      <div className="bg-white px-4 pt-14 pb-3.5 border-b border-border sticky top-0 z-10">
+        <h1 className="text-[1.3rem] font-bold">Friends</h1>
       </div>
 
-      <div className="page-body">
-        {/* Search */}
-        <p className="section-title">Find a Friend</p>
-        <form onSubmit={handleSearch} style={{ marginBottom: 12 }}>
-          <div className="search-wrap" style={{ marginBottom: 8 }}>
-            <span className="search-icon">👤</span>
-            <input
-              type="email"
-              placeholder="Search by email address…"
-              value={searchEmail}
-              onChange={e => setSearchEmail(e.target.value)}
-              style={{ paddingLeft: 38 }}
-            />
+      <div className="p-4">
+        <p className="text-[0.78rem] font-bold uppercase tracking-wider text-muted mt-5 mb-2">Find a Friend</p>
+        <form onSubmit={handleSearch} className="mb-3">
+          <div className="relative mb-2">
+            <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none">👤</span>
+            <input type="email" placeholder="Search by email address…" value={searchEmail} onChange={e => setSearchEmail(e.target.value)}
+              className="w-full pl-9 pr-3.5 py-2.5 border-[1.5px] border-border rounded-lg text-sm text-ink bg-white outline-none focus:border-primary font-[inherit]" />
           </div>
-          <button className="btn btn-secondary btn-sm" type="submit" disabled={searching} style={{ width: '100%' }}>
-            {searching ? <span className="spinner" style={{ width: 14, height: 14, borderWidth: 2 }} /> : '🔍 Search'}
+          <button type="submit" disabled={searching} className="w-full flex items-center justify-center gap-2 py-2.5 rounded-lg bg-primary-light text-primary font-semibold text-sm disabled:opacity-50">
+            {searching ? <span className="spinner" style={{width:14,height:14,borderWidth:2}} /> : '🔍 Search'}
           </button>
         </form>
 
-        {searchError && <div className="alert alert-error">{searchError}</div>}
-
+        {searchError && <div className="bg-coral-light text-coral text-sm px-4 py-2.5 rounded-lg mb-4">{searchError}</div>}
         {searchResult && (
-          <div className="friend-card" style={{ marginBottom: 16, border: '2px solid var(--primary)' }}>
-            <UserAvatar user={searchResult} size={42} />
-            <div className="friend-card-info">
-              <div className="friend-card-name">{searchResult.displayName}</div>
-              <div className="friend-card-sub">{searchResult.email}</div>
+          <div className="flex items-center gap-3 p-3 bg-white rounded-[14px] mb-4 shadow-sm border-2 border-primary">
+            <Avatar user={searchResult} size={42} />
+            <div className="flex-1 min-w-0">
+              <div className="font-semibold text-[0.9rem]">{searchResult.displayName}</div>
+              <div className="text-[0.78rem] text-muted">{searchResult.email}</div>
             </div>
-            <button className="btn btn-primary btn-sm" onClick={() => sendRequest(searchResult)}>
-              + Add
-            </button>
+            <button onClick={() => sendRequest(searchResult)} className="px-3.5 py-2 rounded-lg bg-primary text-white text-sm font-semibold border-none cursor-pointer">+ Add</button>
           </div>
         )}
 
-        {/* Incoming requests */}
         {incoming.length > 0 && (
           <>
-            <p className="section-title">Friend Requests ({incoming.length})</p>
+            <p className="text-[0.78rem] font-bold uppercase tracking-wider text-muted mt-5 mb-2">Friend Requests ({incoming.length})</p>
             {incoming.map(req => (
-              <div key={req.id} className="friend-card">
-                <UserAvatar user={req.fromProfile} size={42} />
-                <div className="friend-card-info">
-                  <div className="friend-card-name">{req.fromProfile?.displayName || 'Unknown'}</div>
-                  <div className="friend-card-sub">{req.fromProfile?.email}</div>
+              <div key={req.id} className="flex items-center gap-3 p-3 bg-white rounded-[14px] mb-2 shadow-sm">
+                <Avatar user={req.fromProfile} size={42} />
+                <div className="flex-1 min-w-0">
+                  <div className="font-semibold text-[0.9rem]">{req.fromProfile?.displayName || 'Unknown'}</div>
+                  <div className="text-[0.78rem] text-muted">{req.fromProfile?.email}</div>
                 </div>
-                <div style={{ display: 'flex', gap: 6 }}>
-                  <button className="btn btn-teal btn-sm" onClick={() => acceptRequest(req)}>✓</button>
-                  <button className="btn btn-ghost btn-sm" onClick={() => declineRequest(req)}>✕</button>
+                <div className="flex gap-1.5">
+                  <button onClick={() => acceptRequest(req)} className="w-9 h-9 rounded-lg bg-teal text-white flex items-center justify-center border-none cursor-pointer text-sm">✓</button>
+                  <button onClick={() => declineRequest(req)} className="w-9 h-9 rounded-lg bg-transparent border-[1.5px] border-border text-muted flex items-center justify-center cursor-pointer text-sm">✕</button>
                 </div>
               </div>
             ))}
           </>
         )}
 
-        {/* Outgoing requests */}
         {outgoing.length > 0 && (
           <>
-            <p className="section-title">Pending Sent</p>
+            <p className="text-[0.78rem] font-bold uppercase tracking-wider text-muted mt-5 mb-2">Pending Sent</p>
             {outgoing.map(req => (
-              <div key={req.id} className="friend-card" style={{ opacity: 0.7 }}>
-                <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem' }}>⏳</div>
-                <div className="friend-card-info">
-                  <div className="friend-card-name">Request sent</div>
-                  <div className="friend-card-sub">Waiting for acceptance</div>
-                </div>
+              <div key={req.id} className="flex items-center gap-3 p-3 bg-white rounded-[14px] mb-2 shadow-sm opacity-70">
+                <div className="w-[42px] h-[42px] rounded-full bg-surface-2 flex items-center justify-center text-xl flex-shrink-0">⏳</div>
+                <div><div className="font-semibold text-[0.9rem]">Request sent</div><div className="text-[0.78rem] text-muted">Waiting for acceptance</div></div>
               </div>
             ))}
           </>
         )}
 
-        {/* Friends list */}
-        <p className="section-title">My Friends ({friends.length})</p>
+        <p className="text-[0.78rem] font-bold uppercase tracking-wider text-muted mt-5 mb-2">My Friends ({friends.length})</p>
         {friends.length === 0 ? (
-          <div className="empty-state" style={{ paddingTop: 24 }}>
-            <span className="empty-icon">👥</span>
-            <h3>No friends yet</h3>
-            <p>Search for friends by their email above.</p>
-          </div>
-        ) : (
-          friends.map(friend => (
-            <div key={friend.uid}>
-              <div className="friend-card">
-                <UserAvatar user={friend} size={42} />
-                <div className="friend-card-info">
-                  <div className="friend-card-name">{friend.displayName}</div>
-                  <div className="friend-card-sub">{friend.email}</div>
-                </div>
-                <button
-                  className="btn btn-secondary btn-sm"
-                  onClick={async () => {
-                    const convId = await getOrCreateConversation(user.uid, friend.uid);
-                    navigate(`/messages/${convId}`);
-                  }}
-                >
-                  💬
-                </button>
+          <div className="text-center py-8 text-muted"><span className="block text-4xl mb-2">👥</span><h3 className="font-semibold text-ink mb-1">No friends yet</h3><p className="text-sm">Search by email above.</p></div>
+        ) : friends.map(friend => (
+          <div key={friend.uid} className="mb-3">
+            <div className="flex items-center gap-3 p-3 bg-white rounded-[14px] shadow-sm">
+              <Avatar user={friend} size={42} />
+              <div className="flex-1 min-w-0">
+                <div className="font-semibold text-[0.9rem]">{friend.displayName}</div>
+                <div className="text-[0.78rem] text-muted">{friend.email}</div>
               </div>
-
-              {/* Lendable items from this friend */}
-              {(friendItems[friend.uid] || []).length > 0 && (
-                <div style={{ paddingLeft: 16, marginBottom: 12 }}>
-                  <p style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--teal)', marginBottom: 6, textTransform: 'uppercase', letterSpacing: '.04em' }}>
-                    🤝 Available to borrow
-                  </p>
-                  <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 4 }}>
-                    {(friendItems[friend.uid] || []).map(item => (
-                      <div
-                        key={item.id}
-                        onClick={() => navigate(`/item/${item.id}`)}
-                        style={{
-                          flexShrink: 0, width: 100,
-                          background: 'var(--surface)', borderRadius: 'var(--radius-sm)',
-                          padding: 8, boxShadow: 'var(--shadow-sm)', cursor: 'pointer',
-                          textAlign: 'center',
-                        }}
-                      >
-                        {item.photoURL ? (
-                          <img src={item.photoURL} alt={item.name} style={{ width: 60, height: 60, borderRadius: 8, objectFit: 'cover', marginBottom: 4 }} />
-                        ) : (
-                          <div style={{ width: 60, height: 60, borderRadius: 8, background: 'var(--surface-2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.6rem', margin: '0 auto 4px' }}>📦</div>
-                        )}
-                        <div style={{ fontSize: '0.72rem', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <button onClick={async () => { const id = await getOrCreateConversation(user.uid, friend.uid); navigate(`/messages/${id}`); }}
+                className="px-3 py-2 rounded-lg bg-primary-light text-primary text-sm font-semibold border-none cursor-pointer">💬</button>
             </div>
-          ))
-        )}
+            {(friendItems[friend.uid] || []).length > 0 && (
+              <div className="pl-4 mt-2">
+                <p className="text-[0.75rem] font-semibold text-teal uppercase tracking-wider mb-1.5">🤝 Available to borrow</p>
+                <div className="flex gap-2 overflow-x-auto scrollbar-hide pb-1">
+                  {(friendItems[friend.uid] || []).map(item => (
+                    <div key={item.id} onClick={() => navigate(`/item/${item.id}`)} className="flex-shrink-0 w-24 bg-white rounded-lg p-2 shadow-sm cursor-pointer text-center">
+                      {item.photoURL
+                        ? <img src={item.photoURL} alt={item.name} className="w-14 h-14 rounded-lg object-cover mx-auto mb-1" />
+                        : <div className="w-14 h-14 rounded-lg bg-surface-2 flex items-center justify-center text-2xl mx-auto mb-1">📦</div>
+                      }
+                      <div className="text-[0.72rem] font-semibold truncate">{item.name}</div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
-function UserAvatar({ user, size = 42 }) {
+function Avatar({ user, size = 42 }) {
   const name = user?.displayName || '?';
   const photo = user?.photoURL;
   const initials = name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase();
   return (
-    <div className="avatar" style={{ width: size, height: size, fontSize: size * 0.38 }}>
-      {photo
-        ? <img src={photo} alt={name} style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover' }} />
-        : initials}
+    <div className="rounded-full bg-primary-light flex items-center justify-center text-primary font-bold flex-shrink-0 overflow-hidden"
+      style={{ width: size, height: size, fontSize: size * 0.38 }}>
+      {photo ? <img src={photo} alt={name} style={{ width: size, height: size }} className="object-cover" /> : initials}
     </div>
   );
 }
@@ -301,13 +188,6 @@ async function getOrCreateConversation(uid1, uid2) {
   const snap = await getDocs(q);
   const existing = snap.docs.find(d => (d.data().participants || []).includes(uid2));
   if (existing) return existing.id;
-
-  const newRef = await addDoc(collection(db, 'conversations'), {
-    participants: [uid1, uid2],
-    lastMessage: '',
-    lastMessageAt: serverTimestamp(),
-    unreadBy: [],
-    createdAt: serverTimestamp(),
-  });
-  return newRef.id;
+  const ref = await addDoc(collection(db, 'conversations'), { participants: [uid1, uid2], lastMessage: '', lastMessageAt: serverTimestamp(), unreadBy: [], createdAt: serverTimestamp() });
+  return ref.id;
 }

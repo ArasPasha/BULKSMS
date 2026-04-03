@@ -10,15 +10,12 @@ export default function ItemDetail() {
   const { itemId } = useParams();
   const { user } = useAuth();
   const navigate = useNavigate();
-
   const [item, setItem] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
-  const [deleting, setDeleting] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [error, setError] = useState('');
-
-  // Edit form state
   const [editName, setEditName] = useState('');
   const [editStore, setEditStore] = useState('');
   const [editPrice, setEditPrice] = useState('');
@@ -31,16 +28,13 @@ export default function ItemDetail() {
   useEffect(() => {
     getDoc(doc(db, 'items', itemId)).then(snap => {
       if (snap.exists()) {
-        const data = { id: snap.id, ...snap.data() };
-        setItem(data);
-        setEditName(data.name || '');
-        setEditStore(data.storeName || '');
-        setEditPrice(data.pricePaid != null ? String(data.pricePaid) : '');
-        setEditRoom(data.room || '');
-        setEditDirections(data.directions || '');
-        setEditLendable(data.isLendable || false);
-        setEditForSale(data.isForSale || false);
-        setEditAskingPrice(data.askingPrice != null ? String(data.askingPrice) : '');
+        const d = { id: snap.id, ...snap.data() };
+        setItem(d);
+        setEditName(d.name || ''); setEditStore(d.storeName || '');
+        setEditPrice(d.pricePaid != null ? String(d.pricePaid) : '');
+        setEditRoom(d.room || ''); setEditDirections(d.directions || '');
+        setEditLendable(d.isLendable || false); setEditForSale(d.isForSale || false);
+        setEditAskingPrice(d.askingPrice != null ? String(d.askingPrice) : '');
       }
       setLoading(false);
     });
@@ -50,249 +44,144 @@ export default function ItemDetail() {
     if (!editName.trim()) return;
     setSaving(true);
     try {
-      const updates = {
-        name: editName.trim(),
-        storeName: editStore.trim(),
-        pricePaid: editPrice ? Number(editPrice) : null,
-        room: editRoom,
-        directions: editDirections.trim(),
-        isLendable: editLendable,
-        isForSale: editForSale,
-        askingPrice: editForSale && editAskingPrice ? Number(editAskingPrice) : null,
-      };
+      const updates = { name: editName.trim(), storeName: editStore.trim(), pricePaid: editPrice ? Number(editPrice) : null, room: editRoom, directions: editDirections.trim(), isLendable: editLendable, isForSale: editForSale, askingPrice: editForSale && editAskingPrice ? Number(editAskingPrice) : null };
       await updateDoc(doc(db, 'items', itemId), updates);
-      setItem(prev => ({ ...prev, ...updates }));
-      setEditing(false);
-    } catch {
-      setError('Failed to save changes.');
-    } finally {
-      setSaving(false);
-    }
+      setItem(prev => ({ ...prev, ...updates })); setEditing(false);
+    } catch { setError('Failed to save changes.'); }
+    finally { setSaving(false); }
   }
 
   async function handleDelete() {
     if (!window.confirm('Delete this item?')) return;
     setDeleting(true);
     try {
-      if (item.photoURL) {
-        try {
-          const storageRef = ref(storage, item.photoURL);
-          await deleteObject(storageRef);
-        } catch { /* photo may already be gone */ }
-      }
-      await deleteDoc(doc(db, 'items', itemId));
-      navigate('/my-stuff');
-    } catch {
-      setError('Failed to delete item.');
-      setDeleting(false);
-    }
+      if (item.photoURL) { try { await deleteObject(ref(storage, item.photoURL)); } catch {} }
+      await deleteDoc(doc(db, 'items', itemId)); navigate('/my-stuff');
+    } catch { setError('Failed to delete item.'); setDeleting(false); }
   }
 
-  if (loading) {
-    return (
-      <div className="loading-screen">
-        <span className="spinner" />
-      </div>
-    );
-  }
-
-  if (!item) {
-    return (
-      <div className="page">
-        <div className="page-header">
-          <button className="btn-icon" onClick={() => navigate(-1)}>←</button>
-        </div>
-        <div className="empty-state">
-          <span className="empty-icon">🔍</span>
-          <h3>Item not found</h3>
-        </div>
-      </div>
-    );
-  }
+  if (loading) return <div className="min-h-dvh flex items-center justify-center bg-bg text-primary"><span className="spinner spinner-lg" /></div>;
+  if (!item) return <div className="p-4 text-center text-muted pt-20">Item not found</div>;
 
   const isOwner = item.userId === user?.uid;
 
   return (
-    <div className="page" style={{ paddingBottom: '90px' }}>
+    <div className="pb-24 min-h-dvh">
       {/* Header */}
-      <div style={{
-        position: 'sticky', top: 0, zIndex: 10,
-        background: 'var(--surface)', borderBottom: '1px solid var(--border)',
-        padding: '52px 16px 14px',
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      }}>
-        <button className="btn-icon" onClick={() => navigate(-1)}>←</button>
-        <h1 style={{ fontSize: '1.1rem', fontWeight: 700 }}>
-          {editing ? 'Edit Item' : 'Item Details'}
-        </h1>
-        {isOwner && !editing && (
-          <button className="btn-icon" onClick={() => setEditing(true)} title="Edit">✏️</button>
-        )}
-        {editing && (
-          <button className="btn-icon" onClick={() => setEditing(false)}>✕</button>
-        )}
-        {!editing && !isOwner && <div style={{ width: 40 }} />}
+      <div className="bg-white px-4 pt-14 pb-3.5 border-b border-border sticky top-0 z-10 flex items-center justify-between">
+        <button onClick={() => navigate(-1)} className="w-10 h-10 rounded-full bg-surface-2 flex items-center justify-center border-none cursor-pointer text-lg">←</button>
+        <h1 className="text-[1.1rem] font-bold">{editing ? 'Edit Item' : 'Item Details'}</h1>
+        {isOwner && !editing && <button onClick={() => setEditing(true)} className="w-10 h-10 rounded-full bg-surface-2 flex items-center justify-center border-none cursor-pointer text-lg">✏️</button>}
+        {editing && <button onClick={() => setEditing(false)} className="w-10 h-10 rounded-full bg-surface-2 flex items-center justify-center border-none cursor-pointer text-lg">✕</button>}
+        {!editing && !isOwner && <div className="w-10" />}
       </div>
 
-      {error && <div className="alert alert-error" style={{ margin: '12px 16px 0' }}>{error}</div>}
+      {error && <div className="bg-coral-light text-coral text-sm px-4 py-2.5 rounded-lg mx-4 mt-3">{error}</div>}
 
       {/* Photo */}
-      {item.photoURL ? (
-        <img className="item-detail-img" src={item.photoURL} alt={item.name} />
-      ) : (
-        <div className="item-detail-img">{roomEmoji(item.room)}</div>
-      )}
+      {item.photoURL
+        ? <img src={item.photoURL} alt={item.name} className="w-full aspect-[4/3] object-cover" />
+        : <div className="w-full aspect-[4/3] bg-surface-2 flex items-center justify-center text-7xl">{roomEmoji(item.room)}</div>
+      }
 
-      <div className="page-body">
+      <div className="p-4">
         {editing ? (
-          /* ── Edit form ── */
           <>
-            <div className="form-group">
-              <label>Item Name *</label>
-              <input value={editName} onChange={e => setEditName(e.target.value)} required />
-            </div>
-            <div className="form-group">
-              <label>Store / Source</label>
-              <input value={editStore} onChange={e => setEditStore(e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label>Price Paid ($)</label>
-              <input type="number" min="0" step="0.01" value={editPrice} onChange={e => setEditPrice(e.target.value)} />
-            </div>
-            <div className="form-group">
-              <label>Room</label>
-              <select value={editRoom} onChange={e => setEditRoom(e.target.value)}>
+            <EditField label="Item Name *" value={editName} onChange={e => setEditName(e.target.value)} />
+            <EditField label="Store / Source" value={editStore} onChange={e => setEditStore(e.target.value)} />
+            <EditField label="Price Paid ($)" type="number" value={editPrice} onChange={e => setEditPrice(e.target.value)} />
+            <div className="flex flex-col gap-1.5 mb-3.5">
+              <label className="text-[0.75rem] font-semibold text-muted uppercase tracking-wider">Room</label>
+              <select value={editRoom} onChange={e => setEditRoom(e.target.value)} className="w-full px-3.5 py-3 border-[1.5px] border-border rounded-lg text-[0.95rem] text-ink bg-white outline-none focus:border-primary font-[inherit]">
                 <option value="">Select a room…</option>
                 {ROOMS.map(r => <option key={r} value={r}>{r}</option>)}
               </select>
             </div>
-            <div className="form-group">
-              <label>How to Find It</label>
-              <textarea value={editDirections} onChange={e => setEditDirections(e.target.value)} rows={3} />
+            <div className="flex flex-col gap-1.5 mb-3.5">
+              <label className="text-[0.75rem] font-semibold text-muted uppercase tracking-wider">How to Find It</label>
+              <textarea value={editDirections} onChange={e => setEditDirections(e.target.value)} rows={3} className="w-full px-3.5 py-3 border-[1.5px] border-border rounded-lg text-[0.95rem] text-ink bg-white outline-none focus:border-primary font-[inherit] resize-y min-h-[80px]" />
             </div>
-
-            <div className="card" style={{ padding: '0 16px', marginBottom: 16 }}>
-              <div className="toggle-row">
-                <div>
-                  <div className="toggle-row-label">🤝 Available to Lend</div>
-                </div>
-                <label className="toggle">
-                  <input type="checkbox" checked={editLendable} onChange={e => setEditLendable(e.target.checked)} />
-                  <span className="toggle-track" />
-                </label>
-              </div>
-              <div className="toggle-row">
-                <div>
-                  <div className="toggle-row-label">💰 For Sale</div>
-                </div>
-                <label className="toggle">
-                  <input type="checkbox" checked={editForSale} onChange={e => setEditForSale(e.target.checked)} />
-                  <span className="toggle-track" />
-                </label>
-              </div>
+            <div className="bg-white rounded-[14px] shadow-sm px-4 mb-4">
+              <ToggleRow label="🤝 Available to Lend" checked={editLendable} onChange={e => setEditLendable(e.target.checked)} />
+              <ToggleRow label="💰 For Sale" checked={editForSale} onChange={e => setEditForSale(e.target.checked)} last />
             </div>
-
-            {editForSale && (
-              <div className="form-group">
-                <label>Asking Price ($)</label>
-                <input type="number" min="0" step="0.01" value={editAskingPrice} onChange={e => setEditAskingPrice(e.target.value)} />
-              </div>
-            )}
-
-            <button className="btn btn-primary" onClick={handleSave} disabled={saving}>
-              {saving ? <><span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> Saving…</> : '💾 Save Changes'}
+            {editForSale && <EditField label="Asking Price ($)" type="number" value={editAskingPrice} onChange={e => setEditAskingPrice(e.target.value)} />}
+            <button onClick={handleSave} disabled={saving} className="w-full flex items-center justify-center gap-2 py-3.5 rounded-lg bg-primary text-white font-semibold mb-2 disabled:opacity-50">
+              {saving ? <><span className="spinner" style={{width:16,height:16,borderWidth:2}} /> Saving…</> : '💾 Save Changes'}
             </button>
-            <button
-              className="btn btn-ghost"
-              style={{ marginTop: 8, color: 'var(--coral)', borderColor: 'var(--coral)' }}
-              onClick={handleDelete}
-              disabled={deleting}
-            >
+            <button onClick={handleDelete} disabled={deleting} className="w-full flex items-center justify-center gap-2 py-3.5 rounded-lg bg-transparent text-coral border-[1.5px] border-coral font-semibold disabled:opacity-50">
               {deleting ? <span className="spinner" /> : '🗑️ Delete Item'}
             </button>
           </>
         ) : (
-          /* ── View mode ── */
           <>
             {/* Title + badges */}
-            <div className="detail-section">
-              <h2 style={{ fontSize: '1.2rem', fontWeight: 700, marginBottom: 8 }}>{item.name}</h2>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
-                {item.room && <span className={`badge ${roomBadgeClass(item.room)}`}>{item.room}</span>}
-                {item.isLendable && <span className="badge badge-lend">🤝 Lendable</span>}
-                {item.isForSale && (
-                  <span className="badge badge-sale">
-                    💰 {item.askingPrice ? `$${item.askingPrice}` : 'For Sale'}
-                  </span>
-                )}
+            <div className="bg-white rounded-[14px] shadow-sm p-4 mb-3">
+              <h2 className="text-xl font-bold mb-2">{item.name}</h2>
+              <div className="flex gap-1.5 flex-wrap">
+                {item.room && <Badge cls={roomBadgeClass(item.room)}>{item.room}</Badge>}
+                {item.isLendable && <Badge cls="bg-teal-light text-teal">🤝 Lendable</Badge>}
+                {item.isForSale && <Badge cls="bg-amber-light text-amber">💰 {item.askingPrice ? `$${item.askingPrice}` : 'For Sale'}</Badge>}
               </div>
             </div>
 
             {/* Details */}
-            <div className="detail-section">
-              <h3>Details</h3>
-              <div className="detail-row">
-                <span className="label">Store / Source</span>
-                <span className="value">{item.storeName || '—'}</span>
-              </div>
-              <div className="detail-row">
-                <span className="label">Price Paid</span>
-                <span className="value">{item.pricePaid != null ? `$${Number(item.pricePaid).toLocaleString()}` : '—'}</span>
-              </div>
-              <div className="detail-row">
-                <span className="label">Room</span>
-                <span className="value">{item.room || '—'}</span>
-              </div>
-              {item.isForSale && (
-                <div className="detail-row">
-                  <span className="label">Asking Price</span>
-                  <span className="value" style={{ color: 'var(--teal)', fontWeight: 700 }}>
-                    {item.askingPrice ? `$${item.askingPrice}` : 'Open to offers'}
-                  </span>
-                </div>
-              )}
+            <div className="bg-white rounded-[14px] shadow-sm p-4 mb-3">
+              <h3 className="text-[0.78rem] font-bold uppercase tracking-wider text-muted mb-2.5">Details</h3>
+              <DetailRow label="Store / Source" value={item.storeName || '—'} />
+              <DetailRow label="Price Paid" value={item.pricePaid != null ? `$${Number(item.pricePaid).toLocaleString()}` : '—'} />
+              <DetailRow label="Room" value={item.room || '—'} />
+              {item.isForSale && <DetailRow label="Asking Price" value={item.askingPrice ? `$${item.askingPrice}` : 'Open to offers'} valueClass="text-teal font-bold" last />}
             </div>
 
-            {/* Find this item */}
             {item.directions && (
-              <div className="detail-section">
-                <h3>📍 Find This Item</h3>
-                <p style={{ fontSize: '0.92rem', lineHeight: 1.6, color: 'var(--text)' }}>
-                  {item.directions}
-                </p>
+              <div className="bg-white rounded-[14px] shadow-sm p-4 mb-3">
+                <h3 className="text-[0.78rem] font-bold uppercase tracking-wider text-muted mb-2.5">📍 Find This Item</h3>
+                <p className="text-[0.92rem] leading-relaxed">{item.directions}</p>
               </div>
             )}
 
-            {/* Location breadcrumb */}
             {item.room && (
-              <div className="detail-section" style={{ background: 'var(--primary-light)' }}>
-                <h3 style={{ color: 'var(--primary)' }}>Step-by-step Location</h3>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>🏠 Home</span>
-                  <span style={{ color: 'var(--text-muted)' }}>→</span>
-                  <span style={{ fontSize: '0.85rem', fontWeight: 600 }}>
-                    {roomEmoji(item.room)} {item.room}
-                  </span>
-                  {item.directions && (
-                    <>
-                      <span style={{ color: 'var(--text-muted)' }}>→</span>
-                      <span style={{ fontSize: '0.82rem', color: 'var(--text-muted)' }}>
-                        {item.directions.slice(0, 60)}{item.directions.length > 60 ? '…' : ''}
-                      </span>
-                    </>
-                  )}
+              <div className="bg-primary-light rounded-[14px] p-4 mb-3">
+                <h3 className="text-[0.78rem] font-bold uppercase tracking-wider text-primary mb-2">Step-by-step Location</h3>
+                <div className="flex items-center gap-2 flex-wrap text-sm font-semibold">
+                  <span>🏠 Home</span>
+                  <span className="text-muted">→</span>
+                  <span>{roomEmoji(item.room)} {item.room}</span>
+                  {item.directions && <><span className="text-muted">→</span><span className="text-muted font-normal text-xs">{item.directions.slice(0, 60)}{item.directions.length > 60 ? '…' : ''}</span></>}
                 </div>
               </div>
             )}
 
             {isOwner && (
-              <button className="btn btn-secondary" onClick={() => setEditing(true)}>
-                ✏️ Edit Item
-              </button>
+              <button onClick={() => setEditing(true)} className="w-full py-3.5 rounded-lg bg-primary-light text-primary font-semibold flex items-center justify-center gap-2">✏️ Edit Item</button>
             )}
           </>
         )}
       </div>
+    </div>
+  );
+}
+
+function Badge({ cls, children }) {
+  return <span className={`inline-flex items-center gap-0.5 px-2 py-0.5 rounded-full text-[0.72rem] font-semibold ${cls}`}>{children}</span>;
+}
+function DetailRow({ label, value, valueClass = 'font-semibold', last }) {
+  return <div className={`flex justify-between items-center py-2 ${last ? '' : 'border-b border-border'}`}><span className="text-sm text-muted">{label}</span><span className={`text-[0.9rem] ${valueClass}`}>{value}</span></div>;
+}
+function EditField({ label, value, onChange, type = 'text' }) {
+  return (
+    <div className="flex flex-col gap-1.5 mb-3.5">
+      <label className="text-[0.75rem] font-semibold text-muted uppercase tracking-wider">{label}</label>
+      <input type={type} value={value} onChange={onChange} className="w-full px-3.5 py-3 border-[1.5px] border-border rounded-lg text-[0.95rem] text-ink bg-white outline-none focus:border-primary font-[inherit]" />
+    </div>
+  );
+}
+function ToggleRow({ label, checked, onChange, last }) {
+  return (
+    <div className={`flex items-center justify-between py-3.5 ${last ? '' : 'border-b border-border'}`}>
+      <div className="text-[0.9rem] font-medium">{label}</div>
+      <label className="toggle"><input type="checkbox" checked={checked} onChange={onChange} /><span className="toggle-track" /></label>
     </div>
   );
 }

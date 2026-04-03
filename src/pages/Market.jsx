@@ -12,182 +12,102 @@ export default function Market() {
   const [sellers, setSellers] = useState({});
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('All');
-  const [actionItem, setActionItem] = useState(null); // item for modal
+  const [actionItem, setActionItem] = useState(null);
   const [offerMode, setOfferMode] = useState(false);
   const [offerPrice, setOfferPrice] = useState('');
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
     if (!user) return;
-    const friends = profile?.friends || [];
-    const visibleUsers = [user.uid, ...friends];
-
-    // Firestore 'in' supports up to 30 values
+    const visibleUsers = [user.uid, ...(profile?.friends || [])];
     const chunks = chunkArray(visibleUsers, 30);
-    const unsubscribers = [];
-
     let allItems = [];
-
-    chunks.forEach((chunk, idx) => {
-      const q = query(
-        collection(db, 'items'),
-        where('userId', 'in', chunk),
-        where('isForSale', '==', true),
-        orderBy('createdAt', 'desc')
-      );
-      const unsub = onSnapshot(q, snap => {
+    const unsubs = chunks.map(chunk => {
+      const q = query(collection(db, 'items'), where('userId', 'in', chunk), where('isForSale', '==', true), orderBy('createdAt', 'desc'));
+      return onSnapshot(q, snap => {
         const chunkItems = snap.docs.map(d => ({ id: d.id, ...d.data() }));
         allItems = allItems.filter(i => !chunk.includes(i.userId)).concat(chunkItems);
         setItems([...allItems]);
-
-        // Fetch seller profiles for new sellers
-        const newUids = [...new Set(chunkItems.map(i => i.userId))];
-        newUids.forEach(uid => {
-          if (!sellers[uid]) {
-            getDoc(doc(db, 'users', uid)).then(s => {
-              if (s.exists()) setSellers(prev => ({ ...prev, [uid]: s.data() }));
-            });
-          }
+        [...new Set(chunkItems.map(i => i.userId))].forEach(uid => {
+          if (!sellers[uid]) getDoc(doc(db, 'users', uid)).then(s => { if (s.exists()) setSellers(prev => ({ ...prev, [uid]: s.data() })); });
         });
-
         setLoading(false);
       });
-      unsubscribers.push(unsub);
     });
-
-    return () => unsubscribers.forEach(u => u());
+    return () => unsubs.forEach(u => u());
   }, [user, profile?.friends]);
 
-  const filtered = items.filter(item => {
-    if (filter === 'Mine') return item.userId === user?.uid;
-    if (filter === "Friends'") return item.userId !== user?.uid;
-    return true;
-  });
+  const filtered = items.filter(i => filter === 'Mine' ? i.userId === user?.uid : filter === "Friends'" ? i.userId !== user?.uid : true);
 
   async function handleBuyOrOffer(item, type) {
-    if (!user) return;
     setSending(true);
     try {
-      // Find or create conversation with seller
       const convId = await getOrCreateConversation(user.uid, item.userId);
-
       const msgText = type === 'buy'
         ? `Hi! I'd like to buy your "${item.name}" listed at $${item.askingPrice}.`
         : `Hi! I'd like to make an offer of $${offerPrice} for your "${item.name}".`;
-
-      await addDoc(collection(db, 'conversations', convId, 'messages'), {
-        senderId: user.uid,
-        text: msgText,
-        type: type === 'buy' ? 'buy_request' : 'offer',
-        itemId: item.id,
-        itemName: item.name,
-        offerPrice: type === 'offer' ? Number(offerPrice) : null,
-        createdAt: serverTimestamp(),
-      });
-
-      // Update conversation metadata
-      await updateDoc(doc(db, 'conversations', convId), {
-        lastMessage: msgText,
-        lastMessageAt: serverTimestamp(),
-        unreadBy: [item.userId],
-      });
-
-      setActionItem(null);
-      setOfferMode(false);
-      setOfferPrice('');
+      await addDoc(collection(db, 'conversations', convId, 'messages'), { senderId: user.uid, text: msgText, type: type === 'buy' ? 'buy_request' : 'offer', itemId: item.id, itemName: item.name, offerPrice: type === 'offer' ? Number(offerPrice) : null, createdAt: serverTimestamp() });
+      await updateDoc(doc(db, 'conversations', convId), { lastMessage: msgText, lastMessageAt: serverTimestamp(), unreadBy: [item.userId] });
+      setActionItem(null); setOfferMode(false); setOfferPrice('');
       navigate(`/messages/${convId}`);
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setSending(false);
-    }
+    } catch (err) { console.error(err); }
+    finally { setSending(false); }
   }
 
   return (
-    <div className="page">
-      <div className="page-header">
-        <h1 style={{ marginBottom: 12 }}>🛍️ Marketplace</h1>
-        <div className="chips">
+    <div className="pb-[calc(68px+8px)] min-h-dvh">
+      <div className="bg-white px-4 pt-14 pb-3.5 border-b border-border sticky top-0 z-10">
+        <h1 className="text-[1.3rem] font-bold mb-3">🛍️ Marketplace</h1>
+        <div className="flex gap-1.5 overflow-x-auto scrollbar-hide">
           {['All', "Friends'", 'Mine'].map(f => (
-            <button key={f} className={`chip${filter === f ? ' active' : ''}`} onClick={() => setFilter(f)}>
-              {f}
-            </button>
+            <button key={f} onClick={() => setFilter(f)} className={`flex-shrink-0 px-3.5 py-1.5 rounded-full text-[0.8rem] font-semibold border-[1.5px] transition-all whitespace-nowrap ${filter === f ? 'bg-primary text-white border-primary' : 'bg-white text-muted border-border'}`}>{f}</button>
           ))}
         </div>
       </div>
 
-      <div className="page-body">
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: 40, color: 'var(--text-muted)' }}>
-            <span className="spinner" style={{ borderColor: 'var(--primary)', borderTopColor: 'transparent' }} />
-          </div>
-        ) : filtered.length === 0 ? (
-          <div className="empty-state">
-            <span className="empty-icon">🛍️</span>
-            <h3>Nothing for sale yet</h3>
-            <p>Mark your items for sale, or add friends to see their listings.</p>
-          </div>
-        ) : (
-          filtered.map(item => (
-            <MarketCard
-              key={item.id}
-              item={item}
-              seller={sellers[item.userId]}
-              isOwn={item.userId === user?.uid}
-              onBuy={() => { setActionItem(item); setOfferMode(false); }}
-              onOffer={() => { setActionItem(item); setOfferMode(true); }}
-              onView={() => navigate(`/item/${item.id}`)}
-            />
+      <div className="p-4">
+        {loading ? <div className="flex justify-center py-10"><span className="spinner text-primary" /></div>
+          : filtered.length === 0 ? <EmptyState />
+          : filtered.map(item => (
+            <div key={item.id} onClick={() => navigate(`/item/${item.id}`)} className="bg-white rounded-[14px] overflow-hidden shadow-sm mb-3 cursor-pointer">
+              {item.photoURL
+                ? <img src={item.photoURL} alt={item.name} className="w-full aspect-video object-cover" />
+                : <div className="w-full aspect-video bg-surface-2 flex items-center justify-center text-5xl">{roomEmoji(item.room)}</div>
+              }
+              <div className="p-3">
+                <div className="font-bold text-base mb-0.5">{item.name}</div>
+                <div className="text-lg font-extrabold text-teal mb-1.5">{item.askingPrice ? `$${Number(item.askingPrice).toLocaleString()}` : 'Open to offers'}</div>
+                <div className="text-[0.78rem] text-muted mb-2.5">{item.userId === user?.uid ? '📦 Your listing' : `👤 ${sellers[item.userId]?.displayName || 'Someone'}`}{item.room ? ` · ${item.room}` : ''}</div>
+                {item.userId !== user?.uid
+                  ? <div className="flex gap-2" onClick={e => e.stopPropagation()}>
+                      <button onClick={() => { setActionItem(item); setOfferMode(false); }} className="flex-1 py-2 rounded-lg bg-teal text-white text-sm font-semibold border-none cursor-pointer">🛒 Buy</button>
+                      <button onClick={() => { setActionItem(item); setOfferMode(true); }} className="flex-1 py-2 rounded-lg bg-transparent text-muted border-[1.5px] border-border text-sm font-semibold cursor-pointer">💬 Offer</button>
+                    </div>
+                  : <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[0.72rem] font-semibold bg-amber-light text-amber">Your listing</span>
+                }
+              </div>
+            </div>
           ))
-        )}
+        }
       </div>
 
-      {/* Action Modal */}
+      {/* Bottom sheet modal */}
       {actionItem && (
-        <div
-          style={{
-            position: 'fixed', inset: 0, background: 'rgba(0,0,0,.5)',
-            zIndex: 200, display: 'flex', alignItems: 'flex-end',
-          }}
-          onClick={e => { if (e.target === e.currentTarget) { setActionItem(null); setOfferMode(false); } }}
-        >
-          <div style={{
-            background: 'var(--surface)', borderRadius: 'var(--radius-lg) var(--radius-lg) 0 0',
-            padding: '24px 20px 36px', width: '100%', maxWidth: 'var(--max-w)',
-            margin: '0 auto',
-          }}>
-            <h3 style={{ fontWeight: 700, marginBottom: 4 }}>
-              {offerMode ? '💬 Make an Offer' : '🛒 Buy Now'}
-            </h3>
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: 16 }}>
-              {actionItem.name} — asking ${actionItem.askingPrice ?? 'open to offers'}
-            </p>
-
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-end" onClick={e => { if (e.target === e.currentTarget) { setActionItem(null); setOfferMode(false); } }}>
+          <div className="bg-white rounded-t-[20px] px-5 pt-6 pb-9 w-full max-w-app mx-auto">
+            <h3 className="font-bold text-lg mb-1">{offerMode ? '💬 Make an Offer' : '🛒 Buy Now'}</h3>
+            <p className="text-sm text-muted mb-4">{actionItem.name} — asking ${actionItem.askingPrice ?? 'open to offers'}</p>
             {offerMode && (
-              <div className="form-group">
-                <label>Your Offer ($)</label>
-                <input
-                  type="number" min="0" step="0.01"
-                  placeholder="Enter your offer…"
-                  value={offerPrice}
-                  onChange={e => setOfferPrice(e.target.value)}
-                  autoFocus
-                />
+              <div className="flex flex-col gap-1.5 mb-4">
+                <label className="text-[0.75rem] font-semibold text-muted uppercase tracking-wider">Your Offer ($)</label>
+                <input type="number" min="0" step="0.01" placeholder="Enter your offer…" value={offerPrice} onChange={e => setOfferPrice(e.target.value)} autoFocus className="w-full px-3.5 py-3 border-[1.5px] border-border rounded-lg text-[0.95rem] text-ink bg-white outline-none focus:border-primary font-[inherit]" />
               </div>
             )}
-
-            <button
-              className={`btn ${offerMode ? 'btn-amber' : 'btn-teal'}`}
-              disabled={sending || (offerMode && !offerPrice)}
-              onClick={() => handleBuyOrOffer(actionItem, offerMode ? 'offer' : 'buy')}
-            >
-              {sending
-                ? <><span className="spinner" style={{ width: 16, height: 16, borderWidth: 2 }} /> Sending…</>
-                : offerMode ? 'Send Offer' : 'Send Buy Request'}
+            <button onClick={() => handleBuyOrOffer(actionItem, offerMode ? 'offer' : 'buy')} disabled={sending || (offerMode && !offerPrice)}
+              className={`w-full flex items-center justify-center gap-2 py-3.5 rounded-lg font-semibold text-white mb-2 disabled:opacity-50 ${offerMode ? 'bg-amber' : 'bg-teal'}`}>
+              {sending ? <><span className="spinner" style={{width:16,height:16,borderWidth:2}} /> Sending…</> : offerMode ? 'Send Offer' : 'Send Buy Request'}
             </button>
-            <button className="btn btn-ghost" style={{ marginTop: 8 }} onClick={() => { setActionItem(null); setOfferMode(false); }}>
-              Cancel
-            </button>
+            <button onClick={() => { setActionItem(null); setOfferMode(false); }} className="w-full py-3.5 rounded-lg bg-transparent text-muted border-[1.5px] border-border font-semibold">Cancel</button>
           </div>
         </div>
       )}
@@ -195,54 +115,22 @@ export default function Market() {
   );
 }
 
-function MarketCard({ item, seller, isOwn, onBuy, onOffer, onView }) {
-  const sellerName = seller?.displayName || 'Someone';
+function EmptyState() {
   return (
-    <div className="market-card" onClick={onView} style={{ cursor: 'pointer' }}>
-      {item.photoURL ? (
-        <img className="market-card-img" src={item.photoURL} alt={item.name} />
-      ) : (
-        <div className="market-card-img">{roomEmoji(item.room)}</div>
-      )}
-      <div className="market-card-body">
-        <div className="market-card-name">{item.name}</div>
-        <div className="market-card-price">
-          {item.askingPrice ? `$${Number(item.askingPrice).toLocaleString()}` : 'Open to offers'}
-        </div>
-        <div className="market-card-seller">
-          {isOwn ? '📦 Your listing' : `👤 ${sellerName}`}
-          {item.room ? ` · ${item.room}` : ''}
-        </div>
-        {!isOwn && (
-          <div className="market-card-actions" onClick={e => e.stopPropagation()}>
-            <button className="btn btn-teal btn-sm" onClick={onBuy}>🛒 Buy</button>
-            <button className="btn btn-ghost btn-sm" onClick={onOffer}>💬 Offer</button>
-          </div>
-        )}
-        {isOwn && (
-          <span className="badge badge-sale">Your listing</span>
-        )}
-      </div>
+    <div className="text-center py-12 px-6 text-muted">
+      <span className="block text-5xl mb-3">🛍️</span>
+      <h3 className="text-base font-semibold text-ink mb-1.5">Nothing for sale yet</h3>
+      <p className="text-sm">Mark your items for sale, or add friends to see their listings.</p>
     </div>
   );
 }
 
 async function getOrCreateConversation(uid1, uid2) {
-  const q = query(
-    collection(db, 'conversations'),
-    where('participants', 'array-contains', uid1)
-  );
+  const q = query(collection(db, 'conversations'), where('participants', 'array-contains', uid1));
   const snap = await getDocs(q);
   const existing = snap.docs.find(d => (d.data().participants || []).includes(uid2));
   if (existing) return existing.id;
-
-  const newConv = await addDoc(collection(db, 'conversations'), {
-    participants: [uid1, uid2],
-    lastMessage: '',
-    lastMessageAt: serverTimestamp(),
-    unreadBy: [],
-    createdAt: serverTimestamp(),
-  });
+  const newConv = await addDoc(collection(db, 'conversations'), { participants: [uid1, uid2], lastMessage: '', lastMessageAt: serverTimestamp(), unreadBy: [], createdAt: serverTimestamp() });
   return newConv.id;
 }
 

@@ -18,9 +18,9 @@ function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) {
     return (
-      <div className="loading-screen">
-        <span className="spinner" />
-        <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Loading…</span>
+      <div className="min-h-dvh flex flex-col items-center justify-center gap-4 bg-bg text-primary">
+        <span className="spinner spinner-lg" />
+        <span className="text-sm text-muted">Loading…</span>
       </div>
     );
   }
@@ -63,7 +63,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <div className="app-shell">
+        <div className="w-full max-w-app bg-bg min-h-dvh relative overflow-x-hidden">
           <AppRoutes />
         </div>
       </AuthProvider>

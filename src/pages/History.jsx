@@ -1,6 +1,6 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useAuth } from '../contexts/AuthContext';
-import { watchMessages, formatPhone } from '../lib/sms';
+import { useMemo, useState } from 'react';
+import { useMessages } from '../lib/hooks';
+import { formatPhone } from '../lib/sms';
 
 const FILTERS = [
   { key: 'all', label: 'All' },
@@ -10,15 +10,9 @@ const FILTERS = [
 ];
 
 export default function History() {
-  const { user } = useAuth();
-  const [messages, setMessages] = useState([]);
+  const messages = useMessages(500);
   const [filter, setFilter] = useState('all');
   const [search, setSearch] = useState('');
-
-  useEffect(() => {
-    if (!user) return;
-    return watchMessages(user.uid, setMessages, 500);
-  }, [user]);
 
   const filtered = useMemo(() => {
     let list = messages;
@@ -28,9 +22,7 @@ export default function History() {
     if (search) {
       const s = search.toLowerCase();
       list = list.filter(m =>
-        m.body?.toLowerCase().includes(s) ||
-        m.to?.includes(s) ||
-        m.from?.includes(s)
+        m.body?.toLowerCase().includes(s) || m.to?.includes(s) || m.from?.includes(s)
       );
     }
     return list;
@@ -43,10 +35,8 @@ export default function History() {
       <header className="px-5 pt-6 pb-3 sticky top-0 bg-bg z-10">
         <h1 className="text-2xl font-extrabold text-ink mb-3">History</h1>
         <input
-          type="search"
-          placeholder="Search messages, phone numbers"
-          value={search}
-          onChange={e => setSearch(e.target.value)}
+          type="search" placeholder="Search messages, phone numbers"
+          value={search} onChange={e => setSearch(e.target.value)}
           className="w-full px-4 py-2.5 rounded-lg border-[1.5px] border-border text-sm bg-white outline-none focus:border-primary mb-2.5"
         />
         <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1">
@@ -54,9 +44,7 @@ export default function History() {
             <button key={f.key} onClick={() => setFilter(f.key)}
               className={`px-3 py-1.5 rounded-full text-xs font-semibold whitespace-nowrap ${
                 filter === f.key ? 'bg-primary text-white' : 'bg-white border border-border text-muted'
-              }`}>
-              {f.label}
-            </button>
+              }`}>{f.label}</button>
           ))}
         </div>
       </header>
@@ -69,9 +57,7 @@ export default function History() {
         ) : (
           grouped.map(group => (
             <div key={group.day}>
-              <h3 className="text-[0.7rem] font-bold text-muted uppercase tracking-wider mb-2 px-1">
-                {group.label}
-              </h3>
+              <h3 className="text-[0.7rem] font-bold text-muted uppercase tracking-wider mb-2 px-1">{group.label}</h3>
               <ul className="bg-white rounded-[14px] border border-border divide-y divide-border overflow-hidden">
                 {group.items.map(m => (
                   <MessageRow key={m.id} m={m} />
@@ -102,13 +88,9 @@ function MessageRow({ m }) {
             <span className="font-semibold text-sm text-ink truncate">
               {isIn ? `From ${formatPhone(m.from)}` : `To ${formatPhone(m.to)}`}
             </span>
-            <span className="text-[0.65rem] text-muted flex-shrink-0">
-              {m.createdAt?.toDate ? formatTime(m.createdAt.toDate()) : ''}
-            </span>
+            <span className="text-[0.65rem] text-muted flex-shrink-0">{formatTime(new Date(m.createdAt))}</span>
           </div>
-          <p className={`text-xs ${open ? 'text-ink whitespace-pre-wrap' : 'text-muted truncate'}`}>
-            {m.body}
-          </p>
+          <p className={`text-xs ${open ? 'text-ink whitespace-pre-wrap' : 'text-muted truncate'}`}>{m.body}</p>
           {open && isFailed && m.error && (
             <p className="text-xs text-coral mt-1.5">⚠ {m.error}</p>
           )}
@@ -128,8 +110,7 @@ function formatTime(d) {
 function groupByDay(messages) {
   const groups = new Map();
   for (const m of messages) {
-    if (!m.createdAt?.toDate) continue;
-    const d = m.createdAt.toDate();
+    const d = new Date(m.createdAt);
     const key = d.toDateString();
     if (!groups.has(key)) groups.set(key, { day: key, label: dayLabel(d), items: [] });
     groups.get(key).items.push(m);

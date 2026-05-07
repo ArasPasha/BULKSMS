@@ -1,9 +1,4 @@
-import {
-  collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc, updateDoc,
-  query, where, orderBy, limit, onSnapshot, serverTimestamp, writeBatch,
-  getCountFromServer,
-} from 'firebase/firestore';
-import { db } from '../firebase';
+import { store } from './store';
 
 export function normalizePhone(input) {
   if (!input) return '';
@@ -38,173 +33,6 @@ export function countSegments(body) {
   }
   if (len <= 70) return { chars: len, segments: 1, encoding: 'UCS-2' };
   return { chars: len, segments: Math.ceil(len / 67), encoding: 'UCS-2' };
-}
-
-export async function addContact(uid, { name, phone, tags = [] }) {
-  const e164 = normalizePhone(phone);
-  if (!e164) throw new Error('Invalid phone number');
-  return addDoc(collection(db, 'users', uid, 'contacts'), {
-    name: name?.trim() || '',
-    phone: e164,
-    tags,
-    optedOut: false,
-    createdAt: serverTimestamp(),
-  });
-}
-
-export async function updateContact(uid, contactId, updates) {
-  const data = { ...updates };
-  if (updates.phone !== undefined) data.phone = normalizePhone(updates.phone);
-  return updateDoc(doc(db, 'users', uid, 'contacts', contactId), data);
-}
-
-export async function deleteContact(uid, contactId) {
-  return deleteDoc(doc(db, 'users', uid, 'contacts', contactId));
-}
-
-const FIRESTORE_BATCH_LIMIT = 400;
-
-export async function bulkAddContacts(uid, rows, opts = {}) {
-  const { onProgress, dedupeExisting = true } = opts;
-  const cleaned = [];
-  const seenInFile = new Set();
-  let invalid = 0;
-  let dupesInFile = 0;
-
-  for (const row of rows) {
-    const e164 = normalizePhone(row.phone);
-    if (!e164 || !/^\+\d{10,15}$/.test(e164)) { invalid++; continue; }
-    if (seenInFile.has(e164)) { dupesInFile++; continue; }
-    seenInFile.add(e164);
-    cleaned.push({
-      name: row.name?.trim() || '',
-      phone: e164,
-      tags: Array.isArray(row.tags) ? row.tags : [],
-    });
-  }
-
-  let existing = new Set();
-  if (dedupeExisting && cleaned.length > 0) {
-    onProgress?.({ stage: 'checking', done: 0, total: cleaned.length });
-    const snap = await getDocs(collection(db, 'users', uid, 'contacts'));
-    snap.forEach(d => {
-      const p = d.data().phone;
-      if (p) existing.add(p);
-    });
-  }
-
-  const toWrite = cleaned.filter(r => !existing.has(r.phone));
-  const dupesInDb = cleaned.length - toWrite.length;
-
-  let added = 0;
-  for (let i = 0; i < toWrite.length; i += FIRESTORE_BATCH_LIMIT) {
-    const chunk = toWrite.slice(i, i + FIRESTORE_BATCH_LIMIT);
-    const batch = writeBatch(db);
-    for (const row of chunk) {
-      const ref = doc(collection(db, 'users', uid, 'contacts'));
-      batch.set(ref, {
-        name: row.name,
-        phone: row.phone,
-        tags: row.tags,
-        optedOut: false,
-        createdAt: serverTimestamp(),
-      });
-    }
-    await batch.commit();
-    added += chunk.length;
-    onProgress?.({ stage: 'writing', done: added, total: toWrite.length });
-  }
-
-  return {
-    added,
-    skipped: invalid + dupesInFile + dupesInDb,
-    invalid,
-    dupesInFile,
-    dupesInDb,
-    total: rows.length,
-  };
-}
-
-export function watchContacts(uid, cb, max = 500) {
-  const q = query(
-    collection(db, 'users', uid, 'contacts'),
-    orderBy('createdAt', 'desc'),
-    limit(max)
-  );
-  return onSnapshot(q, snap => {
-    cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
-}
-
-export async function getContactsCount(uid) {
-  const snap = await getCountFromServer(collection(db, 'users', uid, 'contacts'));
-  return snap.data().count;
-}
-
-export async function getContactsByTag(uid, tag) {
-  const q = query(
-    collection(db, 'users', uid, 'contacts'),
-    where('tags', 'array-contains', tag),
-    where('optedOut', '==', false)
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-}
-
-export async function getAllEligibleContacts(uid) {
-  const q = query(
-    collection(db, 'users', uid, 'contacts'),
-    where('optedOut', '==', false)
-  );
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
-}
-
-export function watchMessages(uid, cb, max = 200) {
-  const q = query(
-    collection(db, 'users', uid, 'messages'),
-    orderBy('createdAt', 'desc'),
-    limit(max)
-  );
-  return onSnapshot(q, snap => {
-    cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
-}
-
-export async function logMessage(uid, data) {
-  return addDoc(collection(db, 'users', uid, 'messages'), {
-    ...data,
-    createdAt: serverTimestamp(),
-  });
-}
-
-export async function isOptedOut(uid, phone) {
-  const e164 = normalizePhone(phone);
-  const ref = doc(db, 'users', uid, 'optouts', e164.replace('+', ''));
-  const snap = await getDoc(ref);
-  return snap.exists();
-}
-
-export async function setOptOut(uid, phone, optedOut = true) {
-  const e164 = normalizePhone(phone);
-  const ref = doc(db, 'users', uid, 'optouts', e164.replace('+', ''));
-  if (optedOut) {
-    await setDoc(ref, { phone: e164, optedOutAt: serverTimestamp() });
-  } else {
-    await deleteDoc(ref);
-  }
-  const cq = query(collection(db, 'users', uid, 'contacts'), where('phone', '==', e164));
-  const snap = await getDocs(cq);
-  const batch = writeBatch(db);
-  snap.docs.forEach(d => batch.update(d.ref, { optedOut }));
-  await batch.commit();
-}
-
-export function watchOptOuts(uid, cb) {
-  const q = query(collection(db, 'users', uid, 'optouts'), orderBy('optedOutAt', 'desc'));
-  return onSnapshot(q, snap => {
-    cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
 }
 
 export function buildGatewayUrl(rawUrl) {
@@ -246,25 +74,23 @@ export async function gatewaySend({ url, user, pass, to, body }) {
   return data;
 }
 
-export async function sendSms({ uid, gateway, to, body, contactId = null }) {
+export async function sendSms({ to, body, contactId = null }) {
   const phone = normalizePhone(to);
-  if (await isOptedOut(uid, phone)) {
-    await logMessage(uid, {
-      direction: 'out', to: phone, body,
-      status: 'blocked-optout', contactId,
-    });
+  if (store.isOptedOut(phone)) {
+    await store.logMessage({ direction: 'out', to: phone, body, status: 'blocked-optout', contactId });
     throw new Error(`${phone} has opted out`);
   }
+  const { gatewayUrl, gatewayUser, gatewayPass } = store.settings;
   let gatewayResult = null;
   let status = 'sent';
   let error = null;
   try {
-    gatewayResult = await gatewaySend({ ...gateway, to: phone, body });
+    gatewayResult = await gatewaySend({ url: gatewayUrl, user: gatewayUser, pass: gatewayPass, to: phone, body });
   } catch (e) {
     status = 'failed';
     error = e.message;
   }
-  await logMessage(uid, {
+  await store.logMessage({
     direction: 'out',
     to: phone,
     body,
@@ -277,7 +103,7 @@ export async function sendSms({ uid, gateway, to, body, contactId = null }) {
   return gatewayResult;
 }
 
-export async function broadcastSms({ uid, gateway, recipients, body, throttleMs = 1500, onProgress, signal }) {
+export async function broadcastSms({ recipients, body, throttleMs = 1500, onProgress, signal }) {
   const sent = [];
   const failed = [];
   for (let i = 0; i < recipients.length; i++) {
@@ -285,7 +111,7 @@ export async function broadcastSms({ uid, gateway, recipients, body, throttleMs 
     const r = recipients[i];
     try {
       const personalized = body.replace(/\{\{\s*name\s*\}\}/g, r.name || 'there');
-      await sendSms({ uid, gateway, to: r.phone, body: personalized, contactId: r.id });
+      await sendSms({ to: r.phone, body: personalized, contactId: r.id });
       sent.push(r);
     } catch (e) {
       failed.push({ ...r, error: e.message });
@@ -296,4 +122,34 @@ export async function broadcastSms({ uid, gateway, recipients, body, throttleMs 
     }
   }
   return { sent, failed };
+}
+
+// Convenience helpers used by pages — they wrap store mutations
+export async function addContact({ name, phone, tags = [] }) {
+  const e164 = normalizePhone(phone);
+  if (!e164) throw new Error('Invalid phone number');
+  return store.addContact({ name: name?.trim() || '', phone: e164, tags });
+}
+
+export async function updateContact(id, updates) {
+  const patch = { ...updates };
+  if (updates.phone !== undefined) patch.phone = normalizePhone(updates.phone);
+  return store.updateContact(id, patch);
+}
+
+export async function deleteContact(id) {
+  return store.deleteContact(id);
+}
+
+export async function bulkAddContacts(rows, opts = {}) {
+  const normalized = rows.map(r => ({
+    name: r.name?.trim() || '',
+    phone: normalizePhone(r.phone),
+    tags: r.tags || [],
+  }));
+  return store.bulkAddContacts(normalized, opts);
+}
+
+export async function setOptOut(phone, optedOut = true) {
+  return store.setOptOut(normalizePhone(phone), optedOut);
 }

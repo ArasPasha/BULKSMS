@@ -1,24 +1,13 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
-import {
-  watchContacts, watchMessages, watchOptOuts,
-  formatPhone, isQuietHours,
-} from '../lib/sms';
+import { useContacts, useMessages, useOptOuts, useSettings } from '../lib/hooks';
+import { formatPhone, isQuietHours } from '../lib/sms';
 
 export default function Dashboard() {
-  const { user, profile, logout } = useAuth();
-  const [contacts, setContacts] = useState([]);
-  const [messages, setMessages] = useState([]);
-  const [optOuts, setOptOuts] = useState([]);
-
-  useEffect(() => {
-    if (!user) return;
-    const u1 = watchContacts(user.uid, setContacts);
-    const u2 = watchMessages(user.uid, setMessages, 50);
-    const u3 = watchOptOuts(user.uid, setOptOuts);
-    return () => { u1(); u2(); u3(); };
-  }, [user]);
+  const contacts = useContacts();
+  const messages = useMessages(50);
+  const optOuts = useOptOuts();
+  const settings = useSettings();
 
   const stats = useMemo(() => {
     const sent = messages.filter(m => m.direction === 'out' && m.status === 'sent').length;
@@ -26,26 +15,19 @@ export default function Dashboard() {
     const received = messages.filter(m => m.direction === 'in').length;
     const today = new Date(); today.setHours(0,0,0,0);
     const sentToday = messages.filter(m =>
-      m.direction === 'out' && m.status === 'sent' &&
-      m.createdAt?.toDate && m.createdAt.toDate() >= today
+      m.direction === 'out' && m.status === 'sent' && new Date(m.createdAt) >= today
     ).length;
     return { sent, failed, received, sentToday };
   }, [messages]);
 
-  const gatewayConfigured = !!(profile?.gatewayUrl && profile?.gatewayUser && profile?.gatewayPass);
-  const quiet = profile?.respectQuietHours && isQuietHours();
+  const gatewayConfigured = !!(settings.gatewayUrl && settings.gatewayUser && settings.gatewayPass);
+  const quiet = settings.respectQuietHours && isQuietHours();
 
   return (
     <div className="min-h-dvh bg-bg pb-nav">
-      <header className="px-5 pt-6 pb-4 flex items-center justify-between">
-        <div>
-          <p className="text-xs text-muted uppercase tracking-wider font-semibold">Welcome</p>
-          <h1 className="text-2xl font-extrabold text-ink">{profile?.displayName || 'You'}</h1>
-        </div>
-        <button onClick={logout}
-          className="text-xs text-muted bg-white border border-border rounded-lg px-3 py-2 font-semibold">
-          Sign out
-        </button>
+      <header className="px-5 pt-6 pb-4">
+        <p className="text-xs text-muted uppercase tracking-wider font-semibold">SMS Sender</p>
+        <h1 className="text-2xl font-extrabold text-ink">Dashboard</h1>
       </header>
 
       {!gatewayConfigured && (
@@ -55,7 +37,7 @@ export default function Dashboard() {
             <div className="flex-1">
               <p className="font-semibold text-ink mb-1">Connect your phone</p>
               <p className="text-xs text-muted mb-2">
-                You need to configure the SMS Gateway on your Android phone before sending.
+                Configure the SMS Gateway on your Android phone before sending.
               </p>
               <Link to="/settings" className="text-primary text-sm font-semibold">
                 Set up gateway →
@@ -82,8 +64,8 @@ export default function Dashboard() {
         <h2 className="text-sm font-bold text-muted uppercase tracking-wider mb-2.5">Quick actions</h2>
         <div className="grid grid-cols-2 gap-3">
           <ActionCard to="/compose" title="New message" subtitle="Send to one or many" icon="✉️" />
-          <ActionCard to="/contacts" title="Contacts" subtitle={`${contacts.length} saved`} icon="👥" />
-          <ActionCard to="/history" title="History" subtitle={`${messages.length} messages`} icon="📜" />
+          <ActionCard to="/contacts" title="Contacts" subtitle={`${contacts.length.toLocaleString()} saved`} icon="👥" />
+          <ActionCard to="/history" title="History" subtitle={`${messages.length.toLocaleString()} messages`} icon="📜" />
           <ActionCard to="/settings" title="Settings" subtitle={gatewayConfigured ? 'Connected' : 'Setup needed'} icon="⚙️" />
         </div>
       </section>
@@ -112,7 +94,7 @@ export default function Dashboard() {
                       {m.direction === 'in' ? `From ${formatPhone(m.from)}` : `To ${formatPhone(m.to)}`}
                     </span>
                     <span className="text-[0.65rem] text-muted flex-shrink-0">
-                      {m.createdAt?.toDate ? timeAgo(m.createdAt.toDate()) : ''}
+                      {timeAgo(new Date(m.createdAt))}
                     </span>
                   </div>
                   <p className="text-xs text-muted truncate">{m.body}</p>

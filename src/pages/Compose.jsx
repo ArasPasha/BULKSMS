@@ -1,23 +1,20 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth } from '../contexts/AuthContext';
+import { useContacts, useSettings } from '../lib/hooks';
 import {
-  watchContacts, sendSms, broadcastSms, normalizePhone, formatPhone,
-  countSegments, isQuietHours, getContactsCount, getContactsByTag,
-  getAllEligibleContacts,
+  sendSms, broadcastSms, normalizePhone, formatPhone,
+  countSegments, isQuietHours,
 } from '../lib/sms';
 
 const PAGE_SIZE = 500;
 
 export default function Compose() {
-  const { user, profile } = useAuth();
   const navigate = useNavigate();
-  const [contacts, setContacts] = useState([]);
+  const allContacts = useContacts();
+  const settings = useSettings();
   const [pageLimit, setPageLimit] = useState(PAGE_SIZE);
-  const [totalCount, setTotalCount] = useState(null);
   const [mode, setMode] = useState('single');
   const [phone, setPhone] = useState('');
-  // selected: Map<id, contact> so we can keep full data for contacts not in the loaded page
   const [selected, setSelected] = useState(new Map());
   const [tagFilter, setTagFilter] = useState('');
   const [body, setBody] = useState('');
@@ -25,21 +22,14 @@ export default function Compose() {
   const [progress, setProgress] = useState(null);
   const [result, setResult] = useState(null);
   const [error, setError] = useState('');
-  const [bulkLoading, setBulkLoading] = useState(false);
 
-  useEffect(() => {
-    if (!user) return;
-    return watchContacts(user.uid, setContacts, pageLimit);
-  }, [user, pageLimit]);
-
-  useEffect(() => {
-    if (!user) return;
-    let active = true;
-    getContactsCount(user.uid).then(c => { if (active) setTotalCount(c); }).catch(() => {});
-    return () => { active = false; };
-  }, [user]);
-
-  const eligible = useMemo(() => contacts.filter(c => !c.optedOut), [contacts]);
+  const sortedAll = useMemo(
+    () => [...allContacts].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)),
+    [allContacts]
+  );
+  const eligible = useMemo(() => sortedAll.filter(c => !c.optedOut), [sortedAll]);
+  const totalEligible = eligible.length;
+  const visible = eligible.slice(0, pageLimit);
 
   const tags = useMemo(() => {
     const set = new Set();
@@ -48,14 +38,14 @@ export default function Compose() {
   }, [eligible]);
 
   const filtered = useMemo(() => {
-    if (!tagFilter) return eligible;
-    return eligible.filter(c => c.tags?.includes(tagFilter));
-  }, [eligible, tagFilter]);
+    if (!tagFilter) return visible;
+    return visible.filter(c => c.tags?.includes(tagFilter));
+  }, [visible, tagFilter]);
 
   const seg = countSegments(body);
-  const gatewayConfigured = !!(profile?.gatewayUrl && profile?.gatewayUser && profile?.gatewayPass);
-  const quiet = profile?.respectQuietHours && isQuietHours();
-  const throttleMs = profile?.sendThrottleMs || 1500;
+  const gatewayConfigured = !!(settings.gatewayUrl && settings.gatewayUser && settings.gatewayPass);
+  const quiet = settings.respectQuietHours && isQuietHours();
+  const throttleMs = settings.sendThrottleMs || 1500;
 
   const recipientCount = mode === 'single' ? (phone.trim() ? 1 : 0) : selected.size;
   const recipients = useMemo(() => {
@@ -66,9 +56,7 @@ export default function Compose() {
     return Array.from(selected.values());
   }, [mode, phone, selected]);
 
-  const etaMs = recipientCount * throttleMs;
-  const etaText = formatDuration(etaMs);
-
+  const etaText = formatDuration(recipientCount * throttleMs);
   const dangerTier =
     recipientCount > 1000 ? 'critical' :
     recipientCount > 200 ? 'high' :
@@ -82,7 +70,7 @@ export default function Compose() {
     });
   }
 
-  function selectAllLoaded() {
+  function selectAllVisible() {
     setSelected(prev => {
       const next = new Map(prev);
       filtered.forEach(c => next.set(c.id, c));
@@ -90,43 +78,30 @@ export default function Compose() {
     });
   }
 
-  function clearAll() { setSelected(new Map()); }
-
-  async function selectByTag() {
-    if (!tagFilter || !user) return;
-    setBulkLoading(true);
-    try {
-      const all = await getContactsByTag(user.uid, tagFilter);
-      setSelected(prev => {
-        const next = new Map(prev);
-        all.forEach(c => next.set(c.id, c));
-        return next;
-      });
-    } catch (e) {
-      setError(e.message);
-    } finally { setBulkLoading(false); }
+  function selectByTag() {
+    if (!tagFilter) return;
+    const matching = eligible.filter(c => c.tags?.includes(tagFilter));
+    setSelected(prev => {
+      const next = new Map(prev);
+      matching.forEach(c => next.set(c.id, c));
+      return next;
+    });
   }
 
-  async function selectAllEligible() {
-    if (!user) return;
-    if (totalCount && totalCount > 1000) {
+  function selectAllEligible() {
+    if (totalEligible > 1000) {
       const ok = confirm(
-        `Select all ${totalCount.toLocaleString()} contacts?\n\n` +
-        `Sending to this many from one personal number will almost certainly get your number suspended. ` +
-        `Strongly consider sending to a tag-filtered subset instead.`
+        `Select all ${totalEligible.toLocaleString()} contacts?\n\n` +
+        `Sending to this many from one personal number will almost certainly get your number suspended.`
       );
       if (!ok) return;
     }
-    setBulkLoading(true);
-    try {
-      const all = await getAllEligibleContacts(user.uid);
-      const m = new Map();
-      all.forEach(c => m.set(c.id, c));
-      setSelected(m);
-    } catch (e) {
-      setError(e.message);
-    } finally { setBulkLoading(false); }
+    const m = new Map();
+    eligible.forEach(c => m.set(c.id, c));
+    setSelected(m);
   }
+
+  function clearAll() { setSelected(new Map()); }
 
   async function handleSend(e) {
     e.preventDefault();
@@ -149,21 +124,17 @@ export default function Compose() {
     if (recipientCount > 1000) {
       const ok = confirm(
         `🚨 You're about to send to ${recipientCount.toLocaleString()} numbers.\n\n` +
-        `Estimated time: ${etaText}\n` +
-        `Throttle: ${throttleMs}ms between sends\n\n` +
+        `Estimated time: ${etaText}\n\n` +
         `Carriers WILL flag your number as spam at this volume. Your phone number will likely be suspended ` +
-        `for SMS by the carrier within minutes.\n\n` +
-        `For broadcasts this large, use a registered A2P provider (Twilio + 10DLC), not a personal phone.\n\n` +
-        `Type-to-confirm not implemented — proceed at your own risk.\n\nReally send?`
+        `within minutes — long before the loop finishes.\n\n` +
+        `For broadcasts this large, use a registered A2P provider (Twilio + 10DLC).\n\nReally send?`
       );
       if (!ok) return;
       const ok2 = confirm(`Last chance. Send to ${recipientCount.toLocaleString()} numbers?`);
       if (!ok2) return;
     } else if (recipientCount > 200) {
       const ok = confirm(
-        `⚠️ Sending to ${recipientCount.toLocaleString()} numbers (~${etaText}).\n\n` +
-        `Carriers may flag your number for sending this volume. Consider splitting into smaller groups ` +
-        `over multiple days.\n\nContinue?`
+        `⚠️ Sending to ${recipientCount.toLocaleString()} numbers (~${etaText}). Carriers may flag your number for this volume. Continue?`
       );
       if (!ok) return;
     } else if (recipientCount > 1) {
@@ -173,18 +144,13 @@ export default function Compose() {
 
     setSending(true);
     setProgress({ index: 0, total: recipients.length, sent: 0, failed: 0 });
-    const gateway = {
-      url: profile.gatewayUrl, user: profile.gatewayUser, pass: profile.gatewayPass,
-    };
     try {
       if (recipients.length === 1) {
-        await sendSms({ uid: user.uid, gateway, to: recipients[0].phone, body, contactId: recipients[0].id });
+        await sendSms({ to: recipients[0].phone, body, contactId: recipients[0].id });
         setResult({ sent: 1, failed: 0 });
       } else {
         const r = await broadcastSms({
-          uid: user.uid, gateway, recipients, body,
-          throttleMs,
-          onProgress: setProgress,
+          recipients, body, throttleMs, onProgress: setProgress,
         });
         setResult({ sent: r.sent.length, failed: r.failed.length, failedList: r.failed });
       }
@@ -224,13 +190,9 @@ export default function Compose() {
         )}
         <div className="flex gap-2">
           <button onClick={() => { setResult(null); setBody(''); setSelected(new Map()); setPhone(''); }}
-            className="flex-1 py-3 rounded-lg bg-white border border-border font-semibold text-sm">
-            Send another
-          </button>
+            className="flex-1 py-3 rounded-lg bg-white border border-border font-semibold text-sm">Send another</button>
           <button onClick={() => navigate('/history')}
-            className="flex-1 py-3 rounded-lg bg-primary text-white font-semibold text-sm">
-            View history
-          </button>
+            className="flex-1 py-3 rounded-lg bg-primary text-white font-semibold text-sm">View history</button>
         </div>
       </div>
     );
@@ -242,13 +204,9 @@ export default function Compose() {
         <h1 className="text-2xl font-extrabold text-ink mb-3">Compose</h1>
         <div className="flex bg-white rounded-lg border border-border p-1 text-sm font-semibold">
           <button onClick={() => setMode('single')}
-            className={`flex-1 py-2 rounded ${mode === 'single' ? 'bg-primary text-white' : 'text-muted'}`}>
-            Single
-          </button>
+            className={`flex-1 py-2 rounded ${mode === 'single' ? 'bg-primary text-white' : 'text-muted'}`}>Single</button>
           <button onClick={() => setMode('broadcast')}
-            className={`flex-1 py-2 rounded ${mode === 'broadcast' ? 'bg-primary text-white' : 'text-muted'}`}>
-            Broadcast
-          </button>
+            className={`flex-1 py-2 rounded ${mode === 'broadcast' ? 'bg-primary text-white' : 'text-muted'}`}>Broadcast</button>
         </div>
       </header>
 
@@ -271,18 +229,16 @@ export default function Compose() {
               </label>
               <div className="flex gap-2 text-xs">
                 {tagFilter ? (
-                  <button type="button" onClick={selectByTag} disabled={bulkLoading}
-                    className="text-primary font-semibold disabled:opacity-50">
-                    {bulkLoading ? '…' : `All in "${tagFilter}"`}
+                  <button type="button" onClick={selectByTag} className="text-primary font-semibold">
+                    All in "{tagFilter}"
                   </button>
                 ) : (
-                  <button type="button" onClick={selectAllLoaded} className="text-primary font-semibold">
-                    Loaded ({filtered.length.toLocaleString()})
+                  <button type="button" onClick={selectAllVisible} className="text-primary font-semibold">
+                    Visible ({filtered.length.toLocaleString()})
                   </button>
                 )}
-                <button type="button" onClick={selectAllEligible} disabled={bulkLoading}
-                  className="text-amber font-semibold disabled:opacity-50">
-                  {bulkLoading ? '…' : `All (${totalCount?.toLocaleString() || '…'})`}
+                <button type="button" onClick={selectAllEligible} className="text-amber font-semibold">
+                  All ({totalEligible.toLocaleString()})
                 </button>
                 <button type="button" onClick={clearAll} className="text-muted font-semibold">None</button>
               </div>
@@ -311,10 +267,8 @@ export default function Compose() {
                   {filtered.map(c => (
                     <li key={c.id}>
                       <label className="flex items-center gap-3 px-3.5 py-2.5 cursor-pointer">
-                        <input
-                          type="checkbox" checked={selected.has(c.id)} onChange={() => toggle(c)}
-                          className="w-4 h-4 accent-primary"
-                        />
+                        <input type="checkbox" checked={selected.has(c.id)} onChange={() => toggle(c)}
+                          className="w-4 h-4 accent-primary" />
                         <div className="flex-1 min-w-0">
                           <div className="text-sm font-semibold text-ink truncate">{c.name || formatPhone(c.phone)}</div>
                           <div className="text-xs text-muted">{formatPhone(c.phone)}</div>
@@ -323,10 +277,10 @@ export default function Compose() {
                     </li>
                   ))}
                 </ul>
-                {totalCount !== null && contacts.length < totalCount && (
+                {visible.length < totalEligible && (
                   <button type="button" onClick={() => setPageLimit(p => p + PAGE_SIZE)}
                     className="w-full mt-2 py-2 rounded-lg bg-white border border-border text-primary font-semibold text-xs">
-                    Load {Math.min(PAGE_SIZE, totalCount - contacts.length).toLocaleString()} more contacts
+                    Load {Math.min(PAGE_SIZE, totalEligible - visible.length).toLocaleString()} more
                   </button>
                 )}
               </>
@@ -405,7 +359,7 @@ function DangerBanner({ tier, count, eta }) {
   const messages = {
     medium: `Sending to ${count.toLocaleString()} contacts will take about ${eta}.`,
     high: `Sending to ${count.toLocaleString()} contacts (~${eta}) from a personal number can trigger carrier spam filtering. Consider splitting over multiple days.`,
-    critical: `${count.toLocaleString()} contacts (~${eta}) from a personal number will almost certainly get your number suspended for SMS. Use a registered A2P provider (Twilio + 10DLC) for this scale.`,
+    critical: `${count.toLocaleString()} contacts (~${eta}) from a personal number will almost certainly get your number suspended for SMS. Use a registered A2P provider for this scale.`,
   };
   return (
     <div className={`p-3 rounded-[14px] border ${styles[tier]}`}>

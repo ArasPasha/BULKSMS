@@ -1,19 +1,16 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import Papa from 'papaparse';
-import { useAuth } from '../contexts/AuthContext';
+import { useContacts } from '../lib/hooks';
 import {
-  watchContacts, addContact, updateContact, deleteContact,
-  bulkAddContacts, formatPhone, normalizePhone, setOptOut,
-  getContactsCount,
+  addContact, updateContact, deleteContact, bulkAddContacts,
+  formatPhone, normalizePhone, setOptOut,
 } from '../lib/sms';
 
 const PAGE_SIZE = 500;
 
 export default function Contacts() {
-  const { user } = useAuth();
-  const [contacts, setContacts] = useState([]);
+  const allContacts = useContacts();
   const [pageLimit, setPageLimit] = useState(PAGE_SIZE);
-  const [totalCount, setTotalCount] = useState(null);
   const [search, setSearch] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -22,17 +19,12 @@ export default function Contacts() {
   const [importSummary, setImportSummary] = useState(null);
   const fileRef = useRef(null);
 
-  useEffect(() => {
-    if (!user) return;
-    return watchContacts(user.uid, setContacts, pageLimit);
-  }, [user, pageLimit]);
-
-  useEffect(() => {
-    if (!user) return;
-    let active = true;
-    getContactsCount(user.uid).then(c => { if (active) setTotalCount(c); }).catch(() => {});
-    return () => { active = false; };
-  }, [user, contacts.length]);
+  const sorted = useMemo(
+    () => [...allContacts].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)),
+    [allContacts]
+  );
+  const totalCount = allContacts.length;
+  const contacts = sorted.slice(0, pageLimit);
 
   const filtered = useMemo(() => {
     if (!search) return contacts;
@@ -46,30 +38,24 @@ export default function Contacts() {
 
   async function handleSave(form) {
     try {
-      if (editing) {
-        await updateContact(user.uid, editing.id, form);
-      } else {
-        await addContact(user.uid, form);
-      }
+      if (editing) await updateContact(editing.id, form);
+      else await addContact(form);
       setShowAdd(false); setEditing(null);
-    } catch (e) {
-      alert(e.message);
-    }
+    } catch (e) { alert(e.message); }
   }
 
   async function handleDelete(id) {
     if (!confirm('Delete this contact?')) return;
-    await deleteContact(user.uid, id);
+    await deleteContact(id);
   }
 
   async function handleToggleOptOut(c) {
-    await setOptOut(user.uid, c.phone, !c.optedOut);
+    await setOptOut(c.phone, !c.optedOut);
   }
 
   function pickField(row, ...names) {
     for (const n of names) {
-      const keys = Object.keys(row);
-      const k = keys.find(k => k.toLowerCase().trim() === n.toLowerCase());
+      const k = Object.keys(row).find(k => k.toLowerCase().trim() === n.toLowerCase());
       if (k && row[k]) return String(row[k]).trim();
     }
     return '';
@@ -82,13 +68,9 @@ export default function Contacts() {
     setImportProgress(null);
     setImportStatus(`Parsing ${file.name}…`);
     Papa.parse(file, {
-      header: true,
-      skipEmptyLines: 'greedy',
+      header: true, skipEmptyLines: 'greedy',
       transformHeader: h => h.trim(),
-      complete: async ({ data, errors }) => {
-        if (errors?.length) {
-          console.warn('CSV parse warnings:', errors);
-        }
+      complete: async ({ data }) => {
         const rows = data.map(r => {
           const name = pickField(r, 'name', 'full name', 'fullname', 'full_name', 'first name', 'firstname', 'first_name', 'contact', 'contact name');
           const last = pickField(r, 'last name', 'lastname', 'last_name', 'surname');
@@ -111,11 +93,8 @@ export default function Contacts() {
         if (rows.length > 2000) {
           const ok = confirm(
             `Found ${rows.length.toLocaleString()} rows.\n\n` +
-            `This will write up to ${rows.length.toLocaleString()} contacts to your Firestore database. ` +
-            `On the free tier you get 20K writes/day — large imports may exceed that.\n\n` +
-            `Note: sending to all of these from one personal phone WILL get your number suspended. ` +
-            `Use tags to send in small batches (under 100/hr).\n\n` +
-            `Continue?`
+            `Sending to all of these from one personal phone WILL get your number suspended. ` +
+            `Use tags to send in small batches (under 100/hr).\n\nContinue with the import?`
           );
           if (!ok) {
             setImportStatus('');
@@ -124,13 +103,12 @@ export default function Contacts() {
           }
         }
 
-        setImportStatus(`Found ${rows.length.toLocaleString()} rows. Checking duplicates…`);
+        setImportStatus(`Found ${rows.length.toLocaleString()} rows. Importing…`);
         try {
-          const summary = await bulkAddContacts(user.uid, rows, {
+          const summary = await bulkAddContacts(rows, {
             onProgress: (p) => {
               setImportProgress(p);
-              if (p.stage === 'checking') setImportStatus('Checking existing contacts…');
-              else if (p.stage === 'writing') setImportStatus(`Importing ${p.done}/${p.total}…`);
+              if (p.stage === 'writing') setImportStatus(`Importing ${p.done.toLocaleString()}/${p.total.toLocaleString()}…`);
             },
           });
           setImportSummary(summary);
@@ -155,11 +133,9 @@ export default function Contacts() {
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-2xl font-extrabold text-ink">Contacts</h1>
           <span className="text-xs text-muted font-semibold">
-            {totalCount !== null ? (
-              contacts.length < totalCount
-                ? `${contacts.length.toLocaleString()} of ${totalCount.toLocaleString()}`
-                : totalCount.toLocaleString()
-            ) : contacts.length.toLocaleString()}
+            {contacts.length < totalCount
+              ? `${contacts.length.toLocaleString()} of ${totalCount.toLocaleString()}`
+              : totalCount.toLocaleString()}
           </span>
         </div>
         <input
@@ -196,20 +172,13 @@ export default function Contacts() {
             <div className="flex items-start justify-between gap-3">
               <div className="text-xs text-ink space-y-0.5">
                 <div className="font-semibold text-teal text-sm">
-                  ✓ Imported {importSummary.added} of {importSummary.total}
+                  ✓ Imported {importSummary.added.toLocaleString()} of {importSummary.total.toLocaleString()}
                 </div>
-                {importSummary.dupesInDb > 0 && (
-                  <div>{importSummary.dupesInDb} already in your contacts</div>
-                )}
-                {importSummary.dupesInFile > 0 && (
-                  <div>{importSummary.dupesInFile} duplicates inside the file</div>
-                )}
-                {importSummary.invalid > 0 && (
-                  <div>{importSummary.invalid} invalid phone numbers</div>
-                )}
+                {importSummary.dupesInDb > 0 && <div>{importSummary.dupesInDb.toLocaleString()} already in your contacts</div>}
+                {importSummary.dupesInFile > 0 && <div>{importSummary.dupesInFile.toLocaleString()} duplicates inside the file</div>}
+                {importSummary.invalid > 0 && <div>{importSummary.invalid.toLocaleString()} invalid phone numbers</div>}
               </div>
-              <button onClick={() => setImportSummary(null)}
-                className="text-muted text-lg leading-none">×</button>
+              <button onClick={() => setImportSummary(null)} className="text-muted text-lg leading-none">×</button>
             </div>
           </div>
         )}
@@ -218,7 +187,7 @@ export default function Contacts() {
       <ul className="px-5 mt-3 space-y-2">
         {filtered.length === 0 && (
           <li className="text-center py-10 text-muted text-sm bg-white rounded-[14px] border border-border">
-            {contacts.length === 0 ? 'No contacts yet. Add one or import a CSV.' : 'No matches.'}
+            {totalCount === 0 ? 'No contacts yet. Add one or import a CSV.' : 'No matches.'}
           </li>
         )}
         {filtered.map(c => (
@@ -229,7 +198,7 @@ export default function Contacts() {
         ))}
       </ul>
 
-      {totalCount !== null && contacts.length < totalCount && !search && (
+      {contacts.length < totalCount && !search && (
         <div className="px-5 mt-3">
           <button
             onClick={() => setPageLimit(p => p + PAGE_SIZE)}
@@ -261,23 +230,17 @@ function ContactCard({ c, onEdit, onToggleOptOut, onDelete }) {
           {c.tags?.length > 0 && (
             <div className="flex flex-wrap gap-1 mt-1">
               {c.tags.map(t => (
-                <span key={t} className="text-[0.65rem] bg-primary-light text-primary px-1.5 py-0.5 rounded font-semibold">
-                  {t}
-                </span>
+                <span key={t} className="text-[0.65rem] bg-primary-light text-primary px-1.5 py-0.5 rounded font-semibold">{t}</span>
               ))}
             </div>
           )}
           {c.optedOut && (
-            <span className="inline-block mt-1 text-[0.65rem] bg-coral-light text-coral px-1.5 py-0.5 rounded font-semibold">
-              OPTED OUT
-            </span>
+            <span className="inline-block mt-1 text-[0.65rem] bg-coral-light text-coral px-1.5 py-0.5 rounded font-semibold">OPTED OUT</span>
           )}
         </div>
         <div className="flex flex-col gap-1">
           <button onClick={onEdit} className="text-xs text-primary font-semibold px-2 py-1">Edit</button>
-          <button onClick={onToggleOptOut} className="text-xs text-amber font-semibold px-2 py-1">
-            {c.optedOut ? 'Unblock' : 'Opt-out'}
-          </button>
+          <button onClick={onToggleOptOut} className="text-xs text-amber font-semibold px-2 py-1">{c.optedOut ? 'Unblock' : 'Opt-out'}</button>
           <button onClick={onDelete} className="text-xs text-coral font-semibold px-2 py-1">Delete</button>
         </div>
       </div>
@@ -328,9 +291,7 @@ function ContactForm({ contact, onSave, onCancel }) {
         </Field>
         <div className="flex gap-2 mt-4">
           <button type="button" onClick={onCancel}
-            className="flex-1 py-3 rounded-lg bg-white border border-border text-ink font-semibold text-sm">
-            Cancel
-          </button>
+            className="flex-1 py-3 rounded-lg bg-white border border-border text-ink font-semibold text-sm">Cancel</button>
           <button type="submit" disabled={saving}
             className="flex-1 py-3 rounded-lg bg-primary text-white font-semibold text-sm disabled:opacity-50">
             {saving ? 'Saving…' : 'Save'}

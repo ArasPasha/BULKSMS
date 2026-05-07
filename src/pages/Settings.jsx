@@ -1,36 +1,30 @@
 import { useEffect, useState } from 'react';
-import { doc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase';
-import { useAuth } from '../contexts/AuthContext';
-import { gatewayPing, watchOptOuts, setOptOut, formatPhone } from '../lib/sms';
+import { useOptOuts, useSettings } from '../lib/hooks';
+import { store } from '../lib/store';
+import { gatewayPing, setOptOut, formatPhone } from '../lib/sms';
 
 export default function Settings() {
-  const { user, profile, refreshProfile, logout } = useAuth();
+  const settings = useSettings();
+  const optOuts = useOptOuts();
   const [form, setForm] = useState({
     gatewayUrl: '', gatewayUser: '', gatewayPass: '',
     optOutKeywords: '', sendThrottleMs: 1500, respectQuietHours: true,
   });
   const [saving, setSaving] = useState(false);
+  const [savedAt, setSavedAt] = useState(null);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
-  const [optOuts, setOptOuts] = useState([]);
 
   useEffect(() => {
-    if (!profile) return;
     setForm({
-      gatewayUrl: profile.gatewayUrl || '',
-      gatewayUser: profile.gatewayUser || '',
-      gatewayPass: profile.gatewayPass || '',
-      optOutKeywords: (profile.optOutKeywords || []).join(', '),
-      sendThrottleMs: profile.sendThrottleMs ?? 1500,
-      respectQuietHours: profile.respectQuietHours ?? true,
+      gatewayUrl: settings.gatewayUrl || '',
+      gatewayUser: settings.gatewayUser || '',
+      gatewayPass: settings.gatewayPass || '',
+      optOutKeywords: (settings.optOutKeywords || []).join(', '),
+      sendThrottleMs: settings.sendThrottleMs ?? 1500,
+      respectQuietHours: settings.respectQuietHours ?? true,
     });
-  }, [profile]);
-
-  useEffect(() => {
-    if (!user) return;
-    return watchOptOuts(user.uid, setOptOuts);
-  }, [user]);
+  }, [settings]);
 
   function update(k, v) { setForm(p => ({ ...p, [k]: v })); }
 
@@ -38,7 +32,7 @@ export default function Settings() {
     e.preventDefault();
     setSaving(true);
     try {
-      await updateDoc(doc(db, 'users', user.uid), {
+      await store.updateSettings({
         gatewayUrl: form.gatewayUrl.trim(),
         gatewayUser: form.gatewayUser.trim(),
         gatewayPass: form.gatewayPass,
@@ -46,7 +40,8 @@ export default function Settings() {
         sendThrottleMs: Math.max(500, parseInt(form.sendThrottleMs, 10) || 1500),
         respectQuietHours: !!form.respectQuietHours,
       });
-      await refreshProfile();
+      setSavedAt(Date.now());
+      setTimeout(() => setSavedAt(null), 2500);
     } finally { setSaving(false); }
   }
 
@@ -65,7 +60,19 @@ export default function Settings() {
 
   async function unblockOptOut(phone) {
     if (!confirm(`Remove opt-out for ${formatPhone(phone)}?`)) return;
-    await setOptOut(user.uid, phone, false);
+    await setOptOut(phone, false);
+  }
+
+  async function clearAllData() {
+    const ok = confirm(
+      'This will delete ALL contacts, messages, opt-outs, and settings from this browser.\n\n' +
+      'Are you absolutely sure?'
+    );
+    if (!ok) return;
+    const ok2 = confirm('Last chance. Permanently wipe everything?');
+    if (!ok2) return;
+    await indexedDB.deleteDatabase('sms-sender');
+    location.reload();
   }
 
   return (
@@ -77,8 +84,7 @@ export default function Settings() {
       <form onSubmit={handleSave} className="space-y-5">
         <Section
           title="Phone gateway"
-          subtitle="Install SMS Gateway for Android on your phone (capcom6/android-sms-gateway), open the app, copy the local URL and credentials shown in Local Server."
-        >
+          subtitle="Install SMS Gateway for Android (capcom6/android-sms-gateway). In the app, switch to Local Server mode and copy the URL + credentials shown.">
           <Field label="Gateway URL">
             <input value={form.gatewayUrl} onChange={e => update('gatewayUrl', e.target.value)}
               placeholder="http://192.168.1.42:8080" inputMode="url" autoCapitalize="none" />
@@ -106,17 +112,14 @@ export default function Settings() {
         <Section title="Sending behavior">
           <Field label="Throttle between sends (ms)">
             <input type="number" min={500} step={100}
-              value={form.sendThrottleMs}
-              onChange={e => update('sendThrottleMs', e.target.value)} />
+              value={form.sendThrottleMs} onChange={e => update('sendThrottleMs', e.target.value)} />
             <p className="text-[0.7rem] text-muted mt-1">
               1500ms = ~40/min. Lower = faster but higher carrier-flag risk.
             </p>
           </Field>
-          <Toggle
-            label="Respect quiet hours (9pm–8am)"
+          <Toggle label="Respect quiet hours (9pm–8am)"
             value={form.respectQuietHours}
-            onChange={v => update('respectQuietHours', v)}
-          />
+            onChange={v => update('respectQuietHours', v)} />
         </Section>
 
         <Section title="Opt-out keywords"
@@ -131,7 +134,7 @@ export default function Settings() {
         <div className="px-5">
           <button type="submit" disabled={saving}
             className="w-full py-3.5 rounded-lg bg-primary text-white font-semibold text-[0.95rem] disabled:opacity-50 active:scale-[.98]">
-            {saving ? 'Saving…' : 'Save settings'}
+            {saving ? 'Saving…' : savedAt ? '✓ Saved' : 'Save settings'}
           </button>
         </div>
       </form>
@@ -146,7 +149,7 @@ export default function Settings() {
                 <div>
                   <div className="text-sm font-semibold text-ink">{formatPhone(o.phone)}</div>
                   <div className="text-[0.65rem] text-muted">
-                    {o.optedOutAt?.toDate ? o.optedOutAt.toDate().toLocaleString() : ''}
+                    {o.optedOutAt ? new Date(o.optedOutAt).toLocaleString() : ''}
                   </div>
                 </div>
                 <button onClick={() => unblockOptOut(o.phone)}
@@ -157,12 +160,17 @@ export default function Settings() {
         )}
       </Section>
 
-      <div className="px-5 mt-6 mb-4">
-        <button onClick={logout}
-          className="w-full py-3 rounded-lg bg-white border border-border text-coral font-semibold text-sm">
-          Sign out
+      <Section title="Danger zone" className="mt-5">
+        <p className="text-xs text-muted mb-2">
+          All data lives only in this browser's IndexedDB. Clearing site data or using another browser starts fresh.
+        </p>
+        <button type="button" onClick={clearAllData}
+          className="w-full py-3 rounded-lg bg-white border border-coral/40 text-coral font-semibold text-sm">
+          Wipe all local data
         </button>
-      </div>
+      </Section>
+
+      <div className="h-6" />
     </div>
   );
 }

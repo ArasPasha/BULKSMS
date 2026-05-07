@@ -13,6 +13,8 @@ export default function Contacts() {
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState(null);
   const [importStatus, setImportStatus] = useState('');
+  const [importProgress, setImportProgress] = useState(null);
+  const [importSummary, setImportSummary] = useState(null);
   const fileRef = useRef(null);
 
   useEffect(() => {
@@ -52,29 +54,70 @@ export default function Contacts() {
     await setOptOut(user.uid, c.phone, !c.optedOut);
   }
 
+  function pickField(row, ...names) {
+    for (const n of names) {
+      const keys = Object.keys(row);
+      const k = keys.find(k => k.toLowerCase().trim() === n.toLowerCase());
+      if (k && row[k]) return String(row[k]).trim();
+    }
+    return '';
+  }
+
   function handleCsvFile(e) {
     const file = e.target.files?.[0];
     if (!file) return;
-    setImportStatus('Parsing…');
+    setImportSummary(null);
+    setImportProgress(null);
+    setImportStatus(`Parsing ${file.name}…`);
     Papa.parse(file, {
-      header: true, skipEmptyLines: true,
-      complete: async ({ data }) => {
-        const rows = data.map(r => ({
-          name: r.name || r.Name || r['First Name'] || r.first_name || '',
-          phone: r.phone || r.Phone || r.number || r.Number || r['Phone Number'] || '',
-          tags: (r.tags || r.Tags || '').split(',').map(t => t.trim()).filter(Boolean),
-        }));
+      header: true,
+      skipEmptyLines: 'greedy',
+      transformHeader: h => h.trim(),
+      complete: async ({ data, errors }) => {
+        if (errors?.length) {
+          console.warn('CSV parse warnings:', errors);
+        }
+        const rows = data.map(r => {
+          const name = pickField(r, 'name', 'full name', 'fullname', 'full_name', 'first name', 'firstname', 'first_name', 'contact', 'contact name');
+          const last = pickField(r, 'last name', 'lastname', 'last_name', 'surname');
+          const phone = pickField(r, 'phone', 'phone number', 'phonenumber', 'phone_number', 'mobile', 'mobile number', 'cell', 'number', 'tel', 'telephone');
+          const tagsStr = pickField(r, 'tags', 'tag', 'segment', 'group', 'list');
+          return {
+            name: [name, last].filter(Boolean).join(' ').trim(),
+            phone,
+            tags: tagsStr.split(/[,;|]/).map(t => t.trim()).filter(Boolean),
+          };
+        }).filter(r => r.phone);
+
+        if (rows.length === 0) {
+          setImportStatus(`No phone numbers found. Expected a column named: phone, mobile, number, etc.`);
+          setTimeout(() => setImportStatus(''), 6000);
+          if (fileRef.current) fileRef.current.value = '';
+          return;
+        }
+
+        setImportStatus(`Found ${rows.length} rows. Checking duplicates…`);
         try {
-          setImportStatus('Importing…');
-          const { added, skipped } = await bulkAddContacts(user.uid, rows);
-          setImportStatus(`Imported ${added}, skipped ${skipped}`);
-          setTimeout(() => setImportStatus(''), 4000);
+          const summary = await bulkAddContacts(user.uid, rows, {
+            onProgress: (p) => {
+              setImportProgress(p);
+              if (p.stage === 'checking') setImportStatus('Checking existing contacts…');
+              else if (p.stage === 'writing') setImportStatus(`Importing ${p.done}/${p.total}…`);
+            },
+          });
+          setImportSummary(summary);
+          setImportStatus('');
+          setImportProgress(null);
         } catch (err) {
           setImportStatus(`Failed: ${err.message}`);
+          setImportProgress(null);
         }
         if (fileRef.current) fileRef.current.value = '';
       },
-      error: (err) => setImportStatus(`Parse error: ${err.message}`),
+      error: (err) => {
+        setImportStatus(`Parse error: ${err.message}`);
+        if (fileRef.current) fileRef.current.value = '';
+      },
     });
   }
 
@@ -107,6 +150,34 @@ export default function Contacts() {
         </div>
         {importStatus && (
           <div className="mt-2 text-xs text-primary font-semibold">{importStatus}</div>
+        )}
+        {importProgress?.total > 0 && (
+          <div className="mt-2 w-full h-1.5 bg-surface-2 rounded-full overflow-hidden">
+            <div className="h-full bg-primary transition-all"
+              style={{ width: `${(importProgress.done / importProgress.total) * 100}%` }} />
+          </div>
+        )}
+        {importSummary && (
+          <div className="mt-2 p-3 rounded-lg bg-teal-light border border-teal/30">
+            <div className="flex items-start justify-between gap-3">
+              <div className="text-xs text-ink space-y-0.5">
+                <div className="font-semibold text-teal text-sm">
+                  ✓ Imported {importSummary.added} of {importSummary.total}
+                </div>
+                {importSummary.dupesInDb > 0 && (
+                  <div>{importSummary.dupesInDb} already in your contacts</div>
+                )}
+                {importSummary.dupesInFile > 0 && (
+                  <div>{importSummary.dupesInFile} duplicates inside the file</div>
+                )}
+                {importSummary.invalid > 0 && (
+                  <div>{importSummary.invalid} invalid phone numbers</div>
+                )}
+              </div>
+              <button onClick={() => setImportSummary(null)}
+                className="text-muted text-lg leading-none">×</button>
+            </div>
+          </div>
         )}
       </header>
 

@@ -81,16 +81,28 @@ behavior. Rules of thumb:
 
 ## CSV import format
 
-Headers (case-insensitive): `name`, `phone`, `tags`. Examples:
+Drop a CSV with a phone column and any of these recognized headers
+(case-insensitive — pick whatever your export gave you):
+
+| Field | Accepted column names                                        |
+| ----- | ------------------------------------------------------------ |
+| Name  | `name`, `full name`, `first name`, `contact`, `firstname`, `last name` (combined) |
+| Phone | `phone`, `phone number`, `mobile`, `cell`, `number`, `tel`   |
+| Tags  | `tags`, `tag`, `segment`, `group`, `list` (comma/semicolon-separated) |
+
+Example:
 
 ```csv
 name,phone,tags
-Jane Doe,(555) 123-4567,vip,customer
+Jane Doe,(555) 123-4567,vip;customer
 John Smith,5551234568,prospect
++44 7700 900123,uk
 ```
 
-`phone` accepts any US format; numbers are normalized to E.164 (`+15551234567`).
-Duplicates within the file are skipped automatically.
+- Phone numbers are normalized to **E.164** (`+15551234567`)
+- Rows missing a phone are dropped silently
+- Duplicates inside the file and against your existing contacts are skipped — you'll see a summary breakdown after import
+- Imports of any size — Firestore writes are auto-chunked into 400-row batches with live progress
 
 ## Tech stack
 

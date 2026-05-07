@@ -61,26 +61,67 @@ export async function deleteContact(uid, contactId) {
   return deleteDoc(doc(db, 'users', uid, 'contacts', contactId));
 }
 
-export async function bulkAddContacts(uid, rows) {
-  const batch = writeBatch(db);
-  const seen = new Set();
-  let added = 0, skipped = 0;
+const FIRESTORE_BATCH_LIMIT = 400;
+
+export async function bulkAddContacts(uid, rows, opts = {}) {
+  const { onProgress, dedupeExisting = true } = opts;
+  const cleaned = [];
+  const seenInFile = new Set();
+  let invalid = 0;
+  let dupesInFile = 0;
+
   for (const row of rows) {
     const e164 = normalizePhone(row.phone);
-    if (!e164 || seen.has(e164)) { skipped++; continue; }
-    seen.add(e164);
-    const ref = doc(collection(db, 'users', uid, 'contacts'));
-    batch.set(ref, {
+    if (!e164 || !/^\+\d{10,15}$/.test(e164)) { invalid++; continue; }
+    if (seenInFile.has(e164)) { dupesInFile++; continue; }
+    seenInFile.add(e164);
+    cleaned.push({
       name: row.name?.trim() || '',
       phone: e164,
-      tags: row.tags || [],
-      optedOut: false,
-      createdAt: serverTimestamp(),
+      tags: Array.isArray(row.tags) ? row.tags : [],
     });
-    added++;
   }
-  await batch.commit();
-  return { added, skipped };
+
+  let existing = new Set();
+  if (dedupeExisting && cleaned.length > 0) {
+    onProgress?.({ stage: 'checking', done: 0, total: cleaned.length });
+    const snap = await getDocs(collection(db, 'users', uid, 'contacts'));
+    snap.forEach(d => {
+      const p = d.data().phone;
+      if (p) existing.add(p);
+    });
+  }
+
+  const toWrite = cleaned.filter(r => !existing.has(r.phone));
+  const dupesInDb = cleaned.length - toWrite.length;
+
+  let added = 0;
+  for (let i = 0; i < toWrite.length; i += FIRESTORE_BATCH_LIMIT) {
+    const chunk = toWrite.slice(i, i + FIRESTORE_BATCH_LIMIT);
+    const batch = writeBatch(db);
+    for (const row of chunk) {
+      const ref = doc(collection(db, 'users', uid, 'contacts'));
+      batch.set(ref, {
+        name: row.name,
+        phone: row.phone,
+        tags: row.tags,
+        optedOut: false,
+        createdAt: serverTimestamp(),
+      });
+    }
+    await batch.commit();
+    added += chunk.length;
+    onProgress?.({ stage: 'writing', done: added, total: toWrite.length });
+  }
+
+  return {
+    added,
+    skipped: invalid + dupesInFile + dupesInDb,
+    invalid,
+    dupesInFile,
+    dupesInDb,
+    total: rows.length,
+  };
 }
 
 export function watchContacts(uid, cb) {

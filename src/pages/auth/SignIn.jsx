@@ -14,14 +14,14 @@ export default function SignIn() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError(''); setLoading(true);
-    try { await signIn(email, password); navigate('/my-stuff'); }
+    try { await signIn(email, password); navigate('/dashboard'); }
     catch (err) { setError(friendlyError(err.code)); }
     finally { setLoading(false); }
   }
 
   async function handleGoogle() {
     setError(''); setGoogleLoading(true);
-    try { await signInGoogle(); navigate('/my-stuff'); }
+    try { await signInGoogle(); navigate('/dashboard'); }
     catch (err) { setError(friendlyError(err.code)); }
     finally { setGoogleLoading(false); }
   }
@@ -30,8 +30,8 @@ export default function SignIn() {
     <div className="min-h-dvh flex flex-col justify-center px-6 pb-10 pt-6 bg-bg">
       {/* Logo */}
       <div className="flex items-center gap-3 mb-8">
-        <div className="w-11 h-11 rounded-[14px] bg-primary flex items-center justify-center text-2xl">📦</div>
-        <h1 className="text-2xl font-extrabold text-primary">Inventory</h1>
+        <div className="w-11 h-11 rounded-[14px] bg-primary flex items-center justify-center text-2xl">💬</div>
+        <h1 className="text-2xl font-extrabold text-primary">SMS Sender</h1>
       </div>
 
       {/* Card */}

@@ -28,7 +28,7 @@ export function isQuietHours(date = new Date()) {
 
 export function countSegments(body) {
   if (!body) return { chars: 0, segments: 0, encoding: 'GSM' };
-  const gsm7 = /^[A-Za-z0-9 \r\n@£$¥èéùìòÇØøÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ!"#%&'()*+,\-./:;<=>?¡ÄÖÑÜ§¿äöñüà^{}\\\[~\]|€]*$/;
+  const gsm7 = /^[A-Za-z0-9 \r\n@£$¥èéùìòÇØøÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ!"#%&'()*+,\-./:;<=>?¡ÄÖÑÜ§¿äöñüà^{}\\[~\]|€]*$/;
   const isGSM = gsm7.test(body);
   const len = body.length;
   if (isGSM) {

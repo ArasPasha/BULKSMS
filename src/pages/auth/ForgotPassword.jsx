@@ -19,8 +19,8 @@ export default function ForgotPassword() {
   return (
     <div className="min-h-dvh flex flex-col justify-center px-6 pb-10 pt-6 bg-bg">
       <div className="flex items-center gap-3 mb-8">
-        <div className="w-11 h-11 rounded-[14px] bg-primary flex items-center justify-center text-2xl">📦</div>
-        <h1 className="text-2xl font-extrabold text-primary">Inventory</h1>
+        <div className="w-11 h-11 rounded-[14px] bg-primary flex items-center justify-center text-2xl">💬</div>
+        <h1 className="text-2xl font-extrabold text-primary">SMS Sender</h1>
       </div>
 
       <div className="bg-white rounded-[20px] p-6 shadow-DEFAULT">

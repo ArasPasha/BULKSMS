@@ -17,27 +17,27 @@ export default function SignUp() {
     if (password !== confirm) { setError('Passwords do not match.'); return; }
     if (password.length < 6) { setError('Password must be at least 6 characters.'); return; }
     setLoading(true);
-    try { await signUp(name.trim(), email, password); navigate('/my-stuff'); }
+    try { await signUp(name.trim(), email, password); navigate('/dashboard'); }
     catch (err) { setError(friendlyError(err.code)); }
     finally { setLoading(false); }
   }
 
   async function handleGoogle() {
     setError('');
-    try { await signInGoogle(); navigate('/my-stuff'); }
+    try { await signInGoogle(); navigate('/dashboard'); }
     catch (err) { setError(friendlyError(err.code)); }
   }
 
   return (
     <div className="min-h-dvh flex flex-col justify-center px-6 pb-10 pt-6 bg-bg">
       <div className="flex items-center gap-3 mb-8">
-        <div className="w-11 h-11 rounded-[14px] bg-primary flex items-center justify-center text-2xl">📦</div>
-        <h1 className="text-2xl font-extrabold text-primary">Inventory</h1>
+        <div className="w-11 h-11 rounded-[14px] bg-primary flex items-center justify-center text-2xl">💬</div>
+        <h1 className="text-2xl font-extrabold text-primary">SMS Sender</h1>
       </div>
 
       <div className="bg-white rounded-[20px] p-6 shadow-DEFAULT">
         <h2 className="text-xl font-bold mb-1">Create account</h2>
-        <p className="text-sm text-muted mb-5">Start tracking your stuff</p>
+        <p className="text-sm text-muted mb-5">Send texts from your computer</p>
 
         {error && <div className="bg-coral-light text-coral text-sm px-4 py-2.5 rounded-lg mb-4">{error}</div>}
 

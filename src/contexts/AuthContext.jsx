@@ -40,7 +40,12 @@ export function AuthProvider({ children }) {
       displayName: name,
       email,
       photoURL: null,
-      friends: [],
+      gatewayUrl: '',
+      gatewayUser: '',
+      gatewayPass: '',
+      optOutKeywords: ['STOP', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT'],
+      sendThrottleMs: 1500,
+      respectQuietHours: true,
       createdAt: serverTimestamp(),
     };
     await setDoc(doc(db, 'users', cred.user.uid), userData);
@@ -62,7 +67,12 @@ export function AuthProvider({ children }) {
         displayName: cred.user.displayName,
         email: cred.user.email,
         photoURL: cred.user.photoURL,
-        friends: [],
+        gatewayUrl: '',
+        gatewayUser: '',
+        gatewayPass: '',
+        optOutKeywords: ['STOP', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT'],
+        sendThrottleMs: 1500,
+        respectQuietHours: true,
         createdAt: serverTimestamp(),
       };
       await setDoc(ref, userData);

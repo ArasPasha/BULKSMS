@@ -5,14 +5,11 @@ import Layout from './components/layout/Layout';
 import SignIn from './pages/auth/SignIn';
 import SignUp from './pages/auth/SignUp';
 import ForgotPassword from './pages/auth/ForgotPassword';
-import MyStuff from './pages/MyStuff';
-import AddItem from './pages/AddItem';
-import ItemDetail from './pages/ItemDetail';
-import Market from './pages/Market';
-import Friends from './pages/Friends';
-import Messages from './pages/Messages';
-import Conversation from './pages/Conversation';
-import Profile from './pages/Profile';
+import Dashboard from './pages/Dashboard';
+import Compose from './pages/Compose';
+import Contacts from './pages/Contacts';
+import History from './pages/History';
+import Settings from './pages/Settings';
 
 function ProtectedRoute({ children }) {
   const { user, loading } = useAuth();
@@ -30,7 +27,7 @@ function ProtectedRoute({ children }) {
 function PublicRoute({ children }) {
   const { user, loading } = useAuth();
   if (loading) return null;
-  return user ? <Navigate to="/my-stuff" replace /> : children;
+  return user ? <Navigate to="/dashboard" replace /> : children;
 }
 
 function AppRoutes() {
@@ -41,20 +38,16 @@ function AppRoutes() {
       <Route path="/sign-up" element={<PublicRoute><SignUp /></PublicRoute>} />
       <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
 
-      {/* Protected — wrapped in Layout (bottom nav) */}
+      {/* Protected */}
       <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-        <Route path="/my-stuff" element={<MyStuff />} />
-        <Route path="/add-item" element={<AddItem />} />
-        <Route path="/item/:itemId" element={<ItemDetail />} />
-        <Route path="/market" element={<Market />} />
-        <Route path="/friends" element={<Friends />} />
-        <Route path="/messages" element={<Messages />} />
-        <Route path="/messages/:convId" element={<Conversation />} />
-        <Route path="/profile" element={<Profile />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/compose" element={<Compose />} />
+        <Route path="/contacts" element={<Contacts />} />
+        <Route path="/history" element={<History />} />
+        <Route path="/settings" element={<Settings />} />
       </Route>
 
-      {/* Fallback */}
-      <Route path="*" element={<Navigate to="/my-stuff" replace />} />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   );
 }
@@ -63,7 +56,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
-        <div className="w-full max-w-app bg-bg min-h-dvh relative overflow-x-hidden">
+        <div className="w-full max-w-app bg-bg min-h-dvh relative overflow-x-hidden mx-auto">
           <AppRoutes />
         </div>
       </AuthProvider>

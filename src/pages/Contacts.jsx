@@ -4,11 +4,16 @@ import { useAuth } from '../contexts/AuthContext';
 import {
   watchContacts, addContact, updateContact, deleteContact,
   bulkAddContacts, formatPhone, normalizePhone, setOptOut,
+  getContactsCount,
 } from '../lib/sms';
+
+const PAGE_SIZE = 500;
 
 export default function Contacts() {
   const { user } = useAuth();
   const [contacts, setContacts] = useState([]);
+  const [pageLimit, setPageLimit] = useState(PAGE_SIZE);
+  const [totalCount, setTotalCount] = useState(null);
   const [search, setSearch] = useState('');
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -19,8 +24,15 @@ export default function Contacts() {
 
   useEffect(() => {
     if (!user) return;
-    return watchContacts(user.uid, setContacts);
-  }, [user]);
+    return watchContacts(user.uid, setContacts, pageLimit);
+  }, [user, pageLimit]);
+
+  useEffect(() => {
+    if (!user) return;
+    let active = true;
+    getContactsCount(user.uid).then(c => { if (active) setTotalCount(c); }).catch(() => {});
+    return () => { active = false; };
+  }, [user, contacts.length]);
 
   const filtered = useMemo(() => {
     if (!search) return contacts;
@@ -96,7 +108,23 @@ export default function Contacts() {
           return;
         }
 
-        setImportStatus(`Found ${rows.length} rows. Checking duplicates…`);
+        if (rows.length > 2000) {
+          const ok = confirm(
+            `Found ${rows.length.toLocaleString()} rows.\n\n` +
+            `This will write up to ${rows.length.toLocaleString()} contacts to your Firestore database. ` +
+            `On the free tier you get 20K writes/day — large imports may exceed that.\n\n` +
+            `Note: sending to all of these from one personal phone WILL get your number suspended. ` +
+            `Use tags to send in small batches (under 100/hr).\n\n` +
+            `Continue?`
+          );
+          if (!ok) {
+            setImportStatus('');
+            if (fileRef.current) fileRef.current.value = '';
+            return;
+          }
+        }
+
+        setImportStatus(`Found ${rows.length.toLocaleString()} rows. Checking duplicates…`);
         try {
           const summary = await bulkAddContacts(user.uid, rows, {
             onProgress: (p) => {
@@ -126,7 +154,13 @@ export default function Contacts() {
       <header className="px-5 pt-6 pb-3 sticky top-0 bg-bg z-10">
         <div className="flex items-center justify-between mb-3">
           <h1 className="text-2xl font-extrabold text-ink">Contacts</h1>
-          <span className="text-xs text-muted font-semibold">{contacts.length}</span>
+          <span className="text-xs text-muted font-semibold">
+            {totalCount !== null ? (
+              contacts.length < totalCount
+                ? `${contacts.length.toLocaleString()} of ${totalCount.toLocaleString()}`
+                : totalCount.toLocaleString()
+            ) : contacts.length.toLocaleString()}
+          </span>
         </div>
         <input
           type="search"
@@ -188,41 +222,22 @@ export default function Contacts() {
           </li>
         )}
         {filtered.map(c => (
-          <li key={c.id} className="bg-white rounded-[14px] border border-border p-3.5">
-            <div className="flex items-start gap-3">
-              <Avatar name={c.name || c.phone} />
-              <div className="flex-1 min-w-0">
-                <div className="font-semibold text-ink truncate">{c.name || formatPhone(c.phone)}</div>
-                <div className="text-xs text-muted">{formatPhone(c.phone)}</div>
-                {c.tags?.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mt-1">
-                    {c.tags.map(t => (
-                      <span key={t} className="text-[0.65rem] bg-primary-light text-primary px-1.5 py-0.5 rounded font-semibold">
-                        {t}
-                      </span>
-                    ))}
-                  </div>
-                )}
-                {c.optedOut && (
-                  <span className="inline-block mt-1 text-[0.65rem] bg-coral-light text-coral px-1.5 py-0.5 rounded font-semibold">
-                    OPTED OUT
-                  </span>
-                )}
-              </div>
-              <div className="flex flex-col gap-1">
-                <button onClick={() => { setEditing(c); setShowAdd(true); }}
-                  className="text-xs text-primary font-semibold px-2 py-1">Edit</button>
-                <button onClick={() => handleToggleOptOut(c)}
-                  className="text-xs text-amber font-semibold px-2 py-1">
-                  {c.optedOut ? 'Unblock' : 'Opt-out'}
-                </button>
-                <button onClick={() => handleDelete(c.id)}
-                  className="text-xs text-coral font-semibold px-2 py-1">Delete</button>
-              </div>
-            </div>
-          </li>
+          <ContactCard key={c.id} c={c}
+            onEdit={() => { setEditing(c); setShowAdd(true); }}
+            onToggleOptOut={() => handleToggleOptOut(c)}
+            onDelete={() => handleDelete(c.id)} />
         ))}
       </ul>
+
+      {totalCount !== null && contacts.length < totalCount && !search && (
+        <div className="px-5 mt-3">
+          <button
+            onClick={() => setPageLimit(p => p + PAGE_SIZE)}
+            className="w-full py-3 rounded-[14px] bg-white border border-border text-primary font-semibold text-sm active:scale-[.98]">
+            Load {Math.min(PAGE_SIZE, totalCount - contacts.length).toLocaleString()} more
+          </button>
+        </div>
+      )}
 
       {showAdd && (
         <ContactForm
@@ -232,6 +247,41 @@ export default function Contacts() {
         />
       )}
     </div>
+  );
+}
+
+function ContactCard({ c, onEdit, onToggleOptOut, onDelete }) {
+  return (
+    <li className="bg-white rounded-[14px] border border-border p-3.5">
+      <div className="flex items-start gap-3">
+        <Avatar name={c.name || c.phone} />
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-ink truncate">{c.name || formatPhone(c.phone)}</div>
+          <div className="text-xs text-muted">{formatPhone(c.phone)}</div>
+          {c.tags?.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {c.tags.map(t => (
+                <span key={t} className="text-[0.65rem] bg-primary-light text-primary px-1.5 py-0.5 rounded font-semibold">
+                  {t}
+                </span>
+              ))}
+            </div>
+          )}
+          {c.optedOut && (
+            <span className="inline-block mt-1 text-[0.65rem] bg-coral-light text-coral px-1.5 py-0.5 rounded font-semibold">
+              OPTED OUT
+            </span>
+          )}
+        </div>
+        <div className="flex flex-col gap-1">
+          <button onClick={onEdit} className="text-xs text-primary font-semibold px-2 py-1">Edit</button>
+          <button onClick={onToggleOptOut} className="text-xs text-amber font-semibold px-2 py-1">
+            {c.optedOut ? 'Unblock' : 'Opt-out'}
+          </button>
+          <button onClick={onDelete} className="text-xs text-coral font-semibold px-2 py-1">Delete</button>
+        </div>
+      </div>
+    </li>
   );
 }
 

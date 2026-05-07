@@ -1,6 +1,7 @@
 import {
   collection, doc, addDoc, setDoc, getDoc, getDocs, deleteDoc, updateDoc,
-  query, where, orderBy, limit, onSnapshot, serverTimestamp, writeBatch
+  query, where, orderBy, limit, onSnapshot, serverTimestamp, writeBatch,
+  getCountFromServer,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -124,11 +125,39 @@ export async function bulkAddContacts(uid, rows, opts = {}) {
   };
 }
 
-export function watchContacts(uid, cb) {
-  const q = query(collection(db, 'users', uid, 'contacts'), orderBy('name'));
+export function watchContacts(uid, cb, max = 500) {
+  const q = query(
+    collection(db, 'users', uid, 'contacts'),
+    orderBy('createdAt', 'desc'),
+    limit(max)
+  );
   return onSnapshot(q, snap => {
     cb(snap.docs.map(d => ({ id: d.id, ...d.data() })));
   });
+}
+
+export async function getContactsCount(uid) {
+  const snap = await getCountFromServer(collection(db, 'users', uid, 'contacts'));
+  return snap.data().count;
+}
+
+export async function getContactsByTag(uid, tag) {
+  const q = query(
+    collection(db, 'users', uid, 'contacts'),
+    where('tags', 'array-contains', tag),
+    where('optedOut', '==', false)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+}
+
+export async function getAllEligibleContacts(uid) {
+  const q = query(
+    collection(db, 'users', uid, 'contacts'),
+    where('optedOut', '==', false)
+  );
+  const snap = await getDocs(q);
+  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
 }
 
 export function watchMessages(uid, cb, max = 200) {

@@ -79,6 +79,35 @@ behavior. Rules of thumb:
 - Avoid links, ALL CAPS, and aggressive promotional language
 - For thousands of recipients, switch to a registered A2P provider (Twilio etc.)
 
+## Scale & big lists (e.g. 20k contacts)
+
+The app handles imports of any size — Firestore writes auto-chunk into 400-row
+batches. Page views paginate at 500 with "Load more" so the browser doesn't
+melt. Broadcasts can scope by tag, by loaded subset, or by the full eligible
+list (uses a single Firestore query, not the paginated cache).
+
+**But: do not actually broadcast to 20k from one personal phone.** Math:
+
+| Recipients | Time @ 1500 ms throttle | Carrier verdict |
+| ---------- | ----------------------- | --------------- |
+| 50         | ~75 s                   | Safe            |
+| 200        | ~5 min                  | Watched         |
+| 1 000      | ~25 min                 | Likely flagged  |
+| 20 000     | ~8.3 hours              | Number suspended within minutes — carriers will SMS-block you long before the loop finishes |
+
+If you genuinely need to reach 20k people by SMS, you must use a registered
+A2P 10DLC provider (Twilio, Telnyx, Bandwidth). Personal-phone gateways are for
+1-to-few outreach and small segmented broadcasts.
+
+For huge lists in this app: **split by tag, send 50–100 per day, spread across
+several days, monitor your phone for any "Message Blocking" notice from your
+carrier.** The Compose page shows escalating warnings + ETAs at 50 / 200 / 1000
+recipients to keep you honest.
+
+**Firestore free tier limits to be aware of**: 20 000 writes/day, 50 000
+reads/day, 1 GiB storage. A 20k-contact import maxes the daily write quota in
+one go — enable Blaze billing or split the import across two days.
+
 ## CSV import format
 
 Drop a CSV with a phone column and any of these recognized headers

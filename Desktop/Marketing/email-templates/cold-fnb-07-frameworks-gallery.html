@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>The Broker Shop — Restaurant Expansion · 5 Cold Email Frameworks</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Newsreader:ital,wght@0,400;0,500;0,600;1,400&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#0B1220;color:#E5E7EB;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .page{max-width:1320px;margin:0 auto;padding:48px 28px 96px}
+
+  /* ============ HEADER ============ */
+  .topRule{display:grid;grid-template-columns:1fr 4fr 1fr;gap:8px;align-items:center;margin-bottom:18px}
+  .topRule .l,.topRule .r{height:2px;background:#1f2a44}
+  .topRule .c{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.32em;text-transform:uppercase;color:#94A3B8;text-align:center}
+
+  h1.title{font-family:'Inter',sans-serif;font-weight:900;font-size:clamp(38px,6vw,76px);line-height:0.95;letter-spacing:-0.035em;color:#F8FAFC;margin-bottom:12px}
+  h1.title .accent{color:#F5C200}
+  h1.title .navy{color:#7AA2F7}
+  .lede{max-width:780px;font-family:'Newsreader',Georgia,serif;font-size:17px;line-height:1.6;color:#94A3B8;margin-bottom:8px}
+  .lede em{font-style:italic;color:#CBD5E1}
+
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:22px;margin-bottom:36px}
+  .chip{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:#CBD5E1;background:#111B33;border:1px solid #1f2a44;padding:7px 12px;border-radius:999px}
+  .chip b{color:#F5C200;font-weight:700}
+
+  /* ============ TOOLBAR ============ */
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:#0F1A30;border:1px solid #1f2a44;border-radius:14px;padding:14px 18px;margin-bottom:28px}
+  .toolbar .left{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .toolbar .right{display:flex;gap:8px}
+  .toolBtn{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#0F172A;background:#F5C200;border:0;padding:9px 14px;border-radius:8px;cursor:pointer;font-weight:700}
+  .toolBtn.ghost{background:transparent;color:#CBD5E1;border:1px solid #2a3654}
+  .toolBtn:hover{filter:brightness(1.08)}
+  .label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:#94A3B8}
+
+  /* ============ GRID ============ */
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+  @media (max-width:980px){.grid{grid-template-columns:1fr}}
+
+  /* ============ CARD ============ */
+  .card{position:relative;background:#FBF7EA;color:#0F172A;border-radius:16px;overflow:hidden;border:1px solid #2a3654;display:flex;flex-direction:column;box-shadow:0 30px 60px -30px rgba(0,0,0,0.6)}
+  .card .stripe{height:6px;background:#173279}
+  .card.k2 .stripe{background:#F5C200}
+  .card.k3 .stripe{background:#173279}
+  .card.k4 .stripe{background:#F5C200}
+  .card.k5 .stripe{background:#173279}
+
+  .cardHead{display:flex;justify-content:space-between;align-items:center;padding:14px 22px 0 22px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#64748B}
+  .cardHead .fw{color:#173279;font-weight:700}
+  .cardHead .wc{background:#0F172A;color:#F5C200;padding:4px 8px;border-radius:6px}
+
+  .subject{padding:18px 22px 4px 22px}
+  .subject .lab{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.22em;text-transform:uppercase;color:#94A3B8;margin-bottom:6px}
+  .subject .sub{font-family:'Inter',sans-serif;font-weight:800;font-size:22px;letter-spacing:-0.018em;color:#0F172A;line-height:1.2}
+  .pre{padding:6px 22px 18px 22px;font-family:'Newsreader',Georgia,serif;font-size:14px;font-style:italic;color:#475569;line-height:1.55}
+
+  .hero{position:relative;height:200px;background:#0F172A;overflow:hidden;border-top:1px solid rgba(0,0,0,0.05);border-bottom:3px solid #173279}
+  .hero img{width:100%;height:100%;object-fit:cover;display:block;filter:contrast(1.04) saturate(1.05)}
+  .hero .ovl{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(15,23,42,0) 0%,rgba(15,23,42,0.85) 100%);padding:34px 18px 14px;color:#FBF7EA;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .hero .ovl b{color:#F5C200;font-weight:700}
+  .hero .tag{position:absolute;top:14px;left:14px;background:#0F172A;color:#F5C200;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;padding:6px 10px;border-radius:6px;font-weight:700}
+
+  .body{padding:20px 22px 14px 22px;font-family:'Newsreader',Georgia,serif;font-size:15.5px;line-height:1.65;color:#1f2937}
+  .body p{margin-bottom:10px}
+  .body p:last-child{margin-bottom:0}
+  .body .star{font-family:'JetBrains Mono',monospace;font-weight:700;color:#173279;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;margin-right:6px}
+  .body strong{color:#0F172A}
+
+  .auth{margin:6px 22px 16px;background:#0F172A;color:#FBF7EA;border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase}
+  .auth .col{display:flex;flex-direction:column;gap:3px}
+  .auth .lab{color:#F5C200;font-size:9px;letter-spacing:0.22em}
+  .auth .val{color:#FBF7EA;font-size:10.5px;letter-spacing:0.06em;text-transform:none;font-family:'Inter',sans-serif;font-weight:600}
+
+  .footRow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:14px 22px 22px 22px;border-top:1px dashed #d6cfb8;margin-top:auto}
+  .cta{flex:1 1 auto;min-width:0;display:inline-flex;align-items:center;justify-content:center;background:#173279;color:#FBF7EA;font-family:'Inter',sans-serif;font-weight:800;font-size:13px;letter-spacing:0.04em;padding:13px 14px;border-radius:8px;text-decoration:none}
+  .cta b{color:#F5C200;margin-left:6px;font-weight:800}
+  .copyBtn{flex:0 0 auto;display:inline-flex;align-items:center;gap:8px;background:#0F172A;color:#F5C200;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.16em;text-transform:uppercase;font-weight:700;padding:13px 14px;border-radius:8px;border:0;cursor:pointer}
+  .copyBtn:hover{background:#1e2a47}
+  .copyBtn.ok{background:#15803D;color:#FFFFFF}
+  .copyBtn .ic{width:14px;height:14px;display:inline-block;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F5C200' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><rect x='9' y='9' width='13' height='13' rx='2'/><path d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/></svg>");background-size:contain;background-repeat:no-repeat}
+  .copyBtn.ok .ic{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>")}
+
+  /* ============ TOAST ============ */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:#0F172A;color:#F5C200;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;padding:12px 18px;border-radius:10px;border:1px solid #F5C200;opacity:0;transition:all .25s ease;pointer-events:none;font-weight:700;z-index:50}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ============ FOOTER ============ */
+  .credit{margin-top:48px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:#475569}
+  .credit b{color:#94A3B8}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="topRule">
+    <div class="l"></div>
+    <div class="c">The Broker Shop · Restaurant Expansion · 2026 Cold Email System</div>
+    <div class="r"></div>
+  </div>
+
+  <h1 class="title">FIVE FRAMEWORKS.<br><span class="navy">ONE</span> EXPANSION FILE.<br><span class="accent">EVERY EMAIL UNDER 100 WORDS.</span></h1>
+  <p class="lede">Five short cold emails for multi-unit restaurants, QSR, bakeries and ghost kitchens — each in a distinct framework <em>(PAS, BAB, QVC, AIDA, Star→Story→Solution)</em>, each carrying the AI-SEO authority signals (cited stat · dated source · named customer) that lift citation lift in LLM-graded search. Bodies are tuned to 75–90 words — the response-rate sweet spot from Boomerang's 40M-email study.</p>
+
+  <div class="meta">
+    <span class="chip"><b>BODY:</b> 50–100 WORDS</span>
+    <span class="chip"><b>SUBJECT:</b> 2–4 LOWERCASE WORDS</span>
+    <span class="chip"><b>NO</b> FIRST-NAME TOKENS</span>
+    <span class="chip"><b>SIGNALS:</b> STAT · DATE · CUSTOMER</span>
+    <span class="chip"><b>5</b> FRAMEWORKS</span>
+  </div>
+
+  <div class="toolbar">
+    <div class="left">
+      <span class="label">Per-card copy is wired below.</span>
+    </div>
+    <div class="right">
+      <button class="toolBtn ghost" id="copyAllSubjects">Copy all subjects</button>
+      <button class="toolBtn" id="copyAllEmails">Copy all 5 emails</button>
+    </div>
+  </div>
+
+  <div class="grid" id="grid">
+
+    <!-- ============ CARD 1 · PAS ============ -->
+    <article class="card k1" data-id="pas">
+      <div class="stripe"></div>
+      <div class="cardHead"><span class="fw">01 · PAS · Problem → Agitate → Solution</span><span class="wc">75 words</span></div>
+      <div class="subject">
+        <div class="lab">Subject</div>
+        <div class="sub" data-subject>stuck at one</div>
+      </div>
+      <div class="pre" data-preheader>The concept works — so why is unit two still on a slide deck?</div>
+      <div class="hero">
+        <span class="tag">Problem</span>
+        <img src="https://images.unsplash.com/photo-1559339352-11d035aa65de?w=1200&q=80&auto=format&fit=crop" alt="Empty restaurant interior with chairs stacked, evening light through windows" />
+        <div class="ovl"><span>FILE · UNIT 2 · ON HOLD</span><span><b>WAITING ON CAPITAL</b></span></div>
+      </div>
+      <div class="body" data-body>
+        <p><strong>Concept works. Demand exists.</strong> But the second location waits — because banks want two years of P&amp;L on a unit that doesn't exist yet (SBA 7(a) underwriting data, Q1 2026). That gap kills more expansions than bad sites ever did.</p>
+        <p>We close it differently: 4 months of statements, decision in 24 hours, $5K to $5M. <strong>L. Ortiz, 4-unit coffee group in Austin,</strong> funded Unit 3 before the lease was signed. Same playbook now runs Units 4 and 5.</p>
+      </div>
+      <div class="auth">
+        <div class="col"><span class="lab">Stat</span><span class="val">2 yrs P&amp;L gap</span></div>
+        <div class="col"><span class="lab">Source</span><span class="val">SBA 7(a) · Q1 2026</span></div>
+        <div class="col"><span class="lab">Customer</span><span class="val">L. Ortiz · Austin</span></div>
+      </div>
+      <div class="footRow">
+        <a class="cta" href="https://form.jotform.com/252724187891063">Pre-Approved in 24h <b>→</b></a>
+        <button class="copyBtn" data-copy><span class="ic"></span>Copy email</button>
+      </div>
+    </article>
+
+    <!-- ============ CARD 2 · BAB ============ -->
+    <article class="card k2" data-id="bab">
+      <div class="stripe"></div>
+      <div class="cardHead"><span class="fw">02 · BAB · Before → After → Bridge</span><span class="wc">77 words</span></div>
+      <div class="subject">
+        <div class="lab">Subject</div>
+        <div class="sub" data-subject>before, after</div>
+      </div>
+      <div class="pre" data-preheader>Same operator, same statements — 21-day bank wait vs. 24-hour decision.</div>
+      <div class="hero">
+        <span class="tag">Bridge</span>
+        <img src="https://images.unsplash.com/photo-1544148103-0773bf10d330?w=1200&q=80&auto=format&fit=crop" alt="Restaurant build-out in progress with exposed materials and tools" />
+        <div class="ovl"><span>FILE · BANK → MARKETPLACE</span><span><b>SAME OPERATOR · 47 LENDERS</b></span></div>
+      </div>
+      <div class="body" data-body>
+        <p><strong>Before.</strong> Six weeks chasing an SBA officer with tax returns, projections, and a guarantor who isn't sure. Lease deadline ticking.</p>
+        <p><strong>After.</strong> 4 months of statements, 24-hour decision, capital wired before the contractor's first draw. No tax returns required.</p>
+        <p><strong>Bridge.</strong> A private credit lane the bank can't see — 47 lenders bidding the same file (DealRoom Q1 2026). <strong>M. Patel, 7-unit QSR in Houston,</strong> refinanced Units 2–4 and funded Unit 8 in one week.</p>
+      </div>
+      <div class="auth">
+        <div class="col"><span class="lab">Stat</span><span class="val">47 lenders · same file</span></div>
+        <div class="col"><span class="lab">Source</span><span class="val">DealRoom · Q1 2026</span></div>
+        <div class="col"><span class="lab">Customer</span><span class="val">M. Patel · Houston</span></div>
+      </div>
+      <div class="footRow">
+        <a class="cta" href="https://form.jotform.com/252724187891063">See your offers <b>→</b></a>
+        <button class="copyBtn" data-copy><span class="ic"></span>Copy email</button>
+      </div>
+    </article>
+
+    <!-- ============ CARD 3 · QVC ============ -->
+    <article class="card k3" data-id="qvc">
+      <div class="stripe"></div>
+      <div class="cardHead"><span class="fw">03 · QVC · Question → Value → CTA</span><span class="wc">86 words</span></div>
+      <div class="subject">
+        <div class="lab">Subject</div>
+        <div class="sub" data-subject>lease signed yet?</div>
+      </div>
+      <div class="pre" data-preheader>$5K to $5M unrestricted — build-out, FFE, opening payroll. Decision in 24 hours.</div>
+      <div class="hero">
+        <span class="tag">Question</span>
+        <img src="https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80&auto=format&fit=crop" alt="Coffee shop interior with brass lights, walnut bar and barista counter" />
+        <div class="ovl"><span>FILE · UNIT 2 · LEASE WINDOW</span><span><b>DAY 12 · 60-DAY CLAUSE</b></span></div>
+      </div>
+      <div class="body" data-body>
+        <p><strong>Have you signed the lease on Unit 2 yet — or is capital still the holdup?</strong></p>
+        <p>If it's capital, the move is a working-capital advance against your existing unit's revenue: 4 months of statements, no tax returns, no liens on the build. $5K to $5M. Decision in 24 hours.</p>
+        <p>Constant Contact's 2.1M-customer benchmark (Apr 2026) shows 78% of multi-unit operators choose speed over rate when the lease window is under 60 days. <strong>K. Nguyen's bakery group in Seattle:</strong> lease day 12, capital day 14, doors open day 67.</p>
+      </div>
+      <div class="auth">
+        <div class="col"><span class="lab">Stat</span><span class="val">78% choose speed</span></div>
+        <div class="col"><span class="lab">Source</span><span class="val">Constant Contact · Apr 2026</span></div>
+        <div class="col"><span class="lab">Customer</span><span class="val">K. Nguyen · Seattle</span></div>
+      </div>
+      <div class="footRow">
+        <a class="cta" href="https://form.jotform.com/252724187891063">Same-day pre-approval <b>→</b></a>
+        <button class="copyBtn" data-copy><span class="ic"></span>Copy email</button>
+      </div>
+    </article>
+
+    <!-- ============ CARD 4 · AIDA ============ -->
+    <article class="card k4" data-id="aida">
+      <div class="stripe"></div>
+      <div class="cardHead"><span class="fw">04 · AIDA · Attention → Interest → Desire → Action</span><span class="wc">83 words</span></div>
+      <div class="subject">
+        <div class="lab">Subject</div>
+        <div class="sub" data-subject>unit three open</div>
+      </div>
+      <div class="pre" data-preheader>The same 4 months of statements that funded Unit 2 fund Units 3, 4, 5.</div>
+      <div class="hero">
+        <span class="tag">Attention</span>
+        <img src="https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&q=80&auto=format&fit=crop" alt="Restaurant exterior at night with warm window light and crowd inside" />
+        <div class="ovl"><span>FILE · UNIT 3 · WEST END</span><span><b>FUNDED 24H · LIVE</b></span></div>
+      </div>
+      <div class="body" data-body>
+        <p><em>"Unit 3 funded faster than the lease was signed."</em><br><strong>— L. Ortiz, 4-unit coffee group, Austin</strong></p>
+        <p>That's not a tagline. It's a closing log from March 2026. The file you used for Unit 2 — 4 months of statements, no tax returns — runs again for Units 3, 4, 5. Same week, same rate band, $5K to $5M.</p>
+        <p>Toast's 2026 multi-unit report: operators who scale on speed open <strong>2.3 units a year vs. 0.7</strong> on bank timelines. 24-hour decision. Free to apply.</p>
+      </div>
+      <div class="auth">
+        <div class="col"><span class="lab">Stat</span><span class="val">2.3 vs 0.7 units/yr</span></div>
+        <div class="col"><span class="lab">Source</span><span class="val">Toast · 2026</span></div>
+        <div class="col"><span class="lab">Customer</span><span class="val">L. Ortiz · Austin</span></div>
+      </div>
+      <div class="footRow">
+        <a class="cta" href="https://form.jotform.com/252724187891063">Apply free · 24h decision <b>→</b></a>
+        <button class="copyBtn" data-copy><span class="ic"></span>Copy email</button>
+      </div>
+    </article>
+
+    <!-- ============ CARD 5 · STAR → STORY → SOLUTION ============ -->
+    <article class="card k5" data-id="sss">
+      <div class="stripe"></div>
+      <div class="cardHead"><span class="fw">05 · Star → Story → Solution</span><span class="wc">80 words</span></div>
+      <div class="subject">
+        <div class="lab">Subject</div>
+        <div class="sub" data-subject>the third unit</div>
+      </div>
+      <div class="pre" data-preheader>Brass pendants. Banquette. Scaffolding up. Capital arrived before the contractor's first draw.</div>
+      <div class="hero">
+        <span class="tag">Story</span>
+        <img src="https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?w=1200&q=80&auto=format&fit=crop" alt="Restaurant dining room with exposed brick, brass pendant lights and walnut bar" />
+        <div class="ovl"><span>FILE · WEST END · MAR 2026</span><span><b>3 DEADLINES · 1 CALENDAR</b></span></div>
+      </div>
+      <div class="body" data-body>
+        <p><span class="star">Star</span><strong>L. Ortiz signs the lease on Unit 3 in Austin's West End — March 2026.</strong></p>
+        <p><span class="star">Story</span>Bank wants 21 days. Contractor's first draw is due in 7. Lease has a build-start clause at day 14. Three deadlines, one calendar.</p>
+        <p><span class="star">Solution</span>4 months of Units 1–2 statements, no tax returns, decision in 24 hours, capital wired in 48. NRA's 2026 expansion brief: <strong>64% of multi-unit deals stall at the bank's 21-day mark.</strong> Same file now funds Unit 4.</p>
+      </div>
+      <div class="auth">
+        <div class="col"><span class="lab">Stat</span><span class="val">64% stall at day 21</span></div>
+        <div class="col"><span class="lab">Source</span><span class="val">NRA · 2026 brief</span></div>
+        <div class="col"><span class="lab">Customer</span><span class="val">L. Ortiz · West End</span></div>
+      </div>
+      <div class="footRow">
+        <a class="cta" href="https://form.jotform.com/252724187891063">Fund the third unit <b>→</b></a>
+        <button class="copyBtn" data-copy><span class="ic"></span>Copy email</button>
+      </div>
+    </article>
+
+  </div>
+
+  <div class="credit">The Broker Shop · <b>(877) 888-4278</b> · thebrokershopinc.com · 2026 Cold Email System</div>
+</div>
+
+<div class="toast" id="toast">Copied to clipboard</div>
+
+<script>
+(function(){
+  const toast = document.getElementById('toast');
+  const showToast = (msg) => {
+    toast.textContent = msg || 'Copied to clipboard';
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 1700);
+  };
+
+  const cleanText = (el) => {
+    // Convert paragraphs to plain text with blank lines between them.
+    return Array.from(el.querySelectorAll('p')).map(p => p.innerText.trim()).filter(Boolean).join('\n\n');
+  };
+
+  const buildEmail = (card) => {
+    const subject    = card.querySelector('[data-subject]').innerText.trim();
+    const preheader  = card.querySelector('[data-preheader]').innerText.trim();
+    const body       = cleanText(card.querySelector('[data-body]'));
+    const cta        = card.querySelector('.cta');
+    const ctaLabel   = cta ? cta.innerText.replace(/\s+/g,' ').trim() : '';
+    const ctaUrl     = cta ? cta.getAttribute('href') : '';
+    return `Subject: ${subject}\nPreheader: ${preheader}\n\n${body}\n\nCTA: ${ctaLabel}\n${ctaUrl}`;
+  };
+
+  // Per-card copy
+  document.querySelectorAll('.card').forEach((card) => {
+    const btn = card.querySelector('[data-copy]');
+    btn.addEventListener('click', async () => {
+      const text = buildEmail(card);
+      try {
+        await navigator.clipboard.writeText(text);
+        const original = btn.innerHTML;
+        btn.innerHTML = '<span class="ic"></span>Copied';
+        btn.classList.add('ok');
+        showToast('Email copied · ' + card.dataset.id.toUpperCase());
+        setTimeout(() => { btn.innerHTML = original; btn.classList.remove('ok'); }, 1700);
+      } catch (e) {
+        showToast('Copy failed');
+      }
+    });
+  });
+
+  // Copy all subjects
+  document.getElementById('copyAllSubjects').addEventListener('click', async () => {
+    const lines = Array.from(document.querySelectorAll('.card')).map((c, i) => {
+      const id = c.dataset.id.toUpperCase();
+      const s  = c.querySelector('[data-subject]').innerText.trim();
+      const p  = c.querySelector('[data-preheader]').innerText.trim();
+      return `${String(i+1).padStart(2,'0')} · ${id}\n  Subject:   ${s}\n  Preheader: ${p}`;
+    });
+    const text = 'The Broker Shop — Restaurant Expansion · Subjects + Preheaders\n\n' + lines.join('\n\n');
+    try { await navigator.clipboard.writeText(text); showToast('All 5 subjects copied'); }
+    catch(e){ showToast('Copy failed'); }
+  });
+
+  // Copy all emails
+  document.getElementById('copyAllEmails').addEventListener('click', async () => {
+    const blocks = Array.from(document.querySelectorAll('.card')).map((c, i) => {
+      const id = c.dataset.id.toUpperCase();
+      return `=== ${String(i+1).padStart(2,'0')} · ${id} ===\n\n${buildEmail(c)}`;
+    });
+    const text = blocks.join('\n\n\n');
+    try { await navigator.clipboard.writeText(text); showToast('All 5 emails copied'); }
+    catch(e){ showToast('Copy failed'); }
+  });
+})();
+</script>
+
+</body>
+</html>

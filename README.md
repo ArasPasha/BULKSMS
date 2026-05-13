@@ -45,6 +45,33 @@ connection**. Phone and computer must be on the same WiFi.
 - **Tiered warnings** at 50 / 200 / 1000+ recipients
 - **Wipe-all-data** button in Settings
 
+## Sharing between computers
+
+The data lives only in this browser on this machine, so to move it you have to
+export/import:
+
+1. On the source computer: **Settings → Backup & sync → Export all data**.
+   Downloads a `sms-sender-backup-YYYY-MM-DD.json` file with every contact,
+   message, opt-out, and your gateway settings.
+2. Copy the JSON file to the other computer (email it to yourself, USB,
+   Dropbox — anything).
+3. On the destination: clone the repo if you haven't (`git clone
+   https://github.com/ArasPasha/BULKSMS.git && cd BULKSMS && npm install &&
+   npm run dev`), open <http://localhost:5173>, **Settings → Import from backup
+   file**, pick the JSON.
+
+You'll be asked **Merge** vs **Replace**:
+
+- **Merge** — adds contacts/messages from the backup that aren't already
+  there; keeps your current data. Settings are always overwritten (the backup
+  wins).
+- **Replace** — wipes everything first, then loads the backup. Use this when
+  the second computer should be an exact copy.
+
+Run the export periodically and you've got a backup. There's no cloud sync —
+if you want updates flowing both ways automatically, that needs a backend
+(swap `src/lib/store.js` for a Firestore/Supabase-backed one).
+
 ## How storage works
 
 Everything is in **IndexedDB** under the origin `localhost:5173`:

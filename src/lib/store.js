@@ -149,6 +149,84 @@ class Store {
     this.notify();
   }
 
+  // ---------- Backup / Restore ----------
+  exportAll() {
+    return {
+      version: 1,
+      exportedAt: Date.now(),
+      app: 'sms-sender',
+      settings: this.settings,
+      contacts: Array.from(this.contacts.values()),
+      messages: Array.from(this.messages.values()),
+      optouts: Array.from(this.optouts.values()),
+    };
+  }
+
+  async importAll(data, { mode = 'merge' } = {}) {
+    if (!data || typeof data !== 'object') throw new Error('Invalid backup file');
+    if (data.app && data.app !== 'sms-sender') throw new Error('Backup is from a different app');
+
+    const counts = { contacts: 0, messages: 0, optouts: 0, skipped: 0 };
+
+    if (mode === 'replace') {
+      this.contacts.clear();
+      this.messages.clear();
+      this.optouts.clear();
+      await stores.contacts.clear();
+      await stores.messages.clear();
+      await stores.optouts.clear();
+    }
+
+    // Settings — always replace (last-write-wins)
+    if (data.settings && typeof data.settings === 'object') {
+      this.settings = { ...DEFAULT_SETTINGS, ...data.settings };
+      await stores.meta.setItem('settings', this.settings);
+    }
+
+    // Contacts (dedupe on phone in merge mode)
+    if (Array.isArray(data.contacts)) {
+      const existingPhones = mode === 'merge'
+        ? new Set(Array.from(this.contacts.values()).map(c => c.phone))
+        : new Set();
+      for (const c of data.contacts) {
+        if (!c.phone) { counts.skipped++; continue; }
+        if (mode === 'merge' && existingPhones.has(c.phone)) { counts.skipped++; continue; }
+        const id = c.id || uid();
+        const contact = { ...c, id };
+        this.contacts.set(id, contact);
+        await stores.contacts.setItem(id, omitId(contact));
+        counts.contacts++;
+      }
+    }
+
+    // Messages (dedupe on id in merge mode)
+    if (Array.isArray(data.messages)) {
+      for (const m of data.messages) {
+        const id = m.id || uid();
+        if (mode === 'merge' && this.messages.has(id)) { counts.skipped++; continue; }
+        const msg = { ...m, id };
+        this.messages.set(id, msg);
+        await stores.messages.setItem(id, omitId(msg));
+        counts.messages++;
+      }
+    }
+
+    // Opt-outs (keyed on phone)
+    if (Array.isArray(data.optouts)) {
+      for (const o of data.optouts) {
+        if (!o.phone) { counts.skipped++; continue; }
+        if (mode === 'merge' && this.optouts.has(o.phone)) { counts.skipped++; continue; }
+        const entry = { phone: o.phone, optedOutAt: o.optedOutAt || Date.now() };
+        this.optouts.set(o.phone, { id: o.phone, ...entry });
+        await stores.optouts.setItem(o.phone, entry);
+        counts.optouts++;
+      }
+    }
+
+    this.notify();
+    return counts;
+  }
+
   // ---------- Opt-outs ----------
   optOutsList() {
     return Array.from(this.optouts.values())

@@ -1,11 +1,13 @@
-import { useEffect, useState } from 'react';
-import { useOptOuts, useSettings } from '../lib/hooks';
+import { useEffect, useRef, useState } from 'react';
+import { useContacts, useMessages, useOptOuts, useSettings } from '../lib/hooks';
 import { store } from '../lib/store';
 import { gatewayPing, setOptOut, formatPhone } from '../lib/sms';
 
 export default function Settings() {
   const settings = useSettings();
   const optOuts = useOptOuts();
+  const contacts = useContacts();
+  const messages = useMessages();
   const [form, setForm] = useState({
     gatewayUrl: '', gatewayUser: '', gatewayPass: '',
     optOutKeywords: '', sendThrottleMs: 1500, respectQuietHours: true,
@@ -14,6 +16,9 @@ export default function Settings() {
   const [savedAt, setSavedAt] = useState(null);
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState(null);
+  const [importResult, setImportResult] = useState(null);
+  const [importError, setImportError] = useState('');
+  const importFileRef = useRef(null);
 
   useEffect(() => {
     setForm({
@@ -61,6 +66,47 @@ export default function Settings() {
   async function unblockOptOut(phone) {
     if (!confirm(`Remove opt-out for ${formatPhone(phone)}?`)) return;
     await setOptOut(phone, false);
+  }
+
+  function handleExport() {
+    const data = store.exportAll();
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const date = new Date().toISOString().slice(0, 10);
+    a.href = url;
+    a.download = `sms-sender-backup-${date}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  async function handleImportFile(e) {
+    setImportError('');
+    setImportResult(null);
+    const file = e.target.files?.[0];
+    if (!file) return;
+    try {
+      const text = await file.text();
+      const data = JSON.parse(text);
+      const mode = confirm(
+        `Import from ${file.name}?\n\n` +
+        `OK = Merge (keep your current data, add what's not already there)\n` +
+        `Cancel = pick "Replace" next (wipes current data first)`
+      )
+        ? 'merge'
+        : (confirm('Replace ALL current data with the backup? This wipes everything first.') ? 'replace' : null);
+      if (!mode) {
+        if (importFileRef.current) importFileRef.current.value = '';
+        return;
+      }
+      const counts = await store.importAll(data, { mode });
+      setImportResult({ ...counts, mode });
+    } catch (err) {
+      setImportError(err.message);
+    }
+    if (importFileRef.current) importFileRef.current.value = '';
   }
 
   async function clearAllData() {
@@ -157,6 +203,34 @@ export default function Settings() {
               </li>
             ))}
           </ul>
+        )}
+      </Section>
+
+      <Section title="Backup & sync" subtitle="Move your data to another computer or browser. Settings, contacts, messages, and opt-outs are all included." className="mt-5">
+        <div className="space-y-2">
+          <button type="button" onClick={handleExport}
+            className="w-full py-3 rounded-lg bg-primary text-white font-semibold text-sm active:scale-[.98]">
+            Export all data ({contacts.length.toLocaleString()} contacts · {messages.length.toLocaleString()} messages)
+          </button>
+          <button type="button" onClick={() => importFileRef.current?.click()}
+            className="w-full py-3 rounded-lg bg-white border border-border text-ink font-semibold text-sm active:scale-[.98]">
+            Import from backup file
+          </button>
+          <input ref={importFileRef} type="file" accept=".json,application/json" onChange={handleImportFile} />
+        </div>
+        {importError && (
+          <div className="bg-coral-light text-coral text-sm px-3 py-2 rounded-lg">⚠ {importError}</div>
+        )}
+        {importResult && (
+          <div className="bg-teal-light text-ink text-xs px-3 py-2 rounded-lg space-y-0.5">
+            <div className="font-semibold text-teal text-sm">
+              ✓ Imported ({importResult.mode})
+            </div>
+            <div>{importResult.contacts.toLocaleString()} contacts</div>
+            <div>{importResult.messages.toLocaleString()} messages</div>
+            <div>{importResult.optouts.toLocaleString()} opt-outs</div>
+            {importResult.skipped > 0 && <div className="text-muted">{importResult.skipped.toLocaleString()} skipped (duplicates)</div>}
+          </div>
         )}
       </Section>
 

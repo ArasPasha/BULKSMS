@@ -39,12 +39,17 @@
   .topRule .l,.topRule .r{height:2px;background:linear-gradient(90deg,transparent,#1f2a44 30%,#3a4b78 50%,#1f2a44 70%,transparent)}
   .topRule .c{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.32em;text-transform:uppercase;color:var(--gold);text-align:center}
 
-  .brandHead{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center;margin-bottom:18px}
-  .wordmark{font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:34px;line-height:1;color:var(--cream);letter-spacing:-0.01em}
-  .wordmark .gw{font-weight:800;color:var(--gold);font-style:italic;margin-right:6px;text-shadow:0 1px 0 rgba(0,0,0,0.5)}
-  .wordmark sup{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);letter-spacing:0.22em;font-weight:700;margin-left:6px;vertical-align:super}
+  .brandHead{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;margin-bottom:18px}
+  .brandLogo{display:flex;align-items:center;gap:18px}
+  .brandLogo img{display:block;height:96px;width:auto;filter:drop-shadow(0 6px 24px rgba(212,175,55,0.28))}
+  .brandLogo .lockup{display:flex;flex-direction:column;gap:4px}
+  .brandLogo .wordmark{font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:28px;line-height:1;color:var(--cream);letter-spacing:-0.01em;font-style:italic}
+  .brandLogo .wordmark b{color:var(--gold);font-weight:800;font-style:normal;letter-spacing:0.02em}
+  .brandLogo .wordmark sup{font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--green-hi);letter-spacing:0.28em;font-weight:700;margin-left:8px;vertical-align:super;font-style:normal}
+  .brandLogo .estLine{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.32em;color:var(--gold);text-transform:uppercase;font-weight:700}
   .brandSlug{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.32em;text-transform:uppercase;color:var(--muted);justify-self:end;text-align:right;line-height:1.6}
   .brandSlug b{color:var(--gold-hi)}
+  @media(max-width:720px){.brandLogo{flex-direction:column;align-items:flex-start;gap:10px}.brandLogo img{height:78px}}
 
   h1.title{font-family:'Newsreader',Georgia,serif;font-weight:600;font-style:italic;font-size:clamp(38px,6vw,76px);line-height:0.98;letter-spacing:-0.025em;color:#F8FAFC;margin-bottom:14px}
   h1.title .accent{color:var(--gold);font-style:normal;font-weight:700}
@@ -306,8 +311,14 @@
   </div>
 
   <div class="brandHead">
-    <div class="wordmark"><span class="gw">GW</span>Generational Wealth<sup>HOLDINGS</sup></div>
-    <div class="brandSlug">CAPITAL DISCIPLINE · DAILY BREAKDOWNS<br><b>gwhlds.com</b> · @genwealthtrade</div>
+    <div class="brandLogo">
+      <img src="https://gwhlds.com/logo.png" alt="Generational Wealth Holdings — gold and green GW shield with crown and laurel wreath" />
+      <div class="lockup">
+        <div class="wordmark"><b>Generational</b> Wealth<sup>HOLDINGS</sup></div>
+        <div class="estLine">EST. 2026 · CAPITAL DISCIPLINE FIRST</div>
+      </div>
+    </div>
+    <div class="brandSlug">STRUCTURED MARKET EDUCATION<br><b>gwhlds.com</b> · @genwealthtrade</div>
   </div>
 
   <h1 class="title">FIVE MORE.<br><span class="accent">UNREASONABLY</span><br><span class="green">OPENABLE.</span>
@@ -622,16 +633,17 @@
 
    <tr><td style="height:6px;background:#D4AF37;font-size:0;line-height:0;">&nbsp;</td></tr>
 
-   <tr><td style="padding:22px 28px 14px 28px;background:#0F172A;">
+   <tr><td style="padding:22px 28px 16px 28px;background:#0F172A;">
     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
-     <td align="left" style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:22px;font-weight:700;color:#FBF7EA;letter-spacing:0.06em;">
-      <span style="color:#D4AF37;font-weight:800;">GW</span> Generational Wealth
+     <td align="left" valign="middle" width="90" style="padding-right:14px;">
+      <img src="https://gwhlds.com/logo.png" alt="Generational Wealth Holdings" width="76" height="76" style="display:block;border:0;outline:none;text-decoration:none;width:76px;height:auto;" />
      </td>
-     <td align="right" style="font-family:'Courier New',monospace;font-size:9.5px;font-weight:700;letter-spacing:0.22em;color:#D4AF37;text-transform:uppercase;">
-      Holdings &middot; Est. 2026
+     <td align="left" valign="middle" style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:22px;font-weight:700;color:#FBF7EA;letter-spacing:0.02em;line-height:1.15;">
+      <span style="color:#D4AF37;font-weight:800;font-style:normal;">Generational</span> Wealth
+      <div style="font-family:'Courier New',monospace;font-style:normal;font-size:9px;font-weight:700;letter-spacing:0.28em;color:#D4AF37;text-transform:uppercase;margin-top:5px;">Holdings &middot; Est. 2026</div>
      </td>
     </tr></table>
-    <div style="height:1px;background:#D4AF37;opacity:0.4;margin-top:14px;"></div>
+    <div style="height:1px;background:#D4AF37;opacity:0.45;margin-top:16px;"></div>
     <div style="font-family:'Courier New',monospace;font-size:9.5px;letter-spacing:0.28em;color:#94A3B8;text-transform:uppercase;margin-top:10px;">
      ${esc(d.fw)}
     </div>

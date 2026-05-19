@@ -15,12 +15,17 @@
   .topRule .l,.topRule .r{height:2px;background:#1f2a44;background:linear-gradient(90deg,transparent,#1f2a44 30%,#3a4b78 50%,#1f2a44 70%,transparent)}
   .topRule .c{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.32em;text-transform:uppercase;color:#D4AF37;text-align:center}
 
-  .brandHead{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center;margin-bottom:14px}
-  .wordmark{font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:28px;line-height:1;color:#FBF7EA;letter-spacing:-0.01em}
-  .wordmark .gw{font-weight:800;color:#D4AF37;font-style:italic;margin-right:6px;text-shadow:0 1px 0 rgba(0,0,0,0.5)}
-  .wordmark sup{font-family:'JetBrains Mono',monospace;font-size:9px;color:#15803D;letter-spacing:0.22em;font-weight:700;margin-left:6px;vertical-align:super}
+  .brandHead{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;margin-bottom:14px}
+  .brandLogo{display:flex;align-items:center;gap:18px}
+  .brandLogo img{display:block;height:88px;width:auto;filter:drop-shadow(0 6px 24px rgba(212,175,55,0.28))}
+  .brandLogo .lockup{display:flex;flex-direction:column;gap:4px}
+  .brandLogo .wordmark{font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:24px;line-height:1;color:#FBF7EA;letter-spacing:-0.01em;font-style:italic}
+  .brandLogo .wordmark b{color:#D4AF37;font-weight:800;font-style:normal;letter-spacing:0.02em}
+  .brandLogo .wordmark sup{font-family:'JetBrains Mono',monospace;font-size:9px;color:#22C55E;letter-spacing:0.28em;font-weight:700;margin-left:8px;vertical-align:super;font-style:normal}
+  .brandLogo .estLine{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.32em;color:#D4AF37;text-transform:uppercase;font-weight:700}
   .brandSlug{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.32em;text-transform:uppercase;color:#94A3B8;justify-self:end;text-align:right;line-height:1.6}
   .brandSlug b{color:#F5C200}
+  @media(max-width:720px){.brandLogo{flex-direction:column;align-items:flex-start;gap:10px}.brandLogo img{height:72px}}
 
   h1.title{font-family:'Inter',sans-serif;font-weight:900;font-size:clamp(30px,4.4vw,52px);line-height:0.98;letter-spacing:-0.03em;color:#F8FAFC;margin-bottom:12px}
   h1.title .accent{color:#F5C200}
@@ -121,8 +126,14 @@
   </div>
 
   <div class="brandHead">
-    <div class="wordmark"><span class="gw">GW</span>Generational Wealth<sup>HOLDINGS</sup></div>
-    <div class="brandSlug">CAPITAL DISCIPLINE · DAILY BREAKDOWNS<br><b>gwhlds.com</b> · @genwealthtrade</div>
+    <div class="brandLogo">
+      <img src="https://gwhlds.com/logo.png" alt="Generational Wealth Holdings — gold and green GW shield with crown and laurel wreath" />
+      <div class="lockup">
+        <div class="wordmark"><b>Generational</b> Wealth<sup>HOLDINGS</sup></div>
+        <div class="estLine">EST. 2026 · CAPITAL DISCIPLINE FIRST</div>
+      </div>
+    </div>
+    <div class="brandSlug">STRUCTURED MARKET EDUCATION<br><b>gwhlds.com</b> · @genwealthtrade</div>
   </div>
 
   <h1 class="title">THREE STEPS.<br><span class="accent">VALUE-LED</span>.<br><span class="green">ONE CLICK</span> TO COPY.</h1>

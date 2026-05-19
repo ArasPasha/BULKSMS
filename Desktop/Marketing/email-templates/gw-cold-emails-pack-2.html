@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Generational Wealth · Trader Acquisition · 5 Cold Email Designs (Pack 2)</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Newsreader:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500;1,600&family=Playfair+Display:ital,wght@0,400;0,600;0,700;0,800;1,400;1,600;1,700&family=JetBrains+Mono:wght@400;500;600;700&family=Caveat:wght@500;600;700&family=Special+Elite&display=swap" rel="stylesheet" />
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#070B17;color:#E5E7EB;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .page{max-width:1320px;margin:0 auto;padding:48px 28px 96px}
+
+  :root{
+    --gold:#D4AF37;
+    --gold-hi:#F5C200;
+    --gold-soft:#E6C56A;
+    --green:#15803D;
+    --green-hi:#22C55E;
+    --amber:#F59E0B;
+    --amber-hi:#FBBF24;
+    --red:#7C2A18;
+    --red-hi:#DC2626;
+    --navy:#0F172A;
+    --navy-2:#111B33;
+    --ink:#050913;
+    --cream:#FBF7EA;
+    --paper:#F4EDD9;
+    --manila:#E8DCC4;
+    --grid-blue:#7AA2F7;
+    --line:#1f2a44;
+    --rule:#2a3654;
+    --muted:#94A3B8;
+    --soft:#CBD5E1;
+  }
+
+  /* ============ HEADER ============ */
+  .topRule{display:grid;grid-template-columns:1fr 4fr 1fr;gap:8px;align-items:center;margin-bottom:18px}
+  .topRule .l,.topRule .r{height:2px;background:linear-gradient(90deg,transparent,#1f2a44 30%,#3a4b78 50%,#1f2a44 70%,transparent)}
+  .topRule .c{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.32em;text-transform:uppercase;color:var(--gold);text-align:center}
+
+  .brandHead{display:grid;grid-template-columns:auto 1fr;gap:22px;align-items:center;margin-bottom:18px}
+  .wordmark{font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:34px;line-height:1;color:var(--cream);letter-spacing:-0.01em}
+  .wordmark .gw{font-weight:800;color:var(--gold);font-style:italic;margin-right:6px;text-shadow:0 1px 0 rgba(0,0,0,0.5)}
+  .wordmark sup{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--green);letter-spacing:0.22em;font-weight:700;margin-left:6px;vertical-align:super}
+  .brandSlug{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.32em;text-transform:uppercase;color:var(--muted);justify-self:end;text-align:right;line-height:1.6}
+  .brandSlug b{color:var(--gold-hi)}
+
+  h1.title{font-family:'Newsreader',Georgia,serif;font-weight:600;font-style:italic;font-size:clamp(38px,6vw,76px);line-height:0.98;letter-spacing:-0.025em;color:#F8FAFC;margin-bottom:14px}
+  h1.title .accent{color:var(--gold);font-style:normal;font-weight:700}
+  h1.title .green{color:var(--green-hi);font-style:normal;font-weight:700}
+  h1.title .small{display:block;font-size:0.42em;font-style:normal;color:var(--soft);font-weight:400;letter-spacing:0;margin-top:8px}
+  .lede{max-width:850px;font-family:'Newsreader',Georgia,serif;font-size:17.5px;line-height:1.62;color:#A8B1C2;margin-bottom:8px}
+  .lede em{font-style:italic;color:var(--gold-soft)}
+  .lede strong{color:var(--cream);font-weight:500}
+
+  .meta{display:flex;flex-wrap:wrap;gap:10px;margin-top:24px;margin-bottom:36px}
+  .chip{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--soft);background:var(--navy-2);border:1px solid var(--line);padding:7px 12px;border-radius:999px}
+  .chip b{color:var(--gold-hi);font-weight:700}
+  .chip.gr b{color:var(--green-hi)}
+  .chip.live{background:#15803D;border-color:#22C55E;color:var(--cream)}
+  .chip.live::before{content:"●";color:#22C55E;margin-right:6px;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+  /* ============ TOOLBAR ============ */
+  .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;background:#0B142B;border:1px solid var(--line);border-radius:14px;padding:14px 18px;margin-bottom:28px}
+  .toolbar .left{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .toolbar .right{display:flex;gap:8px}
+  .toolBtn{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--navy);background:var(--gold);border:0;padding:9px 14px;border-radius:8px;cursor:pointer;font-weight:800}
+  .toolBtn:hover{filter:brightness(1.08)}
+  .toolBtn.ghost{background:transparent;color:var(--soft);border:1px solid var(--rule)}
+  .toolBtn.ghost:hover{border-color:var(--gold);color:var(--gold)}
+  .label{font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted)}
+  .label b{color:var(--gold)}
+
+  /* ============ SECTION ============ */
+  .section{margin-top:36px;margin-bottom:14px;display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center}
+  .sectionNum{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.22em;text-transform:uppercase;color:var(--ink);background:var(--gold);padding:8px 12px;border-radius:6px;font-weight:800;white-space:nowrap}
+  .sectionTitle{font-family:'Newsreader',Georgia,serif;font-weight:600;font-size:clamp(22px,2.6vw,30px);letter-spacing:-0.015em;color:#F8FAFC;line-height:1.15;font-style:italic}
+  .sectionTitle b{color:var(--gold-hi);font-weight:700;font-style:normal}
+  .sectionSub{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:var(--muted);margin-top:4px;display:block}
+
+  /* ============ GRID ============ */
+  .grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:26px}
+  @media (max-width:980px){.grid{grid-template-columns:1fr}.section{grid-template-columns:1fr;gap:8px}.brandHead{grid-template-columns:1fr}.brandSlug{justify-self:start;text-align:left}}
+
+  /* ============ CARD BASE ============ */
+  .card{position:relative;background:var(--cream);color:var(--navy);border-radius:16px;overflow:hidden;border:1px solid var(--rule);display:flex;flex-direction:column;box-shadow:0 40px 80px -30px rgba(0,0,0,0.75),0 0 0 1px rgba(212,175,55,0.05) inset;transition:transform .25s ease,box-shadow .25s ease}
+  .card:hover{transform:translateY(-3px);box-shadow:0 50px 90px -30px rgba(0,0,0,0.85),0 0 0 1px rgba(212,175,55,0.15) inset}
+
+  .cardHead{display:flex;justify-content:space-between;align-items:center;padding:14px 22px 0 22px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#64748B}
+  .cardHead .fw{color:var(--navy);font-weight:700}
+  .cardHead .wc{background:var(--navy);color:var(--gold-hi);padding:4px 8px;border-radius:6px}
+
+  .subject{padding:18px 22px 4px 22px}
+  .subject .lab{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.22em;text-transform:uppercase;color:#94A3B8;margin-bottom:6px}
+  .subject .sub{font-family:'Inter',sans-serif;font-weight:800;font-size:22px;letter-spacing:-0.018em;color:var(--navy);line-height:1.2}
+  .pre{padding:6px 22px 18px 22px;font-family:'Newsreader',Georgia,serif;font-size:14px;font-style:italic;color:#475569;line-height:1.55}
+
+  .hero{position:relative;height:210px;background:var(--navy);overflow:hidden}
+  .hero img{width:100%;height:100%;object-fit:cover;display:block;filter:contrast(1.04) saturate(1.05)}
+  .hero .ovl{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(15,23,42,0) 0%,rgba(15,23,42,0.92) 100%);padding:34px 18px 14px;color:var(--cream);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
+  .hero .ovl b{color:var(--gold-hi);font-weight:700}
+  .hero .tag{position:absolute;top:14px;left:14px;background:var(--navy);color:var(--gold-hi);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;padding:6px 10px;border-radius:6px;font-weight:700;border:1px solid rgba(245,194,0,0.35)}
+
+  .body{padding:20px 22px 14px 22px;font-family:'Newsreader',Georgia,serif;font-size:15.5px;line-height:1.68;color:#1f2937}
+  .body p{margin-bottom:11px}
+  .body p:last-child{margin-bottom:0}
+  .body .star{font-family:'JetBrains Mono',monospace;font-weight:800;color:var(--green);font-size:10.5px;letter-spacing:0.2em;text-transform:uppercase;margin-right:6px}
+  .body strong{color:var(--navy);font-weight:700}
+
+  .auth{margin:6px 22px 16px;background:var(--navy);color:var(--cream);border-radius:10px;padding:12px 14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.1em;text-transform:uppercase}
+  .auth .col{display:flex;flex-direction:column;gap:3px}
+  .auth .lab{color:var(--gold-hi);font-size:9px;letter-spacing:0.22em;font-weight:700}
+  .auth .val{color:var(--cream);font-size:10.5px;letter-spacing:0.04em;text-transform:none;font-family:'Inter',sans-serif;font-weight:600}
+
+  .footRow{display:flex;flex-direction:column;gap:10px;padding:14px 22px 22px 22px;border-top:1px dashed #d6cfb8;margin-top:auto}
+  .copyRow{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+  .copyBtn{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--navy);color:var(--gold-hi);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;padding:12px 6px;border-radius:8px;border:0;cursor:pointer;line-height:1;min-width:0}
+  .copyBtn:hover{background:#1e2a47}
+  .copyBtn.ok{background:var(--green);color:#FFFFFF}
+  .copyBtn .ic{width:13px;height:13px;display:inline-block;flex:0 0 13px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F5C200' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><rect x='9' y='9' width='13' height='13' rx='2'/><path d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/></svg>");background-size:contain;background-repeat:no-repeat}
+  .copyBtn.html .ic{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F5C200' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'/><polyline points='8 6 2 12 8 18'/></svg>")}
+  .copyBtn.ok .ic{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>")}
+  .cta{display:flex;align-items:center;justify-content:center;background:var(--navy);color:var(--cream);font-family:'Inter',sans-serif;font-weight:800;font-size:14px;letter-spacing:0.04em;padding:15px 14px;border-radius:8px;text-decoration:none;width:100%;box-sizing:border-box}
+  .cta b{color:var(--gold-hi);margin-left:6px;font-weight:800}
+
+  /* ============ DESIGN 6 · NEWS BULLETIN ============ */
+  .card.dNb{background:#FBF7EA;color:#0F172A;border:1px solid #94755B}
+  .card.dNb::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:#7C2A18}
+  .card.dNb .cardHead{font-family:Georgia,serif;color:#7C2A18;border-bottom:3px double #0F172A;padding:18px 24px 10px;margin:0;letter-spacing:0.04em}
+  .card.dNb .cardHead::before{content:"GW QUARTERLY · NO. 03";display:block;font-family:'Playfair Display',Georgia,serif;font-size:11px;font-weight:700;letter-spacing:0.32em;color:#7C2A18;margin-bottom:6px;text-transform:uppercase}
+  .card.dNb .cardHead .fw{font-family:'Inter',sans-serif;font-weight:700;color:#0F172A;letter-spacing:0.12em;font-size:10px}
+  .card.dNb .cardHead .wc{background:#7C2A18;color:#FBF7EA;font-weight:800}
+  .card.dNb .subject{padding:18px 24px 4px;border-bottom:1px solid #C9B98C}
+  .card.dNb .subject .lab{font-family:Georgia,serif;font-style:italic;color:#7C2A18;letter-spacing:0.06em;font-size:11px;text-transform:none}
+  .card.dNb .subject .lab::before{content:"OPINION · "}
+  .card.dNb .subject .sub{font-family:'Playfair Display',Georgia,serif;font-weight:800;font-size:46px;color:#0F172A;letter-spacing:-0.035em;line-height:0.95;margin-top:6px;padding-bottom:14px}
+  .card.dNb .pre{font-family:Georgia,serif;font-style:italic;color:#5a4836;font-size:15px;padding:10px 24px 16px;border-bottom:1px solid #C9B98C}
+  .card.dNb .hero{height:200px;border-bottom:3px double #0F172A}
+  .card.dNb .hero img{filter:sepia(0.18) contrast(1.08) saturate(0.85)}
+  .card.dNb .hero .ovl{background:rgba(15,15,10,0.92);font-family:Georgia,serif;letter-spacing:0.16em}
+  .card.dNb .hero .tag{background:#7C2A18;color:#FBF7EA;font-family:Georgia,serif;font-weight:700;font-style:italic;letter-spacing:0.12em;text-transform:uppercase;border:0}
+  .card.dNb .body{font-family:'Newsreader',Georgia,serif;font-size:15.5px;color:#1f1208;column-count:1;line-height:1.65;padding:22px 26px 14px}
+  .card.dNb .body p:first-of-type::first-letter{font-family:'Playfair Display',Georgia,serif;font-size:62px;line-height:0.85;float:left;margin:6px 10px 0 0;font-weight:800;color:#7C2A18}
+  .card.dNb .body strong{color:#7C2A18}
+  .card.dNb .body p{margin-bottom:12px}
+  .card.dNb .auth{background:#0F172A;color:#FBF7EA;border-radius:0;border-top:3px solid #7C2A18;margin:0 0 0}
+  .card.dNb .auth .lab{color:#F5C200;font-family:Georgia,serif;font-style:italic}
+  .card.dNb .footRow{background:#FBF7EA;border-top:1px solid #C9B98C}
+  .card.dNb .copyBtn{background:#0F172A;color:#FBF7EA;border-radius:0}
+  .card.dNb .copyBtn:hover{background:#7C2A18}
+  .card.dNb .cta{background:#7C2A18;color:#FBF7EA;font-family:'Playfair Display',Georgia,serif;font-style:italic;letter-spacing:0.04em;font-weight:700;border-radius:0;font-size:16px}
+  .card.dNb .cta b{color:#F5C200}
+
+  /* ============ DESIGN 7 · DOSSIER ============ */
+  .card.dDs{background:#E8DCC4;color:#0F172A;border:1px solid #94755B;border-radius:0;box-shadow:0 40px 80px -30px rgba(0,0,0,0.7),6px 6px 0 rgba(0,0,0,0.15)}
+  .card.dDs::before{content:"";position:absolute;top:0;left:24px;right:24px;height:18px;background:repeating-linear-gradient(90deg,#7C2A18 0 12px,#FBF7EA 12px 14px,#7C2A18 14px 26px,#FBF7EA 26px 28px);opacity:0.85;z-index:5;transform:translateY(-6px);box-shadow:0 2px 4px rgba(0,0,0,0.2)}
+  .card.dDs::after{content:"CONFIDENTIAL · INTERNAL · GW HOLDINGS";position:absolute;top:46px;right:18px;background:transparent;color:#7C2A18;padding:6px 14px;font-family:'Special Elite','Courier New',monospace;font-size:10px;font-weight:700;letter-spacing:0.18em;transform:rotate(6deg);z-index:8;border:2px solid #7C2A18;opacity:0.75}
+  .card.dDs .cardHead{font-family:'Special Elite','Courier New',monospace;color:#0F172A;border-bottom:1px solid #94755B;padding:38px 26px 12px;margin:0;letter-spacing:0.14em}
+  .card.dDs .cardHead::before{content:"FILE NO. GW-2026-007 · SECTION B";display:block;font-family:'Special Elite','Courier New',monospace;font-size:10px;font-weight:700;letter-spacing:0.22em;color:#475569;margin-bottom:6px;text-transform:uppercase}
+  .card.dDs .cardHead .fw{font-family:'Special Elite','Courier New',monospace;color:#0F172A;font-weight:700}
+  .card.dDs .cardHead .wc{background:#0F172A;color:#FBF7EA;font-family:'Special Elite','Courier New',monospace;border-radius:0;font-weight:700;letter-spacing:0.18em}
+  .card.dDs .subject{padding:18px 26px 6px}
+  .card.dDs .subject .lab{font-family:'Special Elite','Courier New',monospace;color:#7C2A18;letter-spacing:0.22em;font-weight:700;font-size:10px}
+  .card.dDs .subject .lab::before{content:"SUBJECT LINE: "}
+  .card.dDs .subject .sub{font-family:'Special Elite','Courier New',monospace;font-size:28px;font-weight:400;color:#0F172A;letter-spacing:0.04em;line-height:1.2;text-transform:uppercase;margin-top:6px}
+  .card.dDs .pre{font-family:'Special Elite','Courier New',monospace;font-style:normal;color:#5a4836;letter-spacing:0.02em;border-bottom:1px dashed #94755B;padding-bottom:14px;font-size:13px}
+  .card.dDs .pre::before{content:"// ";color:#7C2A18}
+  .card.dDs .hero{height:190px;border-bottom:1px solid #94755B}
+  .card.dDs .hero img{filter:sepia(0.3) contrast(1.1) saturate(0.7) brightness(0.92)}
+  .card.dDs .hero::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,transparent 0 28px,rgba(124,42,24,0.06) 28px 30px);pointer-events:none}
+  .card.dDs .hero .ovl{background:rgba(15,23,42,0.95);font-family:'Special Elite','Courier New',monospace;letter-spacing:0.18em}
+  .card.dDs .hero .tag{background:#7C2A18;color:#FBF7EA;font-family:'Special Elite','Courier New',monospace;font-weight:700;letter-spacing:0.14em;border-radius:0;border:0}
+  .card.dDs .body{font-family:'Special Elite','Courier New',monospace;font-size:13.5px;color:#0F172A;line-height:1.75;padding:20px 26px 14px;letter-spacing:0.005em}
+  .card.dDs .body strong{color:#7C2A18;background:rgba(124,42,24,0.08);padding:0 4px;font-weight:700}
+  .card.dDs .body p{margin-bottom:10px;position:relative;padding-left:18px}
+  .card.dDs .body p::before{content:"▸";color:#7C2A18;position:absolute;left:0;top:0;font-weight:700}
+  .card.dDs .auth{background:#0F172A;color:#FBF7EA;border-radius:0;border:0;margin:0 26px 16px}
+  .card.dDs .auth .lab{color:#F5C200;font-family:'Special Elite','Courier New',monospace}
+  .card.dDs .auth .val{font-family:'Special Elite','Courier New',monospace;font-size:11px}
+  .card.dDs .footRow{border-top:1px dashed #94755B;background:#E8DCC4;padding:14px 26px 26px}
+  .card.dDs .copyBtn{background:#0F172A;color:#FBF7EA;border-radius:0}
+  .card.dDs .copyBtn:hover{background:#7C2A18}
+  .card.dDs .cta{background:#7C2A18;color:#FBF7EA;font-family:'Special Elite','Courier New',monospace;letter-spacing:0.18em;text-transform:uppercase;border-radius:0;font-weight:700}
+  .card.dDs .cta::before{content:"▸ ";color:#F5C200}
+  .card.dDs .cta b{color:#F5C200}
+
+  /* ============ DESIGN 8 · JOURNAL ============ */
+  .card.dJn{background:#FBF7EA;color:#1f2937;border:1px solid #C9B98C;border-left:6px solid #173279;background-image:linear-gradient(0deg,transparent 28px,rgba(122,162,247,0.18) 29px),linear-gradient(90deg,transparent 28px,rgba(122,162,247,0.18) 29px);background-size:29px 29px;box-shadow:0 40px 80px -30px rgba(0,0,0,0.6),inset 0 0 0 1px rgba(201,185,140,0.4)}
+  .card.dJn::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:repeating-linear-gradient(0deg,#FBF7EA 0 12px,#7C2A18 12px 14px);z-index:2}
+  .card.dJn .cardHead{font-family:'Caveat','Comic Sans MS',cursive;font-size:15px;color:#475569;border-bottom:2px dashed #C9B98C;padding:18px 26px 10px;margin:0;letter-spacing:0;text-transform:none}
+  .card.dJn .cardHead::before{content:"— Day 142 · Trade Journal —";display:block;font-family:'Caveat','Comic Sans MS',cursive;font-size:17px;font-weight:600;color:#173279;margin-bottom:6px;letter-spacing:0;text-transform:none}
+  .card.dJn .cardHead .fw{font-family:'Inter',sans-serif;font-weight:700;color:#0F172A;letter-spacing:0.14em;font-size:9.5px;text-transform:uppercase}
+  .card.dJn .cardHead .wc{background:#173279;color:#FBF7EA;font-family:'JetBrains Mono',monospace}
+  .card.dJn .subject{padding:18px 26px 6px}
+  .card.dJn .subject .lab{font-family:'Caveat','Comic Sans MS',cursive;color:#7C2A18;letter-spacing:0;font-size:14px;font-weight:600;text-transform:none}
+  .card.dJn .subject .lab::before{content:"~ "}
+  .card.dJn .subject .lab::after{content:" ~"}
+  .card.dJn .subject .sub{font-family:'Caveat','Comic Sans MS',cursive;font-size:48px;font-weight:700;color:#173279;letter-spacing:0;line-height:1;margin-top:6px;text-decoration:underline;text-decoration-color:#F5C200;text-decoration-thickness:3px;text-underline-offset:6px}
+  .card.dJn .pre{font-family:'Caveat','Comic Sans MS',cursive;font-style:normal;color:#5a4836;font-size:19px;padding-bottom:14px;border-bottom:1px dashed #C9B98C}
+  .card.dJn .hero{height:190px;border-bottom:2px dashed #C9B98C}
+  .card.dJn .hero img{filter:sepia(0.1) contrast(1.05) brightness(1.02)}
+  .card.dJn .hero .ovl{background:rgba(23,50,121,0.92);font-family:'Caveat','Comic Sans MS',cursive;font-size:14px;letter-spacing:0;text-transform:none}
+  .card.dJn .hero .ovl b{color:#F5C200}
+  .card.dJn .hero .tag{background:#7C2A18;color:#FBF7EA;font-family:'Caveat','Comic Sans MS',cursive;font-size:13px;letter-spacing:0;text-transform:none;border-radius:0;border:0;font-weight:600}
+  .card.dJn .body{font-family:'Newsreader',Georgia,serif;font-size:15.5px;color:#1f1208;line-height:1.72;padding:20px 30px 14px;background:transparent}
+  .card.dJn .body p{margin-bottom:11px;border-left:2px solid #7AA2F7;padding-left:14px}
+  .card.dJn .body p:first-of-type{border-left:3px solid #F5C200}
+  .card.dJn .body strong{color:#173279;background:rgba(245,194,0,0.25);padding:0 4px;font-weight:700}
+  .card.dJn .auth{background:#173279;color:#FBF7EA;border-radius:0;margin:0 26px 16px;border:2px dashed #F5C200}
+  .card.dJn .auth .lab{color:#F5C200;font-family:'Caveat','Comic Sans MS',cursive;font-size:13px;letter-spacing:0;text-transform:none}
+  .card.dJn .auth .val{font-family:'Caveat','Comic Sans MS',cursive;font-size:14px;letter-spacing:0}
+  .card.dJn .footRow{border-top:2px dashed #C9B98C;background:transparent;padding:14px 26px 22px}
+  .card.dJn .copyBtn{background:#173279;color:#FBF7EA;border-radius:0}
+  .card.dJn .copyBtn:hover{background:#7C2A18}
+  .card.dJn .cta{background:#7C2A18;color:#FBF7EA;font-family:'Caveat','Comic Sans MS',cursive;letter-spacing:0;font-weight:700;border-radius:0;font-size:20px;text-transform:none}
+  .card.dJn .cta b{color:#F5C200;margin-left:8px}
+
+  /* ============ DESIGN 9 · BLOTTER ============ */
+  .card.dBl{background:#000000;color:#F59E0B;border:1px solid #1a1410;box-shadow:0 40px 80px -30px rgba(0,0,0,0.95),inset 0 0 0 1px #1a1410,inset 0 0 100px rgba(245,158,11,0.04)}
+  .card.dBl::before{content:"";position:absolute;top:0;left:0;right:0;height:32px;background:#0a0806;border-bottom:1px solid #2a1f17;z-index:2;display:flex;align-items:center;padding-left:14px}
+  .card.dBl::after{content:"● GW.BLOTTER · LIVE · CAPITAL DISCIPLINE";position:absolute;top:11px;left:14px;color:#F59E0B;letter-spacing:0.22em;font-size:9px;z-index:3;font-family:'JetBrains Mono',monospace;font-weight:700;text-transform:uppercase}
+  .card.dBl .cardHead{margin-top:32px;color:#92400E;border-bottom:1px solid #2a1f17;padding:14px 22px 12px;letter-spacing:0.18em;font-family:'JetBrains Mono',monospace;background:rgba(245,158,11,0.04)}
+  .card.dBl .cardHead .fw{color:#F59E0B;font-weight:700}
+  .card.dBl .cardHead .wc{background:#F59E0B;color:#000000;border-radius:0;font-family:'JetBrains Mono',monospace;font-weight:800}
+  .card.dBl .subject{padding:18px 22px 4px;display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:baseline}
+  .card.dBl .subject .lab{color:#92400E;font-family:'JetBrains Mono',monospace;letter-spacing:0.22em;grid-column:1 / -1}
+  .card.dBl .subject .lab::before{content:"[BID] "}
+  .card.dBl .subject .sub{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:#FBBF24;letter-spacing:0.04em;text-transform:uppercase;text-shadow:0 0 8px rgba(245,158,11,0.4);grid-column:1 / -1}
+  .card.dBl .subject .sub::before{content:"▲ ";color:#22C55E;font-weight:800;text-shadow:none}
+  .card.dBl .pre{color:#92400E;font-family:'JetBrains Mono',monospace;font-style:normal;font-size:12px;padding-bottom:14px;border-bottom:1px solid #2a1f17;letter-spacing:0.02em}
+  .card.dBl .hero{height:auto;background:transparent;border-bottom:0;padding:14px 22px 0}
+  .card.dBl .hero img{display:none}
+  .card.dBl .hero .tag{display:none}
+  .card.dBl .hero .ovl{position:relative;left:0;right:0;bottom:auto;margin:0;padding:14px 16px;background:rgba(245,158,11,0.06);border:1px solid #2a1f17;color:#F59E0B;font-family:'JetBrains Mono',monospace;border-radius:0;letter-spacing:0.16em}
+  .card.dBl .hero .ovl b{color:#22C55E}
+  .card.dBl .body{color:#FCD34D;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.78;background:transparent;padding:18px 22px 12px;letter-spacing:0.01em}
+  .card.dBl .body strong{color:#22C55E;background:rgba(34,197,94,0.08);padding:0 4px}
+  .card.dBl .body p{margin-bottom:12px;padding-left:16px;border-left:2px solid #2a1f17;position:relative}
+  .card.dBl .body p::before{content:">";color:#F59E0B;position:absolute;left:-2px;top:0;font-weight:700;text-shadow:0 0 6px rgba(245,158,11,0.6)}
+  .card.dBl .auth{background:rgba(245,158,11,0.06);border:1px solid #F59E0B;color:#F59E0B;margin:0 22px 16px;border-radius:0}
+  .card.dBl .auth .lab{color:#FBBF24;font-family:'JetBrains Mono',monospace}
+  .card.dBl .auth .val{color:#FBBF24;font-family:'JetBrains Mono',monospace;font-size:11px}
+  .card.dBl .footRow{border-top:1px solid #2a1f17;background:#0a0806;padding:14px 22px 22px}
+  .card.dBl .copyBtn{background:rgba(245,158,11,0.08);color:#F59E0B;border-radius:0;border:1px solid #2a1f17}
+  .card.dBl .copyBtn:hover{background:rgba(245,158,11,0.14);border-color:#F59E0B}
+  .card.dBl .cta{background:#F59E0B;color:#000000;border-radius:0;font-family:'JetBrains Mono',monospace;letter-spacing:0.22em;text-transform:uppercase;font-weight:800;text-shadow:0 0 12px rgba(245,158,11,0.3)}
+  .card.dBl .cta::before{content:"▶ "}
+  .card.dBl .cta b{color:#000000}
+
+  /* ============ DESIGN 10 · INVITATION ============ */
+  .card.dIv{background:radial-gradient(ellipse at center top,#FFF8E0 0%,#F4EDD9 60%);color:#3d2a0e;border:0;border-radius:0;box-shadow:0 40px 100px -20px rgba(0,0,0,0.5),inset 0 0 0 8px #F4EDD9,inset 0 0 0 9px #D4AF37,inset 0 0 0 12px #F4EDD9,inset 0 0 0 13px #D4AF37}
+  .card.dIv::before{content:"";position:absolute;top:24px;left:50%;transform:translateX(-50%);width:64px;height:64px;background:radial-gradient(circle at center,#D4AF37 0%,#D4AF37 50%,#8B6F1A 51%,#8B6F1A 60%,#D4AF37 61%,#D4AF37 70%,transparent 71%);border-radius:50%;z-index:3;box-shadow:0 4px 8px rgba(0,0,0,0.2)}
+  .card.dIv::after{content:"GW";position:absolute;top:32px;left:50%;transform:translateX(-50%);font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:800;color:#0F172A;font-size:24px;z-index:4;letter-spacing:-0.02em;text-shadow:0 1px 0 rgba(212,175,55,0.5)}
+  .card.dIv .cardHead{font-family:'Playfair Display',Georgia,serif;color:#8B6F1A;border-bottom:0;padding:108px 36px 8px;margin:0;letter-spacing:0.06em;font-style:italic;text-align:center;display:block;position:relative;z-index:2}
+  .card.dIv .cardHead::before{content:"Generational Wealth Holdings";display:block;font-family:'Playfair Display',Georgia,serif;font-size:13px;font-weight:600;letter-spacing:0.28em;color:#8B6F1A;margin-bottom:8px;text-transform:uppercase}
+  .card.dIv .cardHead::after{content:"— cordially invites you —";display:block;font-family:'Newsreader',Georgia,serif;font-size:15px;font-weight:400;letter-spacing:0.02em;color:#3d2a0e;margin-top:8px;font-style:italic;text-transform:none}
+  .card.dIv .cardHead .fw{display:none}
+  .card.dIv .cardHead .wc{position:absolute;top:108px;right:36px;font-family:'Newsreader',Georgia,serif;font-style:italic;color:#8B6F1A;background:transparent}
+  .card.dIv .subject{padding:14px 44px 6px;text-align:center;position:relative;z-index:2}
+  .card.dIv .subject .lab{font-family:'Newsreader',Georgia,serif;font-style:italic;color:#8B6F1A;letter-spacing:0.18em;font-size:11px;font-weight:500;text-transform:uppercase}
+  .card.dIv .subject .lab::before{content:"~ "}
+  .card.dIv .subject .lab::after{content:" ~"}
+  .card.dIv .subject .sub{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:54px;font-weight:600;color:#0F172A;letter-spacing:-0.02em;line-height:1;margin-top:14px;text-shadow:0 1px 0 rgba(212,175,55,0.3)}
+  .card.dIv .pre{font-family:'Newsreader',Georgia,serif;font-style:italic;color:#5a4423;font-size:15.5px;text-align:center;padding:14px 44px 22px;position:relative;z-index:2;line-height:1.5}
+  .card.dIv .hero{height:auto;background:transparent;border:0;padding:0 44px 12px;position:relative;z-index:2}
+  .card.dIv .hero img{display:none}
+  .card.dIv .hero .tag{display:none}
+  .card.dIv .hero .ovl{position:relative;left:0;right:0;bottom:auto;background:transparent;color:#8B6F1A;font-family:'Newsreader',Georgia,serif;font-style:italic;padding:12px 0;border-top:1px solid #D4AF37;border-bottom:1px solid #D4AF37;justify-content:center;letter-spacing:0.16em;font-size:11px;text-transform:uppercase}
+  .card.dIv .hero .ovl b{color:#0F172A;font-weight:700;margin:0 10px}
+  .card.dIv .body{font-family:'Newsreader',Georgia,serif;font-size:16px;color:#3d2a0e;line-height:1.78;padding:22px 52px 14px;position:relative;z-index:2;text-align:left}
+  .card.dIv .body strong{color:#8B6F1A;font-weight:700}
+  .card.dIv .body p{text-indent:1.4em;margin-bottom:11px}
+  .card.dIv .body p:first-child{text-indent:0;font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:18px;color:#0F172A;line-height:1.5;text-align:center;border-bottom:1px dashed #D4AF37;padding-bottom:14px;margin-bottom:14px}
+  .card.dIv .auth{background:transparent;border:1px solid #D4AF37;color:#0F172A;border-radius:0;margin:0 44px 16px;position:relative;z-index:2;padding:14px 16px}
+  .card.dIv .auth .lab{color:#8B6F1A;font-family:'Newsreader',Georgia,serif;font-style:italic;font-weight:600}
+  .card.dIv .auth .val{color:#0F172A;font-family:'Newsreader',Georgia,serif}
+  .card.dIv .footRow{border-top:1px solid #D4AF37;background:transparent;padding:16px 44px 32px;position:relative;z-index:2}
+  .card.dIv .copyBtn{background:transparent;color:#0F172A;border:1px solid #D4AF37;border-radius:0;font-family:'Newsreader',Georgia,serif;font-style:italic;letter-spacing:0.16em}
+  .card.dIv .copyBtn:hover{background:rgba(212,175,55,0.12)}
+  .card.dIv .cta{background:#0F172A;color:#F4EDD9;font-family:'Playfair Display',Georgia,serif;font-style:italic;letter-spacing:0.06em;font-weight:700;border-radius:0;border:1px solid #D4AF37;box-shadow:inset 0 0 0 3px #0F172A;font-size:17px;padding:18px 14px}
+  .card.dIv .cta b{color:#F5C200}
+
+  /* ============ TOAST ============ */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--navy);color:var(--gold-hi);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;padding:12px 18px;border-radius:10px;border:1px solid var(--gold);opacity:0;transition:all .25s ease;pointer-events:none;font-weight:700;z-index:50}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ============ DISCLAIMER (page footer) ============ */
+  .disclaimerBlock{margin-top:48px;padding:24px 26px;background:#0B142B;border:1px solid var(--line);border-radius:12px;color:#7c8499;font-family:'Inter',sans-serif;font-size:10.5px;line-height:1.65;letter-spacing:0.01em}
+  .disclaimerBlock h4{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.32em;color:var(--gold-hi);font-weight:800;margin-bottom:10px;text-transform:uppercase}
+  .disclaimerBlock p{color:#7c8499}
+
+  .credit{margin-top:36px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:#475569}
+  .credit b{color:var(--gold)}
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="topRule">
+    <div class="l"></div>
+    <div class="c">Generational Wealth · Trader Acquisition · Pack 02 · 2026</div>
+    <div class="r"></div>
+  </div>
+
+  <div class="brandHead">
+    <div class="wordmark"><span class="gw">GW</span>Generational Wealth<sup>HOLDINGS</sup></div>
+    <div class="brandSlug">CAPITAL DISCIPLINE · DAILY BREAKDOWNS<br><b>gwhlds.com</b> · @genwealthtrade</div>
+  </div>
+
+  <h1 class="title">FIVE MORE.<br><span class="accent">UNREASONABLY</span><br><span class="green">OPENABLE.</span>
+    <span class="small">Pack 02 — five new subject lines engineered for the open + five new visual treatments engineered for the click.</span>
+  </h1>
+
+  <p class="lede">Pack 02 picks up where Pack 01 left off: <strong>5 fresh cold emails</strong>, each built around a high-open subject pattern (number-curiosity · hyper-specific time · pre-action hook · counter-intuitive · vulnerability) and a distinct visual system (<em>News Bulletin · Dossier · Journal · Blotter · Invitation</em>). Bodies sit at <strong>95–120 words</strong>. Every HTML export carries the full Generational Wealth Holdings legal disclaimer in a 9.5px footer block — every send is compliant out of the box.</p>
+
+  <div class="meta">
+    <span class="chip live"><b>PACK 02</b></span>
+    <span class="chip"><b>5</b> NEW EMAILS</span>
+    <span class="chip"><b>5</b> NEW DESIGNS</span>
+    <span class="chip"><b>BODY:</b> 95–120 WORDS</span>
+    <span class="chip"><b>SUBJECT:</b> 2–4 LOWERCASE WORDS</span>
+    <span class="chip gr"><b>OPEN-RATE</b> ENGINEERED</span>
+    <span class="chip"><b>COMPLIANCE:</b> FULL DISCLAIMER IN EVERY HTML</span>
+  </div>
+
+  <div class="toolbar">
+    <div class="left">
+      <span class="label">Per-card copy is wired below. <b>HTML copy</b> includes the full legal disclaimer.</span>
+    </div>
+    <div class="right">
+      <button class="toolBtn ghost" id="copyAllSubjects">Copy all subjects</button>
+      <button class="toolBtn" id="copyAllEmails">Copy all 5 emails</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="sectionNum">SET 02 · 5 NEW EMAILS</div>
+    <div>
+      <div class="sectionTitle">Engineered for the <b>open</b></div>
+      <span class="sectionSub">Number curiosity · Hyper-specific time · Pre-action hook · Counter-intuitive · Vulnerability</span>
+    </div>
+  </div>
+
+  <div class="grid" id="grid">
+
+    <!-- ============ CARD 06 · NEWS BULLETIN · PASTOR ============ -->
+    <article class="card dNb" data-id="pastor">
+      <div class="cardHead"><span class="fw">06 · PASTOR · Problem · Amplify · Story · Transformation · Offer</span><span class="wc">112 words</span></div>
+      <div class="subject">
+        <div class="lab">Subject</div>
+        <div class="sub" data-subject>the 18% lesson</div>
+      </div>
+      <div class="pre" data-preheader>One member lost 18% in six weeks. What he learned didn't show up on the chart — it showed up in the chair.</div>
+      <div class="hero">
+        <span class="tag">Front Page</span>
+        <img src="https://images.unsplash.com/photo-1495020689067-958852a7765e?w=1200&q=80&auto=format&fit=crop" alt="Newspaper print closeup with stock market column visible" />
+        <div class="ovl"><span>VOL. III · ISSUE 03 · OPINION</span><span><b>BY THE EDITORS · GW HOLDINGS</b></span></div>
+      </div>
+      <div class="body" data-body>
+        <p>A trader in our community lost <strong>18% of his account in six weeks</strong>. Three positions, all "this one feels different" sized, no written stop. He came in looking for signals. He stayed for the rules.</p>
+        <p>What changed wasn't the chart — it was the chair. Fixed-R sizing. Written entries. Pinned risk rules he reads every morning before the open. Six clean trades a month replaced the sixty noisy ones.</p>
+        <p>That's the curriculum Generational Wealth Holdings runs on Discord. No alerts. No copy trades. Just structure for the patient seat. Basic access via Patreon.</p>
+      </div>
+      <div class="auth">
+        <div class="col"><span class="lab">Stat</span><span class="val">−18% in 6 weeks</span></div>
+        <div class="col"><span class="lab">Source</span><span class="val">Member journal · 2026</span></div>
+        <div class="col"><span class="lab">Proof</span><span class="val">Pinned curriculum + rules</span></div>
+      </div>
+      <div class="footRow">
+        <div class="copyRow">
+          <button class="copyBtn" data-copy="subject"><span class="ic"></span>Subject</button>
+          <button class="copyBtn" data-copy="preheader"><span class="ic"></span>Preheader</button>
+          <button class="copyBtn html" data-copy="html"><span class="ic"></span>HTML</button>
+        </div>
+        <a class="cta" href="https://gwhlds.com">Read the full piece <b>→</b></a>
+      </div>
+    </article>
+
+    <!-- ============ CARD 07 · DOSSIER · 4Cs ============ -->
+    <article class="card dDs" data-id="dossier">
+      <div class="cardHead"><span class="fw">07 · 4Cs · Clear · Concise · Compelling · Credible</span><span class="wc">108 words</span></div>
+      <div class="subject">
+        <div class="lab">Subject</div>
+        <div class="sub" data-subject>monday at 9:31</div>
+      </div>
+      <div class="pre" data-preheader>9:31 AM. Pre-market gap. Every signal said go. His plan said wait. The chart printed a green runner anyway.</div>
+      <div class="hero">
+        <span class="tag">Classified</span>
+        <img src="https://images.unsplash.com/photo-1568667256549-094345857637?w=1200&q=80&auto=format&fit=crop" alt="Filing cabinet drawer pulled open showing manila file folders" />
+        <div class="ovl"><span>FILE GW-2026-007 · CASE STUDY</span><span><b>SUBJECT: SKIPPED SETUP</b></span></div>
+      </div>
+      <div class="body" data-body>
+        <p>Monday at 9:31, a member skipped a setup he'd have taken six months ago.</p>
+        <p>Pre-market gap, level taken, retest forming. Every signal said go. His plan said wait — the volatility wasn't in his playbook for that ticker.</p>
+        <p>The chart printed a green runner. He sat on his hands.</p>
+        <p>By Friday, <strong>two cleaner setups appeared</strong>. He took both. Both worked.</p>
+        <p>That's the work the room is built around. Generational Wealth Holdings runs a Discord on the discipline-first thesis. Pinned curriculum. Daily breakdowns. Basic access opens it.</p>
+      </div>
+      <div class="auth">
+        <div class="col"><span class="lab">Moment</span><span class="val">Mon · 9:31 AM</span></div>
+        <div class="col"><span class="lab">Source</span><span class="val">Member journal entry</span></div>
+        <div class="col"><span class="lab">Proof</span><span class="val">Discord · pinned rules</span></div>
+      </div>
+      <div class="footRow">
+        <div class="copyRow">
+          <button class="copyBtn" data-copy="subject"><span class="ic"></span>Subject</button>
+          <button class="copyBtn" data-copy="preheader"><span class="ic"></span>Preheader</button>
+          <button class="copyBtn html" data-copy="html"><span class="ic"></span>HTML</button>
+        </div>
+        <a class="cta" href="https://gwhlds.com">Review the case file <b>→</b></a>
+      </div>
+    </article>
+
+    <!-- ============ CARD 08 · JOURNAL · PPPP ============ -->
+    <article class="card dJn" data-id="ppp">
+      <div class="cardHead"><span class="fw">08 · PPPP · Picture · Promise · Proof · Push</span><span class="wc">120 words</span></div>
+      <div class="subject">
+        <div class="lab">Subject</div>
+        <div class="sub" data-subject>before the entry</div>
+      </div>
+      <div class="pre" data-preheader>Your finger is on the trigger. What do you do in the next 90 seconds? Most blown accounts get blown right here.</div>
+      <div class="hero">
+        <span class="tag">Notebook</span>
+        <img src="https://images.unsplash.com/photo-1455390582262-044cdead277a?w=1200&q=80&auto=format&fit=crop" alt="Open notebook with handwritten notes and pen resting on the page" />
+        <div class="ovl"><span>day 142 · trade journal</span><span><b>five-line entry · pinned rule</b></span></div>
+      </div>
+      <div class="body" data-body>
+        <p>Picture this: the chart is in front of you. The setup is forming. Your finger is on the trigger. <strong>What do you do in the next 90 seconds?</strong></p>
+        <p>Most accounts get blown right here — sized on emotion, no written invalidation, the thesis a sentence in your head.</p>
+        <p>Our community journals the entry <em>before</em> they take it. Five lines, every time: setup name, fixed-R size, invalidation level, profit target, max time in trade. No exceptions.</p>
+        <p>Generational Wealth Holdings runs that on a Discord built around pinned rules and a curriculum. Basic access opens the room.</p>
+      </div>
+      <div class="auth">
+        <div class="col"><span class="lab">Ritual</span><span class="val">Five lines · pre-entry</span></div>
+        <div class="col"><span class="lab">Source</span><span class="val">Pinned community rule</span></div>
+        <div class="col"><span class="lab">Proof</span><span class="val">Journal template · Discord</span></div>
+      </div>
+      <div class="footRow">
+        <div class="copyRow">
+          <button class="copyBtn" data-copy="subject"><span class="ic"></span>Subject</button>
+          <button class="copyBtn" data-copy="preheader"><span class="ic"></span>Preheader</button>
+          <button class="copyBtn html" data-copy="html"><span class="ic"></span>HTML</button>
+        </div>
+        <a class="cta" href="https://gwhlds.com">Get the five-line template <b>→</b></a>
+      </div>
+    </article>
+
+    <!-- ============ CARD 09 · BLOTTER · PATTERN INTERRUPT ============ -->
+    <article class="card dBl" data-id="blotter">
+      <div class="cardHead"><span class="fw">09 · Pattern Interrupt · The counter-intuitive open</span><span class="wc">98 words</span></div>
+      <div class="subject">
+        <div class="lab">Subject</div>
+        <div class="sub" data-subject>quiet chart</div>
+      </div>
+      <div class="pre" data-preheader>The most profitable hour last week was the one I didn't trade. Counterintuitive. Also accurate.</div>
+      <div class="hero">
+        <span class="tag">Blotter</span>
+        <img src="https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=1200&q=80&auto=format&fit=crop" alt="Close up of a financial chart with red and green candlesticks on dark monitor" />
+        <div class="ovl"><span>session · no fills</span><span><b>chair time · 4h 22m</b></span></div>
+      </div>
+      <div class="body" data-body>
+        <p>The most profitable hour last week was the one I didn't trade.</p>
+        <p>Counterintuitive. Also accurate.</p>
+        <p>A flat chart, no level in play, the urge to "find something." That's the most expensive seat in the market — and the hardest to keep.</p>
+        <p>The work is the patient seat: <strong>only the setups your plan covers</strong>, sized the same way every time, no exceptions when the chart goes quiet.</p>
+        <p>Generational Wealth Holdings runs a Discord built around that one rule. Pinned curriculum, daily breakdowns, capital-preservation first.</p>
+      </div>
+      <div class="auth">
+        <div class="col"><span class="lab">Insight</span><span class="val">No-trade hour ≠ no work</span></div>
+        <div class="col"><span class="lab">Source</span><span class="val">Community thesis</span></div>
+        <div class="col"><span class="lab">Proof</span><span class="val">Pinned rule · Discord</span></div>
+      </div>
+      <div class="footRow">
+        <div class="copyRow">
+          <button class="copyBtn" data-copy="subject"><span class="ic"></span>Subject</button>
+          <button class="copyBtn" data-copy="preheader"><span class="ic"></span>Preheader</button>
+          <button class="copyBtn html" data-copy="html"><span class="ic"></span>HTML</button>
+        </div>
+        <a class="cta" href="https://gwhlds.com">See the layout <b>→</b></a>
+      </div>
+    </article>
+
+    <!-- ============ CARD 10 · INVITATION · CONFESSION ============ -->
+    <article class="card dIv" data-id="invitation">
+      <div class="cardHead"><span class="fw">10 · Confession · Star · Story · Solution</span><span class="wc">115 words</span></div>
+      <div class="subject">
+        <div class="lab">Subject</div>
+        <div class="sub" data-subject>i was wrong</div>
+      </div>
+      <div class="pre" data-preheader>Three Friday afternoons, one ticker, a 32K drawdown. Eighteen months of lessons. Built the room around what came after.</div>
+      <div class="hero">
+        <span class="tag">RSVP</span>
+        <img src="https://images.unsplash.com/photo-1583521214690-73421a1829a9?w=1200&q=80&auto=format&fit=crop" alt="Cream envelope with gold wax seal resting on a dark wood surface" />
+        <div class="ovl"><span>by invitation</span><span><b>the founder · a confession</b></span></div>
+      </div>
+      <div class="body" data-body>
+        <p>I revenge-traded my way to a 32K drawdown in 2020.</p>
+        <p>Three Friday afternoons. Same ticker, three different theses, all "this is the one." The account ended the month down 32K and the lesson ended up costing me eighteen months.</p>
+        <p>What I learned wasn't a setup. It was the chair — <strong>fixed-R sizing, pinned rules, a community that calls it when you start drifting</strong>.</p>
+        <p>Generational Wealth Holdings is the room I built for it. Pinned curriculum, daily breakdowns, capital-preservation first. Basic access opens it on Patreon.</p>
+      </div>
+      <div class="auth">
+        <div class="col"><span class="lab">Year</span><span class="val">2020 · Three Fridays</span></div>
+        <div class="col"><span class="lab">Lesson</span><span class="val">18 months · the chair</span></div>
+        <div class="col"><span class="lab">Built</span><span class="val">Patreon → Discord room</span></div>
+      </div>
+      <div class="footRow">
+        <div class="copyRow">
+          <button class="copyBtn" data-copy="subject"><span class="ic"></span>Subject</button>
+          <button class="copyBtn" data-copy="preheader"><span class="ic"></span>Preheader</button>
+          <button class="copyBtn html" data-copy="html"><span class="ic"></span>HTML</button>
+        </div>
+        <a class="cta" href="https://gwhlds.com">Accept the invitation <b>→</b></a>
+      </div>
+    </article>
+
+  </div>
+
+  <div class="disclaimerBlock">
+    <h4>Legal Disclaimer — included verbatim in every HTML export</h4>
+    <p>This server by Generational Wealth Holdings Inc. including its contractors and affiliates, is NOT an investment advisory service. We are not registered as a securities broker-dealer or an investment adviser either with the U.S Securities and Exchange Commission (SEC) or with any state securities regulatory authority. We are neither licensed nor qualified to provide investment advice. To the fullest extent of the law, we will not be liable to any person or entity for the quality, accuracy, completeness, reliability, or timeliness of the information provided in the report, or for any direct, indirect, consequential, incidental, special or punitive damages that may arise out of the use of information we provide to any person or entity (including, but not limited to, lost profits, loss of opportunities, trading losses, and damages that may result from any inaccuracy or incompleteness of this information). Every trade you make is your own trade and you are fully responsible for any gain or loss you shall incur. Generational Wealth Holdings Corp. nor any moderators are held liable for any losses you shall have at any time you are with our service or after. It should be not be assumed that the methods, techniques or indicators provided in the book will be profitable nor that they will not result in loss. All information is provided for educational purpose only. Investors and traders must always consult with their licensed advisors or tax advisors to determine the suitability of any investment. We are not liable for any consequences that may occur by using information in this server. Trading and investing carry significant risk. By participating in this community, you acknowledge that you are solely responsible for your own financial decisions and trades. Always do your own research (DYOR) and consult with a licensed professional if needed.</p>
+  </div>
+
+  <div class="credit">Generational Wealth Holdings · <b>gwhlds.com</b> · @genwealthtrade · 2026 Cold Email System · Pack 02</div>
+</div>
+
+<div class="toast" id="toast">Copied to clipboard</div>
+
+<script>
+(function(){
+  const toast = document.getElementById('toast');
+  const showToast = (msg) => {
+    toast.textContent = msg || 'Copied to clipboard';
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 1700);
+  };
+
+  const cleanText = (el) => {
+    return Array.from(el.querySelectorAll('p')).map(p => p.innerText.trim()).filter(Boolean).join('\n\n');
+  };
+
+  const esc = (s) => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+
+  const copyText = async (text) => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch (_) {}
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly','');
+      ta.style.position = 'fixed';
+      ta.style.top = '0';
+      ta.style.left = '0';
+      ta.style.width = '1px';
+      ta.style.height = '1px';
+      ta.style.opacity = '0';
+      document.body.appendChild(ta);
+      ta.focus();
+      ta.select();
+      ta.setSelectionRange(0, text.length);
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch (_) { return false; }
+  };
+
+  const DISCLAIMER = "This server by Generational Wealth Holdings Inc. including its contractors and affiliates, is NOT an investment advisory service. We are not registered as a securities broker-dealer or an investment adviser either with the U.S Securities and Exchange Commission (SEC) or with any state securities regulatory authority. We are neither licensed nor qualified to provide investment advice. To the fullest extent of the law, we will not be liable to any person or entity for the quality, accuracy, completeness, reliability, or timeliness of the information provided in the report, or for any direct, indirect, consequential, incidental, special or punitive damages that may arise out of the use of information we provide to any person or entity (including, but not limited to, lost profits, loss of opportunities, trading losses, and damages that may result from any inaccuracy or incompleteness of this information). Every trade you make is your own trade and you are fully responsible for any gain or loss you shall incur. Generational Wealth Holdings Corp. nor any moderators are held liable for any losses you shall have at any time you are with our service or after. It should be not be assumed that the methods, techniques or indicators provided in the book will be profitable nor that they will not result in loss. All information is provided for educational purpose only. Investors and traders must always consult with their licensed advisors or tax advisors to determine the suitability of any investment. We are not liable for any consequences that may occur by using information in this server. Trading and investing carry significant risk. By participating in this community, you acknowledge that you are solely responsible for your own financial decisions and trades. Always do your own research (DYOR) and consult with a licensed professional if needed.";
+
+  const cardData = (card) => {
+    const subject   = card.querySelector('[data-subject]').innerText.trim();
+    const preheader = card.querySelector('[data-preheader]').innerText.trim();
+    const bodyEl    = card.querySelector('[data-body]');
+    const bodyText  = cleanText(bodyEl);
+    const bodyHtml  = bodyEl.innerHTML.trim();
+    const heroImg   = card.querySelector('.hero img');
+    const heroSrc   = heroImg ? heroImg.getAttribute('src') : '';
+    const heroAlt   = heroImg ? (heroImg.getAttribute('alt') || '') : '';
+    const ovl       = card.querySelector('.hero .ovl');
+    const ovlLeft   = ovl ? ovl.children[0]?.innerText.trim() : '';
+    const ovlRight  = ovl ? ovl.children[1]?.innerText.trim() : '';
+    const tag       = card.querySelector('.hero .tag')?.innerText.trim() || '';
+    const fw        = card.querySelector('.cardHead .fw')?.innerText.trim() || '';
+    const cta       = card.querySelector('.cta');
+    const ctaLabel  = cta ? cta.innerText.replace(/\s+/g,' ').replace(/→/g,'').trim() : '';
+    const ctaUrl    = cta ? cta.getAttribute('href') : '';
+    const auth      = Array.from(card.querySelectorAll('.auth .col')).map(col => ({
+      lab: col.querySelector('.lab')?.innerText.trim() || '',
+      val: col.querySelector('.val')?.innerText.trim() || ''
+    }));
+    return {subject, preheader, bodyText, bodyHtml, heroSrc, heroAlt, ovlLeft, ovlRight, tag, fw, ctaLabel, ctaUrl, auth};
+  };
+
+  const buildEmailHTML = (card) => {
+    const d = cardData(card);
+    const authCells = d.auth.map((a, i) => `
+              <td width="33%" valign="top" style="padding:0 ${i===1?'8px':'0'};">
+                <div style="font-family:'JetBrains Mono','Courier New',monospace;font-size:9px;font-weight:700;color:#F5C200;letter-spacing:0.22em;text-transform:uppercase;margin-bottom:4px;">${esc(a.lab)}</div>
+                <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:600;color:#FBF7EA;line-height:1.3;">${esc(a.val)}</div>
+              </td>`).join('');
+
+    return `<!DOCTYPE html>
+<html lang="en" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<title>Generational Wealth Holdings &mdash; ${esc(d.subject)}</title>
+</head>
+<body style="margin:0;padding:0;background:#0B142B;">
+<div style="display:none;font-size:1px;color:#0B142B;line-height:1px;max-height:0;max-width:0;opacity:0;overflow:hidden;">${esc(d.preheader)}</div>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0B142B;font-family:Arial,Helvetica,sans-serif;">
+ <tr><td align="center" style="padding:32px 12px;">
+  <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background:#FBF7EA;">
+
+   <tr><td style="height:6px;background:#D4AF37;font-size:0;line-height:0;">&nbsp;</td></tr>
+
+   <tr><td style="padding:22px 28px 14px 28px;background:#0F172A;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+     <td align="left" style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:22px;font-weight:700;color:#FBF7EA;letter-spacing:0.06em;">
+      <span style="color:#D4AF37;font-weight:800;">GW</span> Generational Wealth
+     </td>
+     <td align="right" style="font-family:'Courier New',monospace;font-size:9.5px;font-weight:700;letter-spacing:0.22em;color:#D4AF37;text-transform:uppercase;">
+      Holdings &middot; Est. 2026
+     </td>
+    </tr></table>
+    <div style="height:1px;background:#D4AF37;opacity:0.4;margin-top:14px;"></div>
+    <div style="font-family:'Courier New',monospace;font-size:9.5px;letter-spacing:0.28em;color:#94A3B8;text-transform:uppercase;margin-top:10px;">
+     ${esc(d.fw)}
+    </div>
+   </td></tr>
+
+   <tr><td style="padding:0;">
+    <img src="${esc(d.heroSrc)}" alt="${esc(d.heroAlt)}" width="600" style="display:block;width:100%;max-width:600px;height:auto;border:0;border-bottom:3px solid #D4AF37;" />
+    <div style="background:#0F172A;color:#FBF7EA;padding:10px 18px;font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;">
+     <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+      <td align="left">${esc(d.ovlLeft)}</td>
+      <td align="right" style="color:#F5C200;font-weight:700;">${esc(d.ovlRight)}</td>
+     </tr></table>
+    </div>
+   </td></tr>
+
+   <tr><td style="padding:24px 28px 6px 28px;">
+    <div style="font-family:'Courier New',monospace;font-size:10px;font-weight:700;color:#94A3B8;letter-spacing:0.22em;text-transform:uppercase;margin-bottom:6px;">Subject</div>
+    <div style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:30px;font-weight:700;color:#0F172A;line-height:1.1;letter-spacing:-0.005em;">${esc(d.subject)}</div>
+   </td></tr>
+
+   <tr><td style="padding:18px 28px 8px 28px;">
+    <div style="font-family:Georgia,'Times New Roman',serif;font-size:15.5px;line-height:1.68;color:#1f2937;">${d.bodyHtml}</div>
+   </td></tr>
+
+   <tr><td style="padding:8px 28px 0 28px;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0F172A;border-radius:10px;border:1px solid #D4AF37;">
+     <tr><td style="padding:14px 16px;">
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>${authCells}
+      </tr></table>
+     </td></tr>
+    </table>
+   </td></tr>
+
+   <tr><td align="center" style="padding:22px 28px 26px 28px;">
+    <a href="${esc(d.ctaUrl)}" style="display:inline-block;background:#D4AF37;color:#0F172A;font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:700;font-size:16px;padding:14px 28px;text-decoration:none;border-radius:8px;letter-spacing:0.04em;">
+     ${esc(d.ctaLabel)} <span style="color:#0F172A;">&rarr;</span>
+    </a>
+   </td></tr>
+
+   <tr><td style="padding:0 28px 18px 28px;">
+    <div style="height:1px;background:#D6CEB5;margin-bottom:14px;"></div>
+    <div style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#475569;line-height:1.55;">
+     <strong style="color:#0F172A;">Generational Wealth Holdings</strong><br/>
+     Capital preservation first &middot; <a href="https://gwhlds.com" style="color:#0F172A;text-decoration:underline;">gwhlds.com</a> &middot; <a href="https://www.instagram.com/genwealthtrade/" style="color:#0F172A;text-decoration:underline;">@genwealthtrade</a><br/>
+     <span style="color:#94A3B8;font-size:11.5px;">If this isn't relevant, <a href="#" style="color:#94A3B8;text-decoration:underline;">remove me</a> — no follow-ups.</span>
+    </div>
+   </td></tr>
+
+   <tr><td style="padding:14px 28px 22px 28px;background:#F1EAD3;border-top:1px solid #D6CEB5;">
+    <div style="font-family:Arial,Helvetica,sans-serif;font-size:9.5px;line-height:1.55;color:#7c6f4f;letter-spacing:0.01em;text-align:left;">
+     <span style="font-weight:700;color:#0F172A;letter-spacing:0.12em;text-transform:uppercase;font-size:8.5px;">Disclaimer &mdash; please read</span><br/>
+     <span style="display:block;margin-top:4px;">${esc(DISCLAIMER)}</span>
+    </div>
+   </td></tr>
+
+   <tr><td style="height:6px;background:#D4AF37;font-size:0;line-height:0;">&nbsp;</td></tr>
+
+  </table>
+ </td></tr>
+</table>
+</body>
+</html>`;
+  };
+
+  const buildPlain = (card) => {
+    const d = cardData(card);
+    return `Subject: ${d.subject}\nPreheader: ${d.preheader}\n\n${d.bodyText}\n\nCTA: ${d.ctaLabel}\n${d.ctaUrl}\n\n— Generational Wealth Holdings · gwhlds.com\n\n---\n${DISCLAIMER}`;
+  };
+
+  const flashBtn = (btn, label) => {
+    const original = btn.innerHTML;
+    btn.innerHTML = '<span class="ic"></span>' + label;
+    btn.classList.add('ok');
+    setTimeout(() => { btn.innerHTML = original; btn.classList.remove('ok'); }, 1500);
+  };
+
+  document.querySelectorAll('.card .copyBtn[data-copy]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const card = btn.closest('.card');
+      const kind = btn.dataset.copy;
+      let text = '';
+      let toastMsg = '';
+      if (kind === 'subject')   { text = card.querySelector('[data-subject]').innerText.trim();    toastMsg = 'Subject copied · ' + card.dataset.id.toUpperCase(); }
+      if (kind === 'preheader') { text = card.querySelector('[data-preheader]').innerText.trim();  toastMsg = 'Preheader copied · ' + card.dataset.id.toUpperCase(); }
+      if (kind === 'html')      { text = buildEmailHTML(card);                                     toastMsg = 'HTML + disclaimer copied · ' + card.dataset.id.toUpperCase(); }
+      const ok = await copyText(text);
+      if (ok) { flashBtn(btn, 'Copied'); showToast(toastMsg); }
+      else    { showToast('Copy failed'); }
+    });
+  });
+
+  document.getElementById('copyAllSubjects').addEventListener('click', async () => {
+    const lines = Array.from(document.querySelectorAll('.card')).map((c, i) => {
+      const id = c.dataset.id.toUpperCase();
+      const s  = c.querySelector('[data-subject]').innerText.trim();
+      const p  = c.querySelector('[data-preheader]').innerText.trim();
+      return `${String(i+6).padStart(2,'0')} · ${id}\n  Subject:   ${s}\n  Preheader: ${p}`;
+    });
+    const text = 'Generational Wealth Holdings — Pack 02 · Subjects + Preheaders\n\n' + lines.join('\n\n');
+    const ok = await copyText(text);
+    showToast(ok ? 'All 5 subjects copied' : 'Copy failed');
+  });
+
+  document.getElementById('copyAllEmails').addEventListener('click', async () => {
+    const blocks = Array.from(document.querySelectorAll('.card')).map((c, i) => {
+      const id = c.dataset.id.toUpperCase();
+      return `=== ${String(i+6).padStart(2,'0')} · ${id} ===\n\n${buildPlain(c)}`;
+    });
+    const text = blocks.join('\n\n\n');
+    const ok = await copyText(text);
+    showToast(ok ? 'All 5 emails copied' : 'Copy failed');
+  });
+})();
+</script>
+
+</body>
+</html>

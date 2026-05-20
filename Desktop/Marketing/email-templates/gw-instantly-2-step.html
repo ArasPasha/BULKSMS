@@ -1,0 +1,374 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Generational Wealth · Instantly · 2-Step Sequence</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Playfair+Display:ital,wght@0,600;0,700;1,600;1,700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#070B17;color:#E5E7EB;font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+  a{color:inherit;text-decoration:none}
+  .page{max-width:1100px;margin:0 auto;padding:48px 24px 80px}
+
+  /* HEADER */
+  .topRule{display:grid;grid-template-columns:1fr 4fr 1fr;gap:8px;align-items:center;margin-bottom:18px}
+  .topRule .l,.topRule .r{height:2px;background:linear-gradient(90deg,transparent,#1f2a44 30%,#3a4b78 50%,#1f2a44 70%,transparent)}
+  .topRule .c{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.32em;text-transform:uppercase;color:#D4AF37;text-align:center}
+
+  .brandHead{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;margin-bottom:14px}
+  .brandLogo{display:flex;align-items:center;gap:18px}
+  .brandLogo img{display:block;height:88px;width:auto;filter:drop-shadow(0 6px 24px rgba(212,175,55,0.28))}
+  .brandLogo .lockup{display:flex;flex-direction:column;gap:4px}
+  .brandLogo .wordmark{font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:26px;line-height:1;color:#FBF7EA;letter-spacing:0.005em}
+  .brandLogo .wordmark b{color:#D4AF37;font-weight:800;font-style:italic;letter-spacing:0.005em}
+  .brandLogo .wordmark i{color:#22C55E;font-weight:800;font-style:italic;letter-spacing:0.005em;margin:0 1px}
+  .brandSlug{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.32em;text-transform:uppercase;color:#94A3B8;justify-self:end;text-align:right;line-height:1.6}
+  .brandSlug b{color:#D4AF37;font-weight:700}
+
+  h1.title{font-family:'Inter',sans-serif;font-weight:900;font-size:clamp(28px,4.4vw,46px);line-height:0.98;letter-spacing:-0.03em;color:#F8FAFC;margin-bottom:12px}
+  h1.title .accent{color:#D4AF37}
+  h1.title .green{color:#22C55E}
+  .lede{max-width:820px;font-size:15px;line-height:1.65;color:#A8B1C2;margin-bottom:16px}
+  .lede strong{color:#FBF7EA;font-weight:500}
+  .lede em{color:#D4AF37;font-style:italic}
+
+  .meta{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:30px}
+  .chip{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.16em;text-transform:uppercase;color:#CBD5E1;background:#111B33;border:1px solid #1f2a44;padding:7px 12px;border-radius:999px}
+  .chip b{color:#D4AF37;font-weight:700}
+  .chip.live{background:#0F4E3B;border-color:#22C55E;color:#FBF7EA}
+  .chip.live::before{content:"●";color:#22C55E;margin-right:6px;animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+  /* SETTINGS */
+  .settings{margin-bottom:32px;background:#0B142B;border:1px solid #1f2a44;border-left:4px solid #D4AF37;border-radius:12px;padding:20px 22px}
+  .settings h2{font-family:'Inter',sans-serif;font-weight:800;font-size:13px;color:#D4AF37;margin-bottom:12px;letter-spacing:0.06em;text-transform:uppercase}
+  .settingsGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:10px}
+  .settingRow{display:flex;justify-content:space-between;align-items:baseline;gap:10px;padding:7px 12px;background:#111B33;border:1px solid #1f2a44;border-radius:7px}
+  .settingLabel{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:#94A3B8;font-weight:600}
+  .settingValue{font-family:'JetBrains Mono',monospace;font-size:11.5px;color:#D4AF37;font-weight:700}
+
+  /* SEQUENCE CARD */
+  .sequence{margin-bottom:24px;border:1px solid #1f2a44;border-radius:14px;overflow:hidden;background:#FBF7EA;box-shadow:0 30px 70px -30px rgba(0,0,0,0.7)}
+  .sequenceHead{background:#0F172A;color:#FBF7EA;padding:18px 24px;display:grid;grid-template-columns:auto 1fr;gap:18px;align-items:center;border-bottom:3px solid #D4AF37}
+  .sequenceNum{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.22em;text-transform:uppercase;color:#0F172A;background:#D4AF37;padding:9px 14px;border-radius:6px;font-weight:800;white-space:nowrap}
+  .sequenceTitle{font-family:'Playfair Display',Georgia,serif;font-weight:700;font-style:italic;font-size:24px;letter-spacing:-0.018em;color:#FBF7EA;line-height:1.2}
+  .sequenceTitle b{color:#D4AF37;font-style:normal;font-weight:700}
+  .sequenceSub{font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;color:#94A3B8;margin-top:4px;display:block}
+
+  /* STEP CARD */
+  .step{padding:22px 24px;border-bottom:1px dashed #d6cfb8}
+  .step:last-child{border-bottom:0}
+  .stepHead{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:14px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase}
+  .stepName{color:#0F172A;font-weight:800;font-size:13px;letter-spacing:0.08em}
+  .stepBadge{background:#0F172A;color:#D4AF37;padding:4px 8px;border-radius:5px;font-weight:700}
+  .stepBadge.link{background:#0F4E3B;color:#FBF7EA}
+  .stepBadge.nolink{background:#7C2A18;color:#FBF7EA;opacity:0.85}
+  .stepBadge.day{background:#173279;color:#FBF7EA}
+
+  .why{font-family:'Inter',sans-serif;font-size:13px;line-height:1.55;color:#475569;margin-bottom:12px;font-style:italic;padding:10px 14px;background:#F1ECDD;border-left:3px solid #D4AF37;border-radius:0 6px 6px 0}
+  .why strong{color:#0F172A;font-style:normal}
+
+  .field{display:grid;grid-template-columns:90px 1fr auto;gap:12px;align-items:start;padding:12px 14px;background:#FFFFFF;border:1px solid #D6CEB5;border-radius:8px;margin-bottom:10px}
+  .field.body{align-items:start}
+  .field .lbl{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.22em;text-transform:uppercase;color:#94755B;font-weight:700;padding-top:6px}
+  .field .val{font-family:'Inter',sans-serif;font-size:15px;color:#0F172A;line-height:1.6;word-wrap:break-word}
+  .field.subject .val{font-weight:700;font-size:17px}
+  .field.body .val{white-space:pre-wrap;font-family:'Inter',sans-serif;font-size:14.5px;line-height:1.7;padding-top:4px}
+  .field .copyBtn{align-self:start;display:inline-flex;align-items:center;gap:6px;background:#0F172A;color:#D4AF37;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;padding:9px 11px;border-radius:6px;border:0;cursor:pointer;line-height:1;white-space:nowrap}
+  .field .copyBtn:hover{background:#1e2a47}
+  .field .copyBtn.ok{background:#0F4E3B;color:#FFFFFF}
+  .field .copyBtn .ic{width:11px;height:11px;display:inline-block;flex:0 0 11px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23D4AF37' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><rect x='9' y='9' width='13' height='13' rx='2'/><path d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/></svg>");background-size:contain;background-repeat:no-repeat}
+  .field .copyBtn.ok .ic{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>")}
+
+  /* SPAM CHECK */
+  .spamCheck{margin-top:28px;background:#0B142B;border:1px solid #1f2a44;border-radius:14px;padding:22px;display:grid;grid-template-columns:1fr 1fr;gap:22px}
+  .spamCheck h2{font-family:'Inter',sans-serif;font-weight:800;font-size:13px;margin-bottom:12px;letter-spacing:0.06em;text-transform:uppercase}
+  .spamCheck h2.bad{color:#EF4444}
+  .spamCheck h2.good{color:#22C55E}
+  .spamCheck p.note{font-size:12px;color:#94A3B8;margin-bottom:12px;line-height:1.55}
+  .spamCheck p.note strong{color:#22C55E;font-weight:600}
+  .wordList{display:flex;flex-wrap:wrap;gap:6px}
+  .word{font-family:'JetBrains Mono',monospace;font-size:11px;padding:5px 9px;border-radius:5px;letter-spacing:0.04em}
+  .word.bad{background:rgba(239,68,68,0.12);border:1px solid #7f1d1d;color:#FCA5A5;text-decoration:line-through}
+  .word.good{background:rgba(34,197,94,0.12);border:1px solid #14532D;color:#86EFAC}
+
+  /* DISCLAIMER */
+  .disclaimerBlock{margin-top:28px;padding:18px 22px;background:#0B142B;border:1px solid #1f2a44;border-left:4px solid #D4AF37;border-radius:12px;color:#7c8499;font-family:'Inter',sans-serif;font-size:11px;line-height:1.7;text-align:center}
+  .disclaimerBlock h4{font-family:'JetBrains Mono',monospace;font-size:9.5px;letter-spacing:0.28em;color:#D4AF37;font-weight:800;margin-bottom:8px;text-transform:uppercase}
+  .disclaimerBlock a{color:#D4AF37;text-decoration:underline}
+
+  /* TOAST */
+  .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:#0F172A;color:#D4AF37;font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;padding:12px 18px;border-radius:10px;border:1px solid #D4AF37;opacity:0;transition:all .25s ease;pointer-events:none;font-weight:700;z-index:50}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  .credit{margin-top:28px;text-align:center;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.22em;text-transform:uppercase;color:#475569}
+  .credit b{color:#94A3B8}
+
+  @media(max-width:720px){
+    .field{grid-template-columns:1fr;gap:8px}
+    .field .copyBtn{justify-self:start}
+    .spamCheck{grid-template-columns:1fr}
+    .brandHead{grid-template-columns:1fr}
+    .brandSlug{justify-self:start;text-align:left}
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="topRule">
+    <div class="l"></div>
+    <div class="c">Generational Wealth · Instantly · 2-Step Cold Sequence</div>
+    <div class="r"></div>
+  </div>
+
+  <div class="brandHead">
+    <div class="brandLogo">
+      <img src="logo.png" alt="Generational Wealth Holdings — gold and green GW shield with crown and laurel wreath" />
+      <div class="lockup">
+        <div class="wordmark"><b>Generational</b> <i>Wealth</i></div>
+      </div>
+    </div>
+    <div class="brandSlug"><b>gwhlds.com</b><br>
+      <span style="display:inline-flex;align-items:center;gap:4px;margin-top:6px;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" style="vertical-align:-2px;margin-right:4px;" fill="none" stroke="#FBF7EA" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>genwealthtrade
+      </span>
+    </div>
+  </div>
+
+  <h1 class="title">TWO STEPS.<br><span class="accent">VALUE FIRST</span>.<br><span class="green">ONE LINK</span> ON STEP 2.</h1>
+  <p class="lede">A focused 2-step Instantly sequence for the <em>Swing and Scalp Trading Group</em>. Step 1 leads with a note — no link, no pitch, no asks beyond a reply. Step 2 follows up 4 days later with one link to gwhlds.com. Brand-safe vocabulary, plain-text Instantly mode, 50–60 word bodies. The room runs on <strong>process over hype</strong>, <strong>discipline before entries</strong>, <strong>capital preservation first</strong> — the copy below mirrors that voice.</p>
+
+  <div class="meta">
+    <span class="chip live"><b>VALUE-LED</b></span>
+    <span class="chip"><b>2</b> STEPS</span>
+    <span class="chip"><b>0 / +4</b> DAY DELAYS</span>
+    <span class="chip"><b>1</b> LINK · STEP 2 ONLY</span>
+    <span class="chip"><b>NO</b> BREAKUP EMAIL</span>
+    <span class="chip"><b>EDU</b> POSITIONING ONLY</span>
+    <span class="chip"><b>BRAND</b> VOCAB FROM gwhlds.com</span>
+  </div>
+
+  <!-- Variable warning -->
+  <div style="margin-bottom:24px;background:#7f1d1d;border:1px solid #EF4444;border-left:4px solid #FCA5A5;border-radius:10px;padding:14px 18px;">
+    <div style="font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:#FCA5A5;font-weight:800;margin-bottom:6px;">⚠ Variable Case Check</div>
+    <div style="font-family:'Inter',sans-serif;font-size:13px;line-height:1.55;color:#FBF7EA;">
+      Lead-sheet column header MUST be <code style="background:#0F172A;padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;color:#D4AF37;font-size:11.5px;">firstName</code> (not <code style="background:#0F172A;padding:2px 6px;border-radius:4px;font-family:'JetBrains Mono',monospace;color:#D4AF37;font-size:11.5px;">First Name</code>) for the merge tags to fire. Mismatch = blank tokens = obvious automation. B2C trader list, so <strong>firstName only</strong>.
+    </div>
+  </div>
+
+  <!-- Settings -->
+  <div class="settings">
+    <h2>Instantly Settings · Apply to Both Campaigns</h2>
+    <div class="settingsGrid">
+      <div class="settingRow"><span class="settingLabel">Daily campaign limit</span><span class="settingValue">30</span></div>
+      <div class="settingRow"><span class="settingLabel">Per inbox per day</span><span class="settingValue">5</span></div>
+      <div class="settingRow"><span class="settingLabel">Min time between</span><span class="settingValue">60 min</span></div>
+      <div class="settingRow"><span class="settingLabel">Random additional</span><span class="settingValue">15 min</span></div>
+      <div class="settingRow"><span class="settingLabel">Schedule</span><span class="settingValue">7:30 AM – 9 PM EST</span></div>
+      <div class="settingRow"><span class="settingLabel">Days</span><span class="settingValue">Mon–Thu + Sun PM</span></div>
+      <div class="settingRow"><span class="settingLabel">Open tracking</span><span class="settingValue">OFF</span></div>
+      <div class="settingRow"><span class="settingLabel">Link tracking</span><span class="settingValue">OFF</span></div>
+      <div class="settingRow"><span class="settingLabel">Reply detection</span><span class="settingValue">ON</span></div>
+      <div class="settingRow"><span class="settingLabel">Bounce handling</span><span class="settingValue">ON · auto-suppress</span></div>
+      <div class="settingRow"><span class="settingLabel">Step 1 → 2 delay</span><span class="settingValue">4 days</span></div>
+      <div class="settingRow"><span class="settingLabel">Reply pause</span><span class="settingValue">ON</span></div>
+    </div>
+  </div>
+
+  <!-- Sequence -->
+  <section class="sequence">
+    <div class="sequenceHead">
+      <div class="sequenceNum">2-STEP · UNIVERSAL</div>
+      <div>
+        <div class="sequenceTitle">Process over hype. <b>Two touches.</b></div>
+        <span class="sequenceSub">Swing &amp; scalp traders · self-directed retail · risk-first vocab from gwhlds.com</span>
+      </div>
+    </div>
+
+    <!-- STEP 1 · DAY 0 · NO LINK -->
+    <div class="step">
+      <div class="stepHead">
+        <span class="stepName">Step 1 · The Note</span>
+        <span class="stepBadge day">Day 0</span>
+        <span class="stepBadge">Plain Text</span>
+        <span class="stepBadge nolink">No Link</span>
+      </div>
+      <div class="why">Pure value drop. <strong>No link, no pitch, no ask beyond a reply.</strong> Brand voice straight from gwhlds.com — "process over hype", "discipline before entries". Subject is 2 lowercase words, no firstName (Lavender data: firstName in subject costs −12% reply rate). The body offers a short note on the room's risk-first framework. Saying yes to a note costs the reader nothing → high reply rate. ~55 words.</div>
+      <div class="field subject">
+        <span class="lbl">Subject</span>
+        <span class="val" data-copy>process over hype</span>
+        <button class="copyBtn" data-copy-target><span class="ic"></span>Copy</button>
+      </div>
+      <div class="field body">
+        <span class="lbl">Body</span>
+        <span class="val" data-copy>{Hi|Hey} {{firstName}},
+
+I put together a short note on the part of trading nobody runs ads about — the discipline before the entry. Risk-first sizing. Written invalidation. Journal before the next click. The room I'm in calls it "process over hype."
+
+Useful whether or not you ever step inside.
+
+Want me to send it over?
+
+— Sam</span>
+        <button class="copyBtn" data-copy-target><span class="ic"></span>Copy</button>
+      </div>
+    </div>
+
+    <!-- STEP 2 · DAY +4 · ONE LINK -->
+    <div class="step">
+      <div class="stepHead">
+        <span class="stepName">Step 2 · The Room</span>
+        <span class="stepBadge day">Day +4</span>
+        <span class="stepBadge">Plain Text</span>
+        <span class="stepBadge link">One Link</span>
+      </div>
+      <div class="why">NEW angle, not a Step 1 repeat. Names the actual room (<strong>Swing &amp; Scalp Trading Group</strong>) and what's inside (daily commentary, intraday + swing ideas, real-time trade callouts, risk-first discipline). One link to gwhlds.com, dropped naturally mid-sentence. No urgency, no countdown, no hard sell. Around 60 words.</div>
+      <div class="field subject">
+        <span class="lbl">Subject</span>
+        <span class="val" data-copy>the room</span>
+        <button class="copyBtn" data-copy-target><span class="ic"></span>Copy</button>
+      </div>
+      <div class="field body">
+        <span class="lbl">Body</span>
+        <span class="val" data-copy>{Hi|Hey} {{firstName}},
+
+Following up on the note — the room is a Swing &amp; Scalp Trading Group. Daily commentary, intraday + swing ideas, real-time trade callouts, risk-first sizing rules. Process over hype, every session.
+
+If it's a fit, the door is here: gwhlds.com
+
+Around if anything's worth a chat.
+
+— Sam</span>
+        <button class="copyBtn" data-copy-target><span class="ic"></span>Copy</button>
+      </div>
+    </div>
+
+  </section>
+
+  <!-- Spam check -->
+  <div class="spamCheck">
+    <div>
+      <h2 class="bad">Words Avoided (Spam + Compliance Triggers)</h2>
+      <p class="note">Trading-education brand can't promise outcomes. These trip SEC/FINRA red flags AND inbox filters.</p>
+      <div class="wordList">
+        <span class="word bad">make money</span>
+        <span class="word bad">profit</span>
+        <span class="word bad">guaranteed</span>
+        <span class="word bad">returns</span>
+        <span class="word bad">signals</span>
+        <span class="word bad">alerts</span>
+        <span class="word bad">tips</span>
+        <span class="word bad">picks</span>
+        <span class="word bad">winners</span>
+        <span class="word bad">10x</span>
+        <span class="word bad">double your</span>
+        <span class="word bad">100%</span>
+        <span class="word bad">urgent</span>
+        <span class="word bad">act now</span>
+        <span class="word bad">limited time</span>
+        <span class="word bad">click here</span>
+        <span class="word bad">$$</span>
+        <span class="word bad">!!!!</span>
+        <span class="word bad">ALL CAPS</span>
+      </div>
+    </div>
+    <div>
+      <h2 class="good">Words Used (Brand Voice from gwhlds.com)</h2>
+      <p class="note"><strong>Verbatim phrases pulled from the public site.</strong> Stays compliant with the SEC/FINRA bar and matches the brand's own language.</p>
+      <div class="wordList">
+        <span class="word good">process over hype</span>
+        <span class="word good">discipline before entries</span>
+        <span class="word good">risk-first sizing</span>
+        <span class="word good">capital preservation first</span>
+        <span class="word good">structure, consistency, growth</span>
+        <span class="word good">swing & scalp</span>
+        <span class="word good">real-time trade callouts</span>
+        <span class="word good">daily commentary</span>
+        <span class="word good">intraday + swing ideas</span>
+        <span class="word good">written invalidation</span>
+        <span class="word good">journal before the next click</span>
+        <span class="word good">the room</span>
+        <span class="word good">the chair</span>
+        <span class="word good">step inside</span>
+        <span class="word good">around if worth a chat</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Disclaimer -->
+  <div class="disclaimerBlock">
+    <h4>Disclaimer auto-appended on every Body copy</h4>
+    <p>—<br>Educational community · Not financial advice · DYOR<br>Full disclaimer: <a href="https://gwhlds.com">https://gwhlds.com</a></p>
+  </div>
+
+  <p class="credit">2-Step Sequence · <b>Generational Wealth Holdings</b> · gwhlds.com · @genwealthtrade</p>
+
+</div>
+
+<div class="toast" id="toast">Copied</div>
+
+<script>
+(function(){
+  const toast = document.getElementById('toast');
+  const showToast = (msg) => {
+    toast.textContent = msg || 'Copied';
+    toast.classList.add('show');
+    clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 1500);
+  };
+
+  const copyText = async (text) => {
+    try {
+      if (navigator.clipboard && window.isSecureContext) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch(_){}
+    try {
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      ta.setAttribute('readonly','');
+      ta.style.position='fixed';ta.style.top='0';ta.style.left='0';ta.style.opacity='0';
+      document.body.appendChild(ta);
+      ta.focus(); ta.select(); ta.setSelectionRange(0, text.length);
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      return ok;
+    } catch(_){ return false; }
+  };
+
+  // Abbreviated disclaimer auto-appended to every BODY copy.
+  // Keeps plain-text Instantly sends compliant without bloating the 50–60 word body.
+  const SHORT_DISCLAIMER = "\n\n—\nEducational community · Not financial advice · DYOR\nFull disclaimer: https://gwhlds.com";
+
+  document.querySelectorAll('.copyBtn[data-copy-target]').forEach((btn) => {
+    btn.addEventListener('click', async () => {
+      const field = btn.closest('.field');
+      const valEl = field.querySelector('[data-copy]');
+      let text = valEl.innerText.trim();
+      // Subject stays as-is. Body gets the abbreviated disclaimer appended automatically.
+      if (field.classList.contains('body')) {
+        text = text + SHORT_DISCLAIMER;
+      }
+      const ok = await copyText(text);
+      if (ok) {
+        const orig = btn.innerHTML;
+        btn.innerHTML = '<span class="ic"></span>Copied';
+        btn.classList.add('ok');
+        const label = field.classList.contains('subject') ? 'Subject' : 'Body + disclaimer';
+        const stepName = field.closest('.step').querySelector('.stepName').innerText.trim();
+        showToast(label + ' copied · ' + stepName);
+        setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('ok'); }, 1400);
+      } else {
+        showToast('Copy failed');
+      }
+    });
+  });
+})();
+</script>
+
+</body>
+</html>

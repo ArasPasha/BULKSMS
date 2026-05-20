@@ -388,17 +388,26 @@ Around when it makes sense.
     } catch(_) { return false; }
   };
 
+  // Abbreviated disclaimer auto-appended to every BODY copy.
+  // Keeps plain-text Instantly sends compliant without bloating the body.
+  const SHORT_DISCLAIMER = "\n\n—\nEducational community · Not financial advice · DYOR\nFull disclaimer: https://gwhlds.com";
+
   document.querySelectorAll('.copyBtn[data-copy-target]').forEach((btn) => {
     btn.addEventListener('click', async () => {
       const field = btn.closest('.field');
       const valEl = field.querySelector('[data-copy]');
-      const text = valEl.innerText.trim();
+      let text = valEl.innerText.trim();
+      // Subject copies stay as-is. Body copies append the abbreviated disclaimer
+      // so every Instantly send carries the educational/DYOR notice.
+      if (field.classList.contains('body')) {
+        text = text + SHORT_DISCLAIMER;
+      }
       const ok = await copyText(text);
       if (ok) {
         const orig = btn.innerHTML;
         btn.innerHTML = '<span class="ic"></span>Copied';
         btn.classList.add('ok');
-        const label = field.classList.contains('subject') ? 'Subject' : 'Body';
+        const label = field.classList.contains('subject') ? 'Subject' : 'Body + disclaimer';
         const stepName = field.closest('.step').querySelector('.stepName').innerText.trim();
         showToast(label + ' copied · ' + stepName);
         setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('ok'); }, 1400);

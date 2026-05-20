@@ -12,15 +12,15 @@
   .page{max-width:1320px;margin:0 auto;padding:48px 28px 96px}
 
   :root{
-    --gold:#D4AF37;
-    --gold-hi:#F5C200;
-    --gold-soft:#E6C56A;
-    --green:#15803D;
-    --green-hi:#22C55E;
-    --amber:#F59E0B;
-    --amber-hi:#FBBF24;
-    --red:#7C2A18;
-    --red-hi:#DC2626;
+    --gold:#A98B4F;
+    --gold-hi:#B8935C;
+    --gold-soft:#D4BC8A;
+    --green:#0F4E3B;
+    --green-hi:#1F7A47;
+    --amber:#A98B4F;
+    --amber-hi:#B8935C;
+    --red:#6B1F2E;
+    --red-hi:#8B2D2D;
     --navy:#0F172A;
     --navy-2:#111B33;
     --ink:#050913;
@@ -41,7 +41,7 @@
 
   .brandHead{display:grid;grid-template-columns:auto 1fr;gap:24px;align-items:center;margin-bottom:18px}
   .brandLogo{display:flex;align-items:center;gap:18px}
-  .brandLogo img{display:block;height:96px;width:auto;filter:drop-shadow(0 6px 24px rgba(212,175,55,0.28))}
+  .brandLogo img{display:block;height:96px;width:auto;filter:drop-shadow(0 6px 24px rgba(169,139,79,0.28))}
   .brandLogo .lockup{display:flex;flex-direction:column;gap:4px}
   .brandLogo .wordmark{font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:28px;line-height:1;color:var(--cream);letter-spacing:-0.01em;font-style:italic}
   .brandLogo .wordmark b{color:var(--gold);font-weight:800;font-style:normal;letter-spacing:0.02em}
@@ -63,8 +63,8 @@
   .chip{font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.18em;text-transform:uppercase;color:var(--soft);background:var(--navy-2);border:1px solid var(--line);padding:7px 12px;border-radius:999px}
   .chip b{color:var(--gold-hi);font-weight:700}
   .chip.gr b{color:var(--green-hi)}
-  .chip.live{background:#15803D;border-color:#22C55E;color:var(--cream)}
-  .chip.live::before{content:"â—";color:#22C55E;margin-right:6px;animation:pulse 2s infinite}
+  .chip.live{background:#0F4E3B;border-color:#1F7A47;color:var(--cream)}
+  .chip.live::before{content:"â—";color:#1F7A47;margin-right:6px;animation:pulse 2s infinite}
   @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
 
   /* ============ TOOLBAR ============ */
@@ -90,8 +90,8 @@
   @media (max-width:980px){.grid{grid-template-columns:1fr}.section{grid-template-columns:1fr;gap:8px}.brandHead{grid-template-columns:1fr}.brandSlug{justify-self:start;text-align:left}}
 
   /* ============ CARD BASE ============ */
-  .card{position:relative;background:var(--cream);color:var(--navy);border-radius:16px;overflow:hidden;border:1px solid var(--rule);display:flex;flex-direction:column;box-shadow:0 40px 80px -30px rgba(0,0,0,0.75),0 0 0 1px rgba(212,175,55,0.05) inset;transition:transform .25s ease,box-shadow .25s ease}
-  .card:hover{transform:translateY(-3px);box-shadow:0 50px 90px -30px rgba(0,0,0,0.85),0 0 0 1px rgba(212,175,55,0.15) inset}
+  .card{position:relative;background:var(--cream);color:var(--navy);border-radius:16px;overflow:hidden;border:1px solid var(--rule);display:flex;flex-direction:column;box-shadow:0 40px 80px -30px rgba(0,0,0,0.75),0 0 0 1px rgba(169,139,79,0.05) inset;transition:transform .25s ease,box-shadow .25s ease}
+  .card:hover{transform:translateY(-3px);box-shadow:0 50px 90px -30px rgba(0,0,0,0.85),0 0 0 1px rgba(169,139,79,0.15) inset}
 
   .cardHead{display:flex;justify-content:space-between;align-items:center;padding:14px 22px 0 22px;font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;color:#64748B}
   .cardHead .fw{color:var(--navy);font-weight:700}
@@ -106,7 +106,7 @@
   .hero img{width:100%;height:100%;object-fit:cover;display:block;filter:contrast(1.04) saturate(1.05)}
   .hero .ovl{position:absolute;left:0;right:0;bottom:0;background:linear-gradient(180deg,rgba(15,23,42,0) 0%,rgba(15,23,42,0.92) 100%);padding:34px 18px 14px;color:var(--cream);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;display:flex;justify-content:space-between;flex-wrap:wrap;gap:8px}
   .hero .ovl b{color:var(--gold-hi);font-weight:700}
-  .hero .tag{position:absolute;top:14px;left:14px;background:var(--navy);color:var(--gold-hi);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;padding:6px 10px;border-radius:6px;font-weight:700;border:1px solid rgba(245,194,0,0.35)}
+  .hero .tag{position:absolute;top:14px;left:14px;background:var(--navy);color:var(--gold-hi);font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:0.18em;text-transform:uppercase;padding:6px 10px;border-radius:6px;font-weight:700;border:1px solid rgba(184,147,92,0.35)}
 
   .body{padding:20px 22px 14px 22px;font-family:'Newsreader',Georgia,serif;font-size:15.5px;line-height:1.68;color:#1f2937}
   .body p{margin-bottom:11px}
@@ -124,140 +124,140 @@
   .copyBtn{display:inline-flex;align-items:center;justify-content:center;gap:7px;background:var(--navy);color:var(--gold-hi);font-family:'JetBrains Mono',monospace;font-size:10.5px;letter-spacing:0.14em;text-transform:uppercase;font-weight:700;padding:12px 6px;border-radius:8px;border:0;cursor:pointer;line-height:1;min-width:0}
   .copyBtn:hover{background:#1e2a47}
   .copyBtn.ok{background:var(--green);color:#FFFFFF}
-  .copyBtn .ic{width:13px;height:13px;display:inline-block;flex:0 0 13px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F5C200' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><rect x='9' y='9' width='13' height='13' rx='2'/><path d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/></svg>");background-size:contain;background-repeat:no-repeat}
-  .copyBtn.html .ic{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23F5C200' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'/><polyline points='8 6 2 12 8 18'/></svg>")}
+  .copyBtn .ic{width:13px;height:13px;display:inline-block;flex:0 0 13px;background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B8935C' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><rect x='9' y='9' width='13' height='13' rx='2'/><path d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'/></svg>");background-size:contain;background-repeat:no-repeat}
+  .copyBtn.html .ic{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23B8935C' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><polyline points='16 18 22 12 16 6'/><polyline points='8 6 2 12 8 18'/></svg>")}
   .copyBtn.ok .ic{background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'><polyline points='20 6 9 17 4 12'/></svg>")}
   .cta{display:flex;align-items:center;justify-content:center;background:var(--navy);color:var(--cream);font-family:'Inter',sans-serif;font-weight:800;font-size:14px;letter-spacing:0.04em;padding:15px 14px;border-radius:8px;text-decoration:none;width:100%;box-sizing:border-box}
   .cta b{color:var(--gold-hi);margin-left:6px;font-weight:800}
 
   /* ============ DESIGN 6 Â· NEWS BULLETIN ============ */
   .card.dNb{background:#FBF7EA;color:#0F172A;border:1px solid #94755B}
-  .card.dNb::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:#7C2A18}
-  .card.dNb .cardHead{font-family:Georgia,serif;color:#7C2A18;border-bottom:3px double #0F172A;padding:18px 24px 10px;margin:0;letter-spacing:0.04em}
-  .card.dNb .cardHead::before{content:"GW QUARTERLY Â· NO. 03";display:block;font-family:'Playfair Display',Georgia,serif;font-size:11px;font-weight:700;letter-spacing:0.32em;color:#7C2A18;margin-bottom:6px;text-transform:uppercase}
+  .card.dNb::before{content:"";position:absolute;top:0;left:0;right:0;height:4px;background:#6B1F2E}
+  .card.dNb .cardHead{font-family:Georgia,serif;color:#6B1F2E;border-bottom:3px double #0F172A;padding:18px 24px 10px;margin:0;letter-spacing:0.04em}
+  .card.dNb .cardHead::before{content:"GW QUARTERLY Â· NO. 03";display:block;font-family:'Playfair Display',Georgia,serif;font-size:11px;font-weight:700;letter-spacing:0.32em;color:#6B1F2E;margin-bottom:6px;text-transform:uppercase}
   .card.dNb .cardHead .fw{font-family:'Inter',sans-serif;font-weight:700;color:#0F172A;letter-spacing:0.12em;font-size:10px}
-  .card.dNb .cardHead .wc{background:#7C2A18;color:#FBF7EA;font-weight:800}
+  .card.dNb .cardHead .wc{background:#6B1F2E;color:#FBF7EA;font-weight:800}
   .card.dNb .subject{padding:18px 24px 4px;border-bottom:1px solid #C9B98C}
-  .card.dNb .subject .lab{font-family:Georgia,serif;font-style:italic;color:#7C2A18;letter-spacing:0.06em;font-size:11px;text-transform:none}
+  .card.dNb .subject .lab{font-family:Georgia,serif;font-style:italic;color:#6B1F2E;letter-spacing:0.06em;font-size:11px;text-transform:none}
   .card.dNb .subject .lab::before{content:"OPINION Â· "}
   .card.dNb .subject .sub{font-family:'Playfair Display',Georgia,serif;font-weight:800;font-size:46px;color:#0F172A;letter-spacing:-0.035em;line-height:0.95;margin-top:6px;padding-bottom:14px}
   .card.dNb .pre{font-family:Georgia,serif;font-style:italic;color:#5a4836;font-size:15px;padding:10px 24px 16px;border-bottom:1px solid #C9B98C}
   .card.dNb .hero{height:200px;border-bottom:3px double #0F172A}
   .card.dNb .hero img{filter:sepia(0.18) contrast(1.08) saturate(0.85)}
   .card.dNb .hero .ovl{background:rgba(15,15,10,0.92);font-family:Georgia,serif;letter-spacing:0.16em}
-  .card.dNb .hero .tag{background:#7C2A18;color:#FBF7EA;font-family:Georgia,serif;font-weight:700;font-style:italic;letter-spacing:0.12em;text-transform:uppercase;border:0}
+  .card.dNb .hero .tag{background:#6B1F2E;color:#FBF7EA;font-family:Georgia,serif;font-weight:700;font-style:italic;letter-spacing:0.12em;text-transform:uppercase;border:0}
   .card.dNb .body{font-family:'Newsreader',Georgia,serif;font-size:15.5px;color:#1f1208;column-count:1;line-height:1.65;padding:22px 26px 14px}
-  .card.dNb .body p:first-of-type::first-letter{font-family:'Playfair Display',Georgia,serif;font-size:62px;line-height:0.85;float:left;margin:6px 10px 0 0;font-weight:800;color:#7C2A18}
-  .card.dNb .body strong{color:#7C2A18}
+  .card.dNb .body p:first-of-type::first-letter{font-family:'Playfair Display',Georgia,serif;font-size:62px;line-height:0.85;float:left;margin:6px 10px 0 0;font-weight:800;color:#6B1F2E}
+  .card.dNb .body strong{color:#6B1F2E}
   .card.dNb .body p{margin-bottom:12px}
-  .card.dNb .auth{background:#0F172A;color:#FBF7EA;border-radius:0;border-top:3px solid #7C2A18;margin:0 0 0}
-  .card.dNb .auth .lab{color:#F5C200;font-family:Georgia,serif;font-style:italic}
+  .card.dNb .auth{background:#0F172A;color:#FBF7EA;border-radius:0;border-top:3px solid #6B1F2E;margin:0 0 0}
+  .card.dNb .auth .lab{color:#B8935C;font-family:Georgia,serif;font-style:italic}
   .card.dNb .footRow{background:#FBF7EA;border-top:1px solid #C9B98C}
   .card.dNb .copyBtn{background:#0F172A;color:#FBF7EA;border-radius:0}
-  .card.dNb .copyBtn:hover{background:#7C2A18}
-  .card.dNb .cta{background:#7C2A18;color:#FBF7EA;font-family:'Playfair Display',Georgia,serif;font-style:italic;letter-spacing:0.04em;font-weight:700;border-radius:0;font-size:16px}
-  .card.dNb .cta b{color:#F5C200}
+  .card.dNb .copyBtn:hover{background:#6B1F2E}
+  .card.dNb .cta{background:#6B1F2E;color:#FBF7EA;font-family:'Playfair Display',Georgia,serif;font-style:italic;letter-spacing:0.04em;font-weight:700;border-radius:0;font-size:16px}
+  .card.dNb .cta b{color:#B8935C}
 
   /* ============ DESIGN 7 Â· DOSSIER ============ */
   .card.dDs{background:#E8DCC4;color:#0F172A;border:1px solid #94755B;border-radius:0;box-shadow:0 40px 80px -30px rgba(0,0,0,0.7),6px 6px 0 rgba(0,0,0,0.15)}
-  .card.dDs::before{content:"";position:absolute;top:0;left:24px;right:24px;height:18px;background:repeating-linear-gradient(90deg,#7C2A18 0 12px,#FBF7EA 12px 14px,#7C2A18 14px 26px,#FBF7EA 26px 28px);opacity:0.85;z-index:5;transform:translateY(-6px);box-shadow:0 2px 4px rgba(0,0,0,0.2)}
-  .card.dDs::after{content:"CONFIDENTIAL Â· INTERNAL Â· GW HOLDINGS";position:absolute;top:46px;right:18px;background:transparent;color:#7C2A18;padding:6px 14px;font-family:'Special Elite','Courier New',monospace;font-size:10px;font-weight:700;letter-spacing:0.18em;transform:rotate(6deg);z-index:8;border:2px solid #7C2A18;opacity:0.75}
+  .card.dDs::before{content:"";position:absolute;top:0;left:24px;right:24px;height:18px;background:repeating-linear-gradient(90deg,#6B1F2E 0 12px,#FBF7EA 12px 14px,#6B1F2E 14px 26px,#FBF7EA 26px 28px);opacity:0.85;z-index:5;transform:translateY(-6px);box-shadow:0 2px 4px rgba(0,0,0,0.2)}
+  .card.dDs::after{content:"CONFIDENTIAL Â· INTERNAL Â· GW HOLDINGS";position:absolute;top:46px;right:18px;background:transparent;color:#6B1F2E;padding:6px 14px;font-family:'Special Elite','Courier New',monospace;font-size:10px;font-weight:700;letter-spacing:0.18em;transform:rotate(6deg);z-index:8;border:2px solid #6B1F2E;opacity:0.75}
   .card.dDs .cardHead{font-family:'Special Elite','Courier New',monospace;color:#0F172A;border-bottom:1px solid #94755B;padding:38px 26px 12px;margin:0;letter-spacing:0.14em}
   .card.dDs .cardHead::before{content:"FILE NO. GW-2026-007 Â· SECTION B";display:block;font-family:'Special Elite','Courier New',monospace;font-size:10px;font-weight:700;letter-spacing:0.22em;color:#475569;margin-bottom:6px;text-transform:uppercase}
   .card.dDs .cardHead .fw{font-family:'Special Elite','Courier New',monospace;color:#0F172A;font-weight:700}
   .card.dDs .cardHead .wc{background:#0F172A;color:#FBF7EA;font-family:'Special Elite','Courier New',monospace;border-radius:0;font-weight:700;letter-spacing:0.18em}
   .card.dDs .subject{padding:18px 26px 6px}
-  .card.dDs .subject .lab{font-family:'Special Elite','Courier New',monospace;color:#7C2A18;letter-spacing:0.22em;font-weight:700;font-size:10px}
+  .card.dDs .subject .lab{font-family:'Special Elite','Courier New',monospace;color:#6B1F2E;letter-spacing:0.22em;font-weight:700;font-size:10px}
   .card.dDs .subject .lab::before{content:"SUBJECT LINE: "}
   .card.dDs .subject .sub{font-family:'Special Elite','Courier New',monospace;font-size:28px;font-weight:400;color:#0F172A;letter-spacing:0.04em;line-height:1.2;text-transform:uppercase;margin-top:6px}
   .card.dDs .pre{font-family:'Special Elite','Courier New',monospace;font-style:normal;color:#5a4836;letter-spacing:0.02em;border-bottom:1px dashed #94755B;padding-bottom:14px;font-size:13px}
-  .card.dDs .pre::before{content:"// ";color:#7C2A18}
+  .card.dDs .pre::before{content:"// ";color:#6B1F2E}
   .card.dDs .hero{height:190px;border-bottom:1px solid #94755B}
   .card.dDs .hero img{filter:sepia(0.3) contrast(1.1) saturate(0.7) brightness(0.92)}
-  .card.dDs .hero::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,transparent 0 28px,rgba(124,42,24,0.06) 28px 30px);pointer-events:none}
+  .card.dDs .hero::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(135deg,transparent 0 28px,rgba(107,31,46,0.06) 28px 30px);pointer-events:none}
   .card.dDs .hero .ovl{background:rgba(15,23,42,0.95);font-family:'Special Elite','Courier New',monospace;letter-spacing:0.18em}
-  .card.dDs .hero .tag{background:#7C2A18;color:#FBF7EA;font-family:'Special Elite','Courier New',monospace;font-weight:700;letter-spacing:0.14em;border-radius:0;border:0}
+  .card.dDs .hero .tag{background:#6B1F2E;color:#FBF7EA;font-family:'Special Elite','Courier New',monospace;font-weight:700;letter-spacing:0.14em;border-radius:0;border:0}
   .card.dDs .body{font-family:'Special Elite','Courier New',monospace;font-size:13.5px;color:#0F172A;line-height:1.75;padding:20px 26px 14px;letter-spacing:0.005em}
-  .card.dDs .body strong{color:#7C2A18;background:rgba(124,42,24,0.08);padding:0 4px;font-weight:700}
+  .card.dDs .body strong{color:#6B1F2E;background:rgba(107,31,46,0.08);padding:0 4px;font-weight:700}
   .card.dDs .body p{margin-bottom:10px;position:relative;padding-left:18px}
-  .card.dDs .body p::before{content:"â–¸";color:#7C2A18;position:absolute;left:0;top:0;font-weight:700}
+  .card.dDs .body p::before{content:"â–¸";color:#6B1F2E;position:absolute;left:0;top:0;font-weight:700}
   .card.dDs .auth{background:#0F172A;color:#FBF7EA;border-radius:0;border:0;margin:0 26px 16px}
-  .card.dDs .auth .lab{color:#F5C200;font-family:'Special Elite','Courier New',monospace}
+  .card.dDs .auth .lab{color:#B8935C;font-family:'Special Elite','Courier New',monospace}
   .card.dDs .auth .val{font-family:'Special Elite','Courier New',monospace;font-size:11px}
   .card.dDs .footRow{border-top:1px dashed #94755B;background:#E8DCC4;padding:14px 26px 26px}
   .card.dDs .copyBtn{background:#0F172A;color:#FBF7EA;border-radius:0}
-  .card.dDs .copyBtn:hover{background:#7C2A18}
-  .card.dDs .cta{background:#7C2A18;color:#FBF7EA;font-family:'Special Elite','Courier New',monospace;letter-spacing:0.18em;text-transform:uppercase;border-radius:0;font-weight:700}
-  .card.dDs .cta::before{content:"â–¸ ";color:#F5C200}
-  .card.dDs .cta b{color:#F5C200}
+  .card.dDs .copyBtn:hover{background:#6B1F2E}
+  .card.dDs .cta{background:#6B1F2E;color:#FBF7EA;font-family:'Special Elite','Courier New',monospace;letter-spacing:0.18em;text-transform:uppercase;border-radius:0;font-weight:700}
+  .card.dDs .cta::before{content:"â–¸ ";color:#B8935C}
+  .card.dDs .cta b{color:#B8935C}
 
   /* ============ DESIGN 8 Â· JOURNAL ============ */
   .card.dJn{background:#FBF7EA;color:#1f2937;border:1px solid #C9B98C;border-left:6px solid #173279;background-image:linear-gradient(0deg,transparent 28px,rgba(122,162,247,0.18) 29px),linear-gradient(90deg,transparent 28px,rgba(122,162,247,0.18) 29px);background-size:29px 29px;box-shadow:0 40px 80px -30px rgba(0,0,0,0.6),inset 0 0 0 1px rgba(201,185,140,0.4)}
-  .card.dJn::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:repeating-linear-gradient(0deg,#FBF7EA 0 12px,#7C2A18 12px 14px);z-index:2}
+  .card.dJn::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6px;background:repeating-linear-gradient(0deg,#FBF7EA 0 12px,#6B1F2E 12px 14px);z-index:2}
   .card.dJn .cardHead{font-family:'Caveat','Comic Sans MS',cursive;font-size:15px;color:#475569;border-bottom:2px dashed #C9B98C;padding:18px 26px 10px;margin:0;letter-spacing:0;text-transform:none}
   .card.dJn .cardHead::before{content:"â€” Day 142 Â· Trade Journal â€”";display:block;font-family:'Caveat','Comic Sans MS',cursive;font-size:17px;font-weight:600;color:#173279;margin-bottom:6px;letter-spacing:0;text-transform:none}
   .card.dJn .cardHead .fw{font-family:'Inter',sans-serif;font-weight:700;color:#0F172A;letter-spacing:0.14em;font-size:9.5px;text-transform:uppercase}
   .card.dJn .cardHead .wc{background:#173279;color:#FBF7EA;font-family:'JetBrains Mono',monospace}
   .card.dJn .subject{padding:18px 26px 6px}
-  .card.dJn .subject .lab{font-family:'Caveat','Comic Sans MS',cursive;color:#7C2A18;letter-spacing:0;font-size:14px;font-weight:600;text-transform:none}
+  .card.dJn .subject .lab{font-family:'Caveat','Comic Sans MS',cursive;color:#6B1F2E;letter-spacing:0;font-size:14px;font-weight:600;text-transform:none}
   .card.dJn .subject .lab::before{content:"~ "}
   .card.dJn .subject .lab::after{content:" ~"}
-  .card.dJn .subject .sub{font-family:'Caveat','Comic Sans MS',cursive;font-size:48px;font-weight:700;color:#173279;letter-spacing:0;line-height:1;margin-top:6px;text-decoration:underline;text-decoration-color:#F5C200;text-decoration-thickness:3px;text-underline-offset:6px}
+  .card.dJn .subject .sub{font-family:'Caveat','Comic Sans MS',cursive;font-size:48px;font-weight:700;color:#173279;letter-spacing:0;line-height:1;margin-top:6px;text-decoration:underline;text-decoration-color:#B8935C;text-decoration-thickness:3px;text-underline-offset:6px}
   .card.dJn .pre{font-family:'Caveat','Comic Sans MS',cursive;font-style:normal;color:#5a4836;font-size:19px;padding-bottom:14px;border-bottom:1px dashed #C9B98C}
   .card.dJn .hero{height:190px;border-bottom:2px dashed #C9B98C}
   .card.dJn .hero img{filter:sepia(0.1) contrast(1.05) brightness(1.02)}
   .card.dJn .hero .ovl{background:rgba(23,50,121,0.92);font-family:'Caveat','Comic Sans MS',cursive;font-size:14px;letter-spacing:0;text-transform:none}
-  .card.dJn .hero .ovl b{color:#F5C200}
-  .card.dJn .hero .tag{background:#7C2A18;color:#FBF7EA;font-family:'Caveat','Comic Sans MS',cursive;font-size:13px;letter-spacing:0;text-transform:none;border-radius:0;border:0;font-weight:600}
+  .card.dJn .hero .ovl b{color:#B8935C}
+  .card.dJn .hero .tag{background:#6B1F2E;color:#FBF7EA;font-family:'Caveat','Comic Sans MS',cursive;font-size:13px;letter-spacing:0;text-transform:none;border-radius:0;border:0;font-weight:600}
   .card.dJn .body{font-family:'Newsreader',Georgia,serif;font-size:15.5px;color:#1f1208;line-height:1.72;padding:20px 30px 14px;background:transparent}
   .card.dJn .body p{margin-bottom:11px;border-left:2px solid #7AA2F7;padding-left:14px}
-  .card.dJn .body p:first-of-type{border-left:3px solid #F5C200}
-  .card.dJn .body strong{color:#173279;background:rgba(245,194,0,0.25);padding:0 4px;font-weight:700}
-  .card.dJn .auth{background:#173279;color:#FBF7EA;border-radius:0;margin:0 26px 16px;border:2px dashed #F5C200}
-  .card.dJn .auth .lab{color:#F5C200;font-family:'Caveat','Comic Sans MS',cursive;font-size:13px;letter-spacing:0;text-transform:none}
+  .card.dJn .body p:first-of-type{border-left:3px solid #B8935C}
+  .card.dJn .body strong{color:#173279;background:rgba(184,147,92,0.25);padding:0 4px;font-weight:700}
+  .card.dJn .auth{background:#173279;color:#FBF7EA;border-radius:0;margin:0 26px 16px;border:2px dashed #B8935C}
+  .card.dJn .auth .lab{color:#B8935C;font-family:'Caveat','Comic Sans MS',cursive;font-size:13px;letter-spacing:0;text-transform:none}
   .card.dJn .auth .val{font-family:'Caveat','Comic Sans MS',cursive;font-size:14px;letter-spacing:0}
   .card.dJn .footRow{border-top:2px dashed #C9B98C;background:transparent;padding:14px 26px 22px}
   .card.dJn .copyBtn{background:#173279;color:#FBF7EA;border-radius:0}
-  .card.dJn .copyBtn:hover{background:#7C2A18}
-  .card.dJn .cta{background:#7C2A18;color:#FBF7EA;font-family:'Caveat','Comic Sans MS',cursive;letter-spacing:0;font-weight:700;border-radius:0;font-size:20px;text-transform:none}
-  .card.dJn .cta b{color:#F5C200;margin-left:8px}
+  .card.dJn .copyBtn:hover{background:#6B1F2E}
+  .card.dJn .cta{background:#6B1F2E;color:#FBF7EA;font-family:'Caveat','Comic Sans MS',cursive;letter-spacing:0;font-weight:700;border-radius:0;font-size:20px;text-transform:none}
+  .card.dJn .cta b{color:#B8935C;margin-left:8px}
 
   /* ============ DESIGN 9 Â· BLOTTER ============ */
-  .card.dBl{background:#000000;color:#F59E0B;border:1px solid #1a1410;box-shadow:0 40px 80px -30px rgba(0,0,0,0.95),inset 0 0 0 1px #1a1410,inset 0 0 100px rgba(245,158,11,0.04)}
+  .card.dBl{background:#000000;color:#A98B4F;border:1px solid #1a1410;box-shadow:0 40px 80px -30px rgba(0,0,0,0.95),inset 0 0 0 1px #1a1410,inset 0 0 100px rgba(169,139,79,0.04)}
   .card.dBl::before{content:"";position:absolute;top:0;left:0;right:0;height:32px;background:#0a0806;border-bottom:1px solid #2a1f17;z-index:2;display:flex;align-items:center;padding-left:14px}
-  .card.dBl::after{content:"â— GW.BLOTTER Â· LIVE Â· CAPITAL DISCIPLINE";position:absolute;top:11px;left:14px;color:#F59E0B;letter-spacing:0.22em;font-size:9px;z-index:3;font-family:'JetBrains Mono',monospace;font-weight:700;text-transform:uppercase}
-  .card.dBl .cardHead{margin-top:32px;color:#92400E;border-bottom:1px solid #2a1f17;padding:14px 22px 12px;letter-spacing:0.18em;font-family:'JetBrains Mono',monospace;background:rgba(245,158,11,0.04)}
-  .card.dBl .cardHead .fw{color:#F59E0B;font-weight:700}
-  .card.dBl .cardHead .wc{background:#F59E0B;color:#000000;border-radius:0;font-family:'JetBrains Mono',monospace;font-weight:800}
+  .card.dBl::after{content:"â— GW.BLOTTER Â· LIVE Â· CAPITAL DISCIPLINE";position:absolute;top:11px;left:14px;color:#A98B4F;letter-spacing:0.22em;font-size:9px;z-index:3;font-family:'JetBrains Mono',monospace;font-weight:700;text-transform:uppercase}
+  .card.dBl .cardHead{margin-top:32px;color:#6B5028;border-bottom:1px solid #2a1f17;padding:14px 22px 12px;letter-spacing:0.18em;font-family:'JetBrains Mono',monospace;background:rgba(169,139,79,0.04)}
+  .card.dBl .cardHead .fw{color:#A98B4F;font-weight:700}
+  .card.dBl .cardHead .wc{background:#A98B4F;color:#000000;border-radius:0;font-family:'JetBrains Mono',monospace;font-weight:800}
   .card.dBl .subject{padding:18px 22px 4px;display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:baseline}
-  .card.dBl .subject .lab{color:#92400E;font-family:'JetBrains Mono',monospace;letter-spacing:0.22em;grid-column:1 / -1}
+  .card.dBl .subject .lab{color:#6B5028;font-family:'JetBrains Mono',monospace;letter-spacing:0.22em;grid-column:1 / -1}
   .card.dBl .subject .lab::before{content:"[BID] "}
-  .card.dBl .subject .sub{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:#FBBF24;letter-spacing:0.04em;text-transform:uppercase;text-shadow:0 0 8px rgba(245,158,11,0.4);grid-column:1 / -1}
-  .card.dBl .subject .sub::before{content:"â–² ";color:#22C55E;font-weight:800;text-shadow:none}
-  .card.dBl .pre{color:#92400E;font-family:'JetBrains Mono',monospace;font-style:normal;font-size:12px;padding-bottom:14px;border-bottom:1px solid #2a1f17;letter-spacing:0.02em}
+  .card.dBl .subject .sub{font-family:'JetBrains Mono',monospace;font-size:26px;font-weight:700;color:#B8935C;letter-spacing:0.04em;text-transform:uppercase;text-shadow:0 0 8px rgba(169,139,79,0.4);grid-column:1 / -1}
+  .card.dBl .subject .sub::before{content:"â–² ";color:#1F7A47;font-weight:800;text-shadow:none}
+  .card.dBl .pre{color:#6B5028;font-family:'JetBrains Mono',monospace;font-style:normal;font-size:12px;padding-bottom:14px;border-bottom:1px solid #2a1f17;letter-spacing:0.02em}
   .card.dBl .hero{height:auto;background:transparent;border-bottom:0;padding:14px 22px 0}
   .card.dBl .hero img{display:none}
   .card.dBl .hero .tag{display:none}
-  .card.dBl .hero .ovl{position:relative;left:0;right:0;bottom:auto;margin:0;padding:14px 16px;background:rgba(245,158,11,0.06);border:1px solid #2a1f17;color:#F59E0B;font-family:'JetBrains Mono',monospace;border-radius:0;letter-spacing:0.16em}
-  .card.dBl .hero .ovl b{color:#22C55E}
+  .card.dBl .hero .ovl{position:relative;left:0;right:0;bottom:auto;margin:0;padding:14px 16px;background:rgba(169,139,79,0.06);border:1px solid #2a1f17;color:#A98B4F;font-family:'JetBrains Mono',monospace;border-radius:0;letter-spacing:0.16em}
+  .card.dBl .hero .ovl b{color:#1F7A47}
   .card.dBl .body{color:#FCD34D;font-family:'JetBrains Mono',monospace;font-size:13px;line-height:1.78;background:transparent;padding:18px 22px 12px;letter-spacing:0.01em}
-  .card.dBl .body strong{color:#22C55E;background:rgba(34,197,94,0.08);padding:0 4px}
+  .card.dBl .body strong{color:#1F7A47;background:rgba(31,122,71,0.08);padding:0 4px}
   .card.dBl .body p{margin-bottom:12px;padding-left:16px;border-left:2px solid #2a1f17;position:relative}
-  .card.dBl .body p::before{content:">";color:#F59E0B;position:absolute;left:-2px;top:0;font-weight:700;text-shadow:0 0 6px rgba(245,158,11,0.6)}
-  .card.dBl .auth{background:rgba(245,158,11,0.06);border:1px solid #F59E0B;color:#F59E0B;margin:0 22px 16px;border-radius:0}
-  .card.dBl .auth .lab{color:#FBBF24;font-family:'JetBrains Mono',monospace}
-  .card.dBl .auth .val{color:#FBBF24;font-family:'JetBrains Mono',monospace;font-size:11px}
+  .card.dBl .body p::before{content:">";color:#A98B4F;position:absolute;left:-2px;top:0;font-weight:700;text-shadow:0 0 6px rgba(169,139,79,0.6)}
+  .card.dBl .auth{background:rgba(169,139,79,0.06);border:1px solid #A98B4F;color:#A98B4F;margin:0 22px 16px;border-radius:0}
+  .card.dBl .auth .lab{color:#B8935C;font-family:'JetBrains Mono',monospace}
+  .card.dBl .auth .val{color:#B8935C;font-family:'JetBrains Mono',monospace;font-size:11px}
   .card.dBl .footRow{border-top:1px solid #2a1f17;background:#0a0806;padding:14px 22px 22px}
-  .card.dBl .copyBtn{background:rgba(245,158,11,0.08);color:#F59E0B;border-radius:0;border:1px solid #2a1f17}
-  .card.dBl .copyBtn:hover{background:rgba(245,158,11,0.14);border-color:#F59E0B}
-  .card.dBl .cta{background:#F59E0B;color:#000000;border-radius:0;font-family:'JetBrains Mono',monospace;letter-spacing:0.22em;text-transform:uppercase;font-weight:800;text-shadow:0 0 12px rgba(245,158,11,0.3)}
+  .card.dBl .copyBtn{background:rgba(169,139,79,0.08);color:#A98B4F;border-radius:0;border:1px solid #2a1f17}
+  .card.dBl .copyBtn:hover{background:rgba(169,139,79,0.14);border-color:#A98B4F}
+  .card.dBl .cta{background:#A98B4F;color:#000000;border-radius:0;font-family:'JetBrains Mono',monospace;letter-spacing:0.22em;text-transform:uppercase;font-weight:800;text-shadow:0 0 12px rgba(169,139,79,0.3)}
   .card.dBl .cta::before{content:"â–¶ "}
   .card.dBl .cta b{color:#000000}
 
   /* ============ DESIGN 10 Â· INVITATION ============ */
-  .card.dIv{background:radial-gradient(ellipse at center top,#FFF8E0 0%,#F4EDD9 60%);color:#3d2a0e;border:0;border-radius:0;box-shadow:0 40px 100px -20px rgba(0,0,0,0.5),inset 0 0 0 8px #F4EDD9,inset 0 0 0 9px #D4AF37,inset 0 0 0 12px #F4EDD9,inset 0 0 0 13px #D4AF37}
-  .card.dIv::before{content:"";position:absolute;top:24px;left:50%;transform:translateX(-50%);width:64px;height:64px;background:radial-gradient(circle at center,#D4AF37 0%,#D4AF37 50%,#8B6F1A 51%,#8B6F1A 60%,#D4AF37 61%,#D4AF37 70%,transparent 71%);border-radius:50%;z-index:3;box-shadow:0 4px 8px rgba(0,0,0,0.2)}
-  .card.dIv::after{content:"GW";position:absolute;top:32px;left:50%;transform:translateX(-50%);font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:800;color:#0F172A;font-size:24px;z-index:4;letter-spacing:-0.02em;text-shadow:0 1px 0 rgba(212,175,55,0.5)}
+  .card.dIv{background:radial-gradient(ellipse at center top,#FFF8E0 0%,#F4EDD9 60%);color:#3d2a0e;border:0;border-radius:0;box-shadow:0 40px 100px -20px rgba(0,0,0,0.5),inset 0 0 0 8px #F4EDD9,inset 0 0 0 9px #A98B4F,inset 0 0 0 12px #F4EDD9,inset 0 0 0 13px #A98B4F}
+  .card.dIv::before{content:"";position:absolute;top:24px;left:50%;transform:translateX(-50%);width:64px;height:64px;background:radial-gradient(circle at center,#A98B4F 0%,#A98B4F 50%,#8B6F1A 51%,#8B6F1A 60%,#A98B4F 61%,#A98B4F 70%,transparent 71%);border-radius:50%;z-index:3;box-shadow:0 4px 8px rgba(0,0,0,0.2)}
+  .card.dIv::after{content:"GW";position:absolute;top:32px;left:50%;transform:translateX(-50%);font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:800;color:#0F172A;font-size:24px;z-index:4;letter-spacing:-0.02em;text-shadow:0 1px 0 rgba(169,139,79,0.5)}
   .card.dIv .cardHead{font-family:'Playfair Display',Georgia,serif;color:#8B6F1A;border-bottom:0;padding:108px 36px 8px;margin:0;letter-spacing:0.06em;font-style:italic;text-align:center;display:block;position:relative;z-index:2}
   .card.dIv .cardHead::before{content:"Generational Wealth Holdings";display:block;font-family:'Playfair Display',Georgia,serif;font-size:13px;font-weight:600;letter-spacing:0.28em;color:#8B6F1A;margin-bottom:8px;text-transform:uppercase}
   .card.dIv .cardHead::after{content:"â€” cordially invites you â€”";display:block;font-family:'Newsreader',Georgia,serif;font-size:15px;font-weight:400;letter-spacing:0.02em;color:#3d2a0e;margin-top:8px;font-style:italic;text-transform:none}
@@ -267,25 +267,25 @@
   .card.dIv .subject .lab{font-family:'Newsreader',Georgia,serif;font-style:italic;color:#8B6F1A;letter-spacing:0.18em;font-size:11px;font-weight:500;text-transform:uppercase}
   .card.dIv .subject .lab::before{content:"~ "}
   .card.dIv .subject .lab::after{content:" ~"}
-  .card.dIv .subject .sub{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:54px;font-weight:600;color:#0F172A;letter-spacing:-0.02em;line-height:1;margin-top:14px;text-shadow:0 1px 0 rgba(212,175,55,0.3)}
+  .card.dIv .subject .sub{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:54px;font-weight:600;color:#0F172A;letter-spacing:-0.02em;line-height:1;margin-top:14px;text-shadow:0 1px 0 rgba(169,139,79,0.3)}
   .card.dIv .pre{font-family:'Newsreader',Georgia,serif;font-style:italic;color:#5a4423;font-size:15.5px;text-align:center;padding:14px 44px 22px;position:relative;z-index:2;line-height:1.5}
   .card.dIv .hero{height:auto;background:transparent;border:0;padding:0 44px 12px;position:relative;z-index:2}
   .card.dIv .hero img{display:none}
   .card.dIv .hero .tag{display:none}
-  .card.dIv .hero .ovl{position:relative;left:0;right:0;bottom:auto;background:transparent;color:#8B6F1A;font-family:'Newsreader',Georgia,serif;font-style:italic;padding:12px 0;border-top:1px solid #D4AF37;border-bottom:1px solid #D4AF37;justify-content:center;letter-spacing:0.16em;font-size:11px;text-transform:uppercase}
+  .card.dIv .hero .ovl{position:relative;left:0;right:0;bottom:auto;background:transparent;color:#8B6F1A;font-family:'Newsreader',Georgia,serif;font-style:italic;padding:12px 0;border-top:1px solid #A98B4F;border-bottom:1px solid #A98B4F;justify-content:center;letter-spacing:0.16em;font-size:11px;text-transform:uppercase}
   .card.dIv .hero .ovl b{color:#0F172A;font-weight:700;margin:0 10px}
   .card.dIv .body{font-family:'Newsreader',Georgia,serif;font-size:16px;color:#3d2a0e;line-height:1.78;padding:22px 52px 14px;position:relative;z-index:2;text-align:left}
   .card.dIv .body strong{color:#8B6F1A;font-weight:700}
   .card.dIv .body p{text-indent:1.4em;margin-bottom:11px}
-  .card.dIv .body p:first-child{text-indent:0;font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:18px;color:#0F172A;line-height:1.5;text-align:center;border-bottom:1px dashed #D4AF37;padding-bottom:14px;margin-bottom:14px}
-  .card.dIv .auth{background:transparent;border:1px solid #D4AF37;color:#0F172A;border-radius:0;margin:0 44px 16px;position:relative;z-index:2;padding:14px 16px}
+  .card.dIv .body p:first-child{text-indent:0;font-family:'Playfair Display',Georgia,serif;font-style:italic;font-size:18px;color:#0F172A;line-height:1.5;text-align:center;border-bottom:1px dashed #A98B4F;padding-bottom:14px;margin-bottom:14px}
+  .card.dIv .auth{background:transparent;border:1px solid #A98B4F;color:#0F172A;border-radius:0;margin:0 44px 16px;position:relative;z-index:2;padding:14px 16px}
   .card.dIv .auth .lab{color:#8B6F1A;font-family:'Newsreader',Georgia,serif;font-style:italic;font-weight:600}
   .card.dIv .auth .val{color:#0F172A;font-family:'Newsreader',Georgia,serif}
-  .card.dIv .footRow{border-top:1px solid #D4AF37;background:transparent;padding:16px 44px 32px;position:relative;z-index:2}
-  .card.dIv .copyBtn{background:transparent;color:#0F172A;border:1px solid #D4AF37;border-radius:0;font-family:'Newsreader',Georgia,serif;font-style:italic;letter-spacing:0.16em}
-  .card.dIv .copyBtn:hover{background:rgba(212,175,55,0.12)}
-  .card.dIv .cta{background:#0F172A;color:#F4EDD9;font-family:'Playfair Display',Georgia,serif;font-style:italic;letter-spacing:0.06em;font-weight:700;border-radius:0;border:1px solid #D4AF37;box-shadow:inset 0 0 0 3px #0F172A;font-size:17px;padding:18px 14px}
-  .card.dIv .cta b{color:#F5C200}
+  .card.dIv .footRow{border-top:1px solid #A98B4F;background:transparent;padding:16px 44px 32px;position:relative;z-index:2}
+  .card.dIv .copyBtn{background:transparent;color:#0F172A;border:1px solid #A98B4F;border-radius:0;font-family:'Newsreader',Georgia,serif;font-style:italic;letter-spacing:0.16em}
+  .card.dIv .copyBtn:hover{background:rgba(169,139,79,0.12)}
+  .card.dIv .cta{background:#0F172A;color:#F4EDD9;font-family:'Playfair Display',Georgia,serif;font-style:italic;letter-spacing:0.06em;font-weight:700;border-radius:0;border:1px solid #A98B4F;box-shadow:inset 0 0 0 3px #0F172A;font-size:17px;padding:18px 14px}
+  .card.dIv .cta b{color:#B8935C}
 
   /* ============ TOAST ============ */
   .toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(40px);background:var(--navy);color:var(--gold-hi);font-family:'JetBrains Mono',monospace;font-size:11px;letter-spacing:0.18em;text-transform:uppercase;padding:12px 18px;border-radius:10px;border:1px solid var(--gold);opacity:0;transition:all .25s ease;pointer-events:none;font-weight:700;z-index:50}
@@ -613,7 +613,7 @@
     const d = cardData(card);
     const authCells = d.auth.map((a, i) => `
               <td width="33%" valign="top" style="padding:0 ${i===1?'8px':'0'};">
-                <div style="font-family:'JetBrains Mono','Courier New',monospace;font-size:9px;font-weight:700;color:#F5C200;letter-spacing:0.22em;text-transform:uppercase;margin-bottom:4px;">${esc(a.lab)}</div>
+                <div style="font-family:'JetBrains Mono','Courier New',monospace;font-size:9px;font-weight:700;color:#B8935C;letter-spacing:0.22em;text-transform:uppercase;margin-bottom:4px;">${esc(a.lab)}</div>
                 <div style="font-family:Arial,Helvetica,sans-serif;font-size:11px;font-weight:600;color:#FBF7EA;line-height:1.3;">${esc(a.val)}</div>
               </td>`).join('');
 
@@ -631,25 +631,25 @@
  <tr><td align="center" style="padding:32px 12px;">
   <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="max-width:600px;width:100%;background:#FBF7EA;">
 
-   <tr><td style="height:6px;background:#D4AF37;font-size:0;line-height:0;">&nbsp;</td></tr>
+   <tr><td style="height:6px;background:#A98B4F;font-size:0;line-height:0;">&nbsp;</td></tr>
 
    <!-- Brand header (text-only) -->
    <tr><td align="center" style="padding:24px 28px 16px 28px;background:#0F172A;">
-    <div style="font-family:'Courier New',monospace;font-size:9.5px;font-weight:700;letter-spacing:0.32em;color:#D4AF37;text-transform:uppercase;text-align:center;">
+    <div style="font-family:'Courier New',monospace;font-size:9.5px;font-weight:700;letter-spacing:0.32em;color:#A98B4F;text-transform:uppercase;text-align:center;">
      Generational Wealth Holdings &middot; Est. 2026 &middot; Capital Discipline First
     </div>
-    <div style="height:1px;background:#D4AF37;opacity:0.45;margin:14px auto 10px;width:180px;"></div>
+    <div style="height:1px;background:#A98B4F;opacity:0.45;margin:14px auto 10px;width:180px;"></div>
     <div style="font-family:'Courier New',monospace;font-size:9.5px;letter-spacing:0.28em;color:#94A3B8;text-transform:uppercase;text-align:center;">
      ${esc(d.fw)}
     </div>
    </td></tr>
 
    <tr><td style="padding:0;">
-    <img src="${esc(d.heroSrc)}" alt="${esc(d.heroAlt)}" width="600" style="display:block;width:100%;max-width:600px;height:auto;border:0;border-bottom:3px solid #D4AF37;" />
+    <img src="${esc(d.heroSrc)}" alt="${esc(d.heroAlt)}" width="600" style="display:block;width:100%;max-width:600px;height:auto;border:0;border-bottom:3px solid #A98B4F;" />
     <div style="background:#0F172A;color:#FBF7EA;padding:10px 18px;font-family:'Courier New',monospace;font-size:10px;letter-spacing:0.16em;text-transform:uppercase;">
      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
       <td align="left">${esc(d.ovlLeft)}</td>
-      <td align="right" style="color:#F5C200;font-weight:700;">${esc(d.ovlRight)}</td>
+      <td align="right" style="color:#B8935C;font-weight:700;">${esc(d.ovlRight)}</td>
      </tr></table>
     </div>
    </td></tr>
@@ -664,7 +664,7 @@
    </td></tr>
 
    <tr><td style="padding:8px 28px 0 28px;">
-    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0F172A;border-radius:10px;border:1px solid #D4AF37;">
+    <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#0F172A;border-radius:10px;border:1px solid #A98B4F;">
      <tr><td style="padding:14px 16px;">
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>${authCells}
       </tr></table>
@@ -681,9 +681,9 @@
       </td>
       <td valign="middle" style="padding:18px 22px 18px 14px;border-left:1px solid #E8E0CC;">
        <div style="font-family:Georgia,'Times New Roman',serif;font-style:italic;font-size:20px;font-weight:700;color:#0F172A;letter-spacing:0.02em;line-height:1.1;">
-        <span style="color:#D4AF37;font-weight:800;font-style:normal;">Generational</span> Wealth
+        <span style="color:#A98B4F;font-weight:800;font-style:normal;">Generational</span> Wealth
        </div>
-       <div style="font-family:'Courier New',monospace;font-style:normal;font-size:9px;font-weight:700;letter-spacing:0.28em;color:#D4AF37;text-transform:uppercase;margin-top:5px;">Holdings &middot; Est. 2026</div>
+       <div style="font-family:'Courier New',monospace;font-style:normal;font-size:9px;font-weight:700;letter-spacing:0.28em;color:#A98B4F;text-transform:uppercase;margin-top:5px;">Holdings &middot; Est. 2026</div>
        <div style="font-family:Arial,Helvetica,sans-serif;font-size:13px;color:#475569;margin-top:10px;line-height:1.45;">
         <a href="https://gwhlds.com" style="color:#0F172A;text-decoration:none;font-weight:600;">gwhlds.com</a> &middot; <a href="https://www.instagram.com/genwealthtrade/" style="color:#0F172A;text-decoration:none;font-weight:600;">@genwealthtrade</a>
        </div>
@@ -695,7 +695,7 @@
     </div>
    </td></tr>
    <tr><td align="center" style="padding:22px 28px 26px 28px;">
-    <a href="${esc(d.ctaUrl)}" style="display:inline-block;background:#D4AF37;color:#0F172A;font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:700;font-size:16px;padding:14px 28px;text-decoration:none;border-radius:8px;letter-spacing:0.04em;">
+    <a href="${esc(d.ctaUrl)}" style="display:inline-block;background:#A98B4F;color:#0F172A;font-family:Georgia,'Times New Roman',serif;font-style:italic;font-weight:700;font-size:16px;padding:14px 28px;text-decoration:none;border-radius:8px;letter-spacing:0.04em;">
      ${esc(d.ctaLabel)} <span style="color:#0F172A;">&rarr;</span>
     </a>
    </td></tr>
@@ -707,7 +707,7 @@
     </div>
    </td></tr>
 
-   <tr><td style="height:6px;background:#D4AF37;font-size:0;line-height:0;">&nbsp;</td></tr>
+   <tr><td style="height:6px;background:#A98B4F;font-size:0;line-height:0;">&nbsp;</td></tr>
 
   </table>
  </td></tr>

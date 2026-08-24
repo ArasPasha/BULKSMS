@@ -11,6 +11,8 @@ export default function Settings() {
   const [form, setForm] = useState({
     gatewayUrl: '', gatewayUser: '', gatewayPass: '',
     optOutKeywords: '', sendThrottleMs: 1500, respectQuietHours: true,
+    autoAppendStop: true, enforceQuietHours: true, enforceDailyCap: true,
+    dailyCapOverride: '',
   });
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState(null);
@@ -28,6 +30,10 @@ export default function Settings() {
       optOutKeywords: (settings.optOutKeywords || []).join(', '),
       sendThrottleMs: settings.sendThrottleMs ?? 1500,
       respectQuietHours: settings.respectQuietHours ?? true,
+      autoAppendStop: settings.autoAppendStop ?? true,
+      enforceQuietHours: settings.enforceQuietHours ?? true,
+      enforceDailyCap: settings.enforceDailyCap ?? true,
+      dailyCapOverride: settings.dailyCapOverride ?? '',
     });
   }, [settings]);
 
@@ -44,6 +50,10 @@ export default function Settings() {
         optOutKeywords: form.optOutKeywords.split(',').map(k => k.trim().toUpperCase()).filter(Boolean),
         sendThrottleMs: Math.max(500, parseInt(form.sendThrottleMs, 10) || 1500),
         respectQuietHours: !!form.respectQuietHours,
+        autoAppendStop: !!form.autoAppendStop,
+        enforceQuietHours: !!form.enforceQuietHours,
+        enforceDailyCap: !!form.enforceDailyCap,
+        dailyCapOverride: form.dailyCapOverride === '' ? null : Math.max(1, parseInt(form.dailyCapOverride, 10) || 0) || null,
       });
       setSavedAt(Date.now());
       setTimeout(() => setSavedAt(null), 2500);
@@ -153,6 +163,28 @@ export default function Settings() {
               {testResult.ok ? '✓' : '✗'} {testResult.message}
             </div>
           )}
+        </Section>
+
+        <Section title="Compliance guardrails"
+          subtitle="Automated protections against carrier suspension + TCPA fines. Turn these off only if you know exactly what you're doing.">
+          <Toggle label="Enforce daily send cap (warmup tier)"
+            value={form.enforceDailyCap}
+            onChange={v => update('enforceDailyCap', v)} />
+          <Toggle label="Enforce per-recipient quiet hours (state-aware)"
+            value={form.enforceQuietHours}
+            onChange={v => update('enforceQuietHours', v)} />
+          <Toggle label='Auto-append "Reply STOP to opt out." to first message'
+            value={form.autoAppendStop}
+            onChange={v => update('autoAppendStop', v)} />
+          <Field label="Daily cap override (leave blank to use auto tier)">
+            <input type="number" min={1} step={1}
+              value={form.dailyCapOverride}
+              onChange={e => update('dailyCapOverride', e.target.value)}
+              placeholder="Auto" />
+            <p className="text-[0.7rem] text-muted mt-1">
+              Warmup tiers: 50 → 100 → 250 → 500 → 1,000/day. Override only if you truly know your number's reputation is established.
+            </p>
+          </Field>
         </Section>
 
         <Section title="Sending behavior">

@@ -107,6 +107,92 @@ Browser (this app, localhost:5173)
 No backend, no serverless functions, no cloud database. The browser POSTs
 directly to your phone's local IP.
 
+## Compliance guardrails (built in)
+
+The app automatically enforces the rules that keep your number alive and keep
+you out of TCPA-suit territory. All can be toggled off in **Settings →
+Compliance guardrails** — but the defaults are the safe ones.
+
+### 1. Warmup-tier daily cap
+
+Auto-tracks the day of your first successful send. Blocks further sends once
+you hit that tier's daily ceiling:
+
+| Days of use | Daily cap | Why |
+| ----------- | --------- | --- |
+| 1–3         | 50        | Warmup — carriers score new patterns |
+| 4–7         | 100       | Ramp — still building reputation |
+| 8–14        | 250       | Content filtering starts here without warmup |
+| 15–30       | 500       | Warning zone — account-level flags possible |
+| 30+         | 1,000     | Hard ceiling — above this = suspension within days |
+
+Dashboard shows a live progress bar with your current tier and time to the
+next tier. You can override the cap in Settings if you know your number's
+reputation is established.
+
+### 2. Auto-appended STOP disclosure
+
+Every first message to a new contact automatically gets `Reply STOP to opt
+out.` appended if you didn't include it. This is legally mandatory. Once
+you've messaged that contact once, subsequent messages don't get the
+disclosure again (marked per-contact).
+
+### 3. Fuzzy opt-out detection
+
+Inbound reply parser recognizes the literal keywords (STOP, UNSUBSCRIBE,
+CANCEL, END, QUIT, REMOVE) *plus* fuzzy phrases per the April 2025 FCC
+revocation rule: `stop texting me`, `remove me`, `please stop`, `don't text
+me`, `take me off`, etc. Auto-adds them to the opt-out list.
+
+### 4. Per-recipient timezone-aware quiet hours
+
+Federal TCPA: 8am–9pm recipient local time. **10 states have $500–$1,500/msg
+private-right-of-action laws with an 8pm cutoff:** FL, OK, WA, AL, CT, LA,
+MD, MA, MS, WY. The app maps every recipient's US area code → state → IANA
+timezone and blocks (with an explicit confirm dialog listing violators) any
+send outside their local window.
+
+### 5. Message content linter
+
+Live warnings under the compose textarea. **Hard blocks:**
+- Public URL shorteners (bit.ly, tinyurl, t.co, goo.gl, ow.ly, is.gd,
+  buff.ly, cutt.ly, rebrand.ly, and 12 others) — #1 carrier filter trigger
+- SHAFT-adjacent content: cash advance, payday loan, guaranteed cash,
+  restricted pharma, cannabis promotions, gambling, crypto pitches
+- Guaranteed-return claims
+- >50% uppercase
+
+**Soft warnings:**
+- Soft trigger words: "loan", "cash", "guaranteed", "free"
+- 30–50% uppercase
+- Multiple `!!!` or `???`
+- Bare phone number with no calling verb (callback-scam pattern)
+
+### 6. Per-contact consent tracking
+
+Every contact has a `consentSource` field. On CSV import you're required to
+attest which source applies to the whole batch. Contact cards show a colored
+consent badge; broadcasts show a running consent-risk audit so you know
+exactly how much TCPA exposure a batch carries.
+
+Sources ranked by risk:
+- **Low risk**: web form, verbal consent (logged), business card / event,
+  existing customer, they-texted-me-first
+- **Medium risk**: referral
+- **High risk**: cold prospect, unknown / legacy
+
+### 7. What we don't do (but might later)
+
+- **Canary delivery tests** — auto-sending a test message to numbers you own
+  on T-Mobile, Verizon, AT&T at the start of each batch, so you can detect
+  silent filtering. Manual for now.
+- **Reply-rate / opt-out-rate monitoring** — auto-halt if opt-out rate goes
+  above 3% in any 24-hour window. Manual for now.
+- **Inbound webhook** — the phone gateway can push received messages to a
+  URL, but this app runs pure client-side so there's no server to receive
+  them. Manual replies get logged via `recordInboundReply(...)` in the JS
+  console for now.
+
 ## Deliverability rules of thumb
 
 Personal phone numbers can still get throttled or suspended for spammy

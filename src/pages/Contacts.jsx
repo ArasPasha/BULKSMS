@@ -5,6 +5,7 @@ import {
   addContact, updateContact, deleteContact, bulkAddContacts,
   formatPhone, normalizePhone, setOptOut,
 } from '../lib/sms';
+import { CONSENT_SOURCES, getConsentRisk } from '../lib/compliance';
 
 const PAGE_SIZE = 500;
 
@@ -17,6 +18,8 @@ export default function Contacts() {
   const [importStatus, setImportStatus] = useState('');
   const [importProgress, setImportProgress] = useState(null);
   const [importSummary, setImportSummary] = useState(null);
+  const [pendingImport, setPendingImport] = useState(null); // { rows, filename }
+  const [importConsent, setImportConsent] = useState('cold-prospect');
   const fileRef = useRef(null);
 
   const sorted = useMemo(
@@ -51,6 +54,28 @@ export default function Contacts() {
 
   async function handleToggleOptOut(c) {
     await setOptOut(c.phone, !c.optedOut);
+  }
+
+  async function confirmImport() {
+    if (!pendingImport) return;
+    const { rows } = pendingImport;
+    setImportStatus(`Importing ${rows.length.toLocaleString()}…`);
+    try {
+      const summary = await bulkAddContacts(rows, {
+        consentSource: importConsent,
+        onProgress: (p) => {
+          setImportProgress(p);
+          if (p.stage === 'writing') setImportStatus(`Importing ${p.done.toLocaleString()}/${p.total.toLocaleString()}…`);
+        },
+      });
+      setImportSummary({ ...summary, consentSource: importConsent });
+      setImportStatus('');
+      setImportProgress(null);
+    } catch (err) {
+      setImportStatus(`Failed: ${err.message}`);
+      setImportProgress(null);
+    }
+    setPendingImport(null);
   }
 
   function pickField(row, ...names) {
@@ -90,34 +115,10 @@ export default function Contacts() {
           return;
         }
 
-        if (rows.length > 2000) {
-          const ok = confirm(
-            `Found ${rows.length.toLocaleString()} rows.\n\n` +
-            `Sending to all of these from one personal phone WILL get your number suspended. ` +
-            `Use tags to send in small batches (under 100/hr).\n\nContinue with the import?`
-          );
-          if (!ok) {
-            setImportStatus('');
-            if (fileRef.current) fileRef.current.value = '';
-            return;
-          }
-        }
-
-        setImportStatus(`Found ${rows.length.toLocaleString()} rows. Importing…`);
-        try {
-          const summary = await bulkAddContacts(rows, {
-            onProgress: (p) => {
-              setImportProgress(p);
-              if (p.stage === 'writing') setImportStatus(`Importing ${p.done.toLocaleString()}/${p.total.toLocaleString()}…`);
-            },
-          });
-          setImportSummary(summary);
-          setImportStatus('');
-          setImportProgress(null);
-        } catch (err) {
-          setImportStatus(`Failed: ${err.message}`);
-          setImportProgress(null);
-        }
+        // Stage the parsed rows and open the consent-attestation modal.
+        // The actual import happens in confirmImport() after the user picks a source.
+        setPendingImport({ rows, filename: file.name });
+        setImportStatus('');
         if (fileRef.current) fileRef.current.value = '';
       },
       error: (err) => {
@@ -215,11 +216,75 @@ export default function Contacts() {
           onCancel={() => { setShowAdd(false); setEditing(null); }}
         />
       )}
+
+      {pendingImport && (
+        <ImportAttestationModal
+          rowCount={pendingImport.rows.length}
+          filename={pendingImport.filename}
+          consent={importConsent}
+          onChangeConsent={setImportConsent}
+          onConfirm={confirmImport}
+          onCancel={() => setPendingImport(null)}
+        />
+      )}
+    </div>
+  );
+}
+
+function ImportAttestationModal({ rowCount, filename, consent, onChangeConsent, onConfirm, onCancel }) {
+  const risk = getConsentRisk(consent);
+  return (
+    <div className="fixed inset-0 z-50 bg-black/50 flex items-end justify-center" onClick={onCancel}>
+      <div onClick={e => e.stopPropagation()}
+        className="w-full max-w-app bg-white rounded-t-[20px] p-5 pb-8">
+        <h2 className="text-lg font-bold text-ink mb-1">Confirm import</h2>
+        <p className="text-xs text-muted mb-4">
+          {rowCount.toLocaleString()} rows from <span className="font-semibold">{filename}</span>
+        </p>
+
+        <div className="mb-4">
+          <label className="text-[0.7rem] font-semibold text-muted uppercase tracking-wider">
+            How did you get consent for these contacts?
+          </label>
+          <select value={consent} onChange={e => onChangeConsent(e.target.value)}
+            className="w-full mt-1.5 px-3.5 py-3 border-[1.5px] border-border rounded-lg text-sm bg-white outline-none focus:border-primary">
+            {CONSENT_SOURCES.map(s => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
+          </select>
+          <p className={`text-[0.7rem] mt-1.5 ${
+            risk === 'high' ? 'text-coral' : risk === 'medium' ? 'text-amber' : 'text-teal'
+          }`}>
+            {risk === 'high' && '⚠ HIGH RISK — TCPA fines are $500–$1,500 per message without documented consent. Cold-prospect texting to cell phones is not exempt.'}
+            {risk === 'medium' && '◐ MEDIUM RISK — document the referral source per contact if challenged.'}
+            {risk === 'low' && '✓ Low legal risk if you can produce the record.'}
+          </p>
+        </div>
+
+        {rowCount > 2000 && (
+          <div className="p-3 rounded-lg bg-amber-light text-ink text-xs mb-4">
+            ⚠ Broadcasting to {rowCount.toLocaleString()} from one personal phone will kill your number. Import is fine — just batch your sends by tag, small groups per day.
+          </div>
+        )}
+
+        <div className="flex gap-2">
+          <button type="button" onClick={onCancel}
+            className="flex-1 py-3 rounded-lg bg-white border border-border text-ink font-semibold text-sm">
+            Cancel
+          </button>
+          <button type="button" onClick={onConfirm}
+            className="flex-1 py-3 rounded-lg bg-primary text-white font-semibold text-sm active:scale-[.98]">
+            Import
+          </button>
+        </div>
+      </div>
     </div>
   );
 }
 
 function ContactCard({ c, onEdit, onToggleOptOut, onDelete }) {
+  const risk = getConsentRisk(c.consentSource);
+  const consentLabel = CONSENT_SOURCES.find(s => s.value === c.consentSource)?.label || 'Unknown';
   return (
     <li className="bg-white rounded-[14px] border border-border p-3.5">
       <div className="flex items-start gap-3">
@@ -227,16 +292,21 @@ function ContactCard({ c, onEdit, onToggleOptOut, onDelete }) {
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-ink truncate">{c.name || formatPhone(c.phone)}</div>
           <div className="text-xs text-muted">{formatPhone(c.phone)}</div>
-          {c.tags?.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-1">
-              {c.tags.map(t => (
-                <span key={t} className="text-[0.65rem] bg-primary-light text-primary px-1.5 py-0.5 rounded font-semibold">{t}</span>
-              ))}
-            </div>
-          )}
-          {c.optedOut && (
-            <span className="inline-block mt-1 text-[0.65rem] bg-coral-light text-coral px-1.5 py-0.5 rounded font-semibold">OPTED OUT</span>
-          )}
+          <div className="flex flex-wrap gap-1 mt-1">
+            {c.tags?.map(t => (
+              <span key={t} className="text-[0.65rem] bg-primary-light text-primary px-1.5 py-0.5 rounded font-semibold">{t}</span>
+            ))}
+            <span title={consentLabel} className={`text-[0.6rem] px-1.5 py-0.5 rounded font-semibold ${
+              risk === 'high' ? 'bg-coral-light text-coral' :
+              risk === 'medium' ? 'bg-amber-light text-amber' :
+              'bg-teal-light text-teal'
+            }`}>
+              {risk === 'low' ? '✓' : risk === 'medium' ? '◐' : '✗'} {consentLabel}
+            </span>
+            {c.optedOut && (
+              <span className="text-[0.6rem] bg-coral-light text-coral px-1.5 py-0.5 rounded font-semibold">OPTED OUT</span>
+            )}
+          </div>
         </div>
         <div className="flex flex-col gap-1">
           <button onClick={onEdit} className="text-xs text-primary font-semibold px-2 py-1">Edit</button>
@@ -261,6 +331,7 @@ function ContactForm({ contact, onSave, onCancel }) {
   const [name, setName] = useState(contact?.name || '');
   const [phone, setPhone] = useState(contact?.phone ? formatPhone(contact.phone) : '');
   const [tags, setTags] = useState(contact?.tags?.join(', ') || '');
+  const [consentSource, setConsentSource] = useState(contact?.consentSource || 'unknown');
   const [saving, setSaving] = useState(false);
 
   async function submit(e) {
@@ -271,6 +342,8 @@ function ContactForm({ contact, onSave, onCancel }) {
         name: name.trim(),
         phone: normalizePhone(phone),
         tags: tags.split(',').map(t => t.trim()).filter(Boolean),
+        consentSource,
+        consentDate: consentSource !== 'unknown' && !contact?.consentDate ? Date.now() : contact?.consentDate,
       });
     } finally { setSaving(false); }
   }
@@ -289,6 +362,15 @@ function ContactForm({ contact, onSave, onCancel }) {
         <Field label="Tags (comma-separated)">
           <input value={tags} onChange={e => setTags(e.target.value)} placeholder="vip, customer" />
         </Field>
+        <div className="flex flex-col gap-1.5 mb-3">
+          <label className="text-[0.7rem] font-semibold text-muted uppercase tracking-wider">Consent source</label>
+          <select value={consentSource} onChange={e => setConsentSource(e.target.value)}
+            className="w-full px-3.5 py-3 border-[1.5px] border-border rounded-lg text-sm bg-white outline-none focus:border-primary">
+            {CONSENT_SOURCES.map(s => (
+              <option key={s.value} value={s.value}>{s.label}</option>
+            ))}
+          </select>
+        </div>
         <div className="flex gap-2 mt-4">
           <button type="button" onClick={onCancel}
             className="flex-1 py-3 rounded-lg bg-white border border-border text-ink font-semibold text-sm">Cancel</button>

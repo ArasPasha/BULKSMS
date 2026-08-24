@@ -16,6 +16,12 @@ const DEFAULT_SETTINGS = {
   optOutKeywords: ['STOP', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT'],
   sendThrottleMs: 1500,
   respectQuietHours: true,
+  firstSendAt: null,           // ms since epoch — set on first successful send; drives warmup tier
+  autoAppendStop: true,         // append "Reply STOP to opt out." to first thread message
+  enforceQuietHours: true,      // per-recipient timezone gate on send
+  enforceDailyCap: true,        // block sends past warmup-tier cap
+  canaryNumbers: [],           // [{ phone, carrier }]
+  dailyCapOverride: null,      // set to override the auto-calculated tier cap (advanced)
 };
 
 class Store {
@@ -60,11 +66,46 @@ class Store {
 
   async addContact(data) {
     const id = uid();
-    const contact = { id, createdAt: Date.now(), optedOut: false, tags: [], ...data };
+    const contact = {
+      id,
+      createdAt: Date.now(),
+      optedOut: false,
+      tags: [],
+      consentSource: 'unknown',
+      consentDate: null,
+      threadStarted: false,
+      ...data,
+    };
     this.contacts.set(id, contact);
     await stores.contacts.setItem(id, omitId(contact));
     this.notify();
     return contact;
+  }
+
+  // Look up a contact by E.164 phone (used by send pipeline to track threads/consent)
+  findContactByPhone(phone) {
+    for (const c of this.contacts.values()) {
+      if (c.phone === phone) return c;
+    }
+    return null;
+  }
+
+  // Mark the thread as started so subsequent messages don't re-append STOP disclosure
+  async markThreadStarted(phone) {
+    const c = this.findContactByPhone(phone);
+    if (!c || c.threadStarted) return;
+    const next = { ...c, threadStarted: true };
+    this.contacts.set(c.id, next);
+    await stores.contacts.setItem(c.id, omitId(next));
+    this.notify();
+  }
+
+  // Set firstSendAt if not already set — called after first successful send
+  async markFirstSendIfNeeded() {
+    if (this.settings.firstSendAt) return;
+    this.settings = { ...this.settings, firstSendAt: Date.now() };
+    await stores.meta.setItem('settings', this.settings);
+    this.notify();
   }
 
   async updateContact(id, patch) {
@@ -107,6 +148,8 @@ class Store {
 
     let added = 0;
     const now = Date.now();
+    const consentSource = opts.consentSource || 'unknown';
+    const consentDate = consentSource === 'unknown' ? null : now;
     for (const row of toWrite) {
       const id = uid();
       const contact = {
@@ -115,6 +158,9 @@ class Store {
         phone: row.phone,
         tags: Array.isArray(row.tags) ? row.tags : [],
         optedOut: false,
+        consentSource,
+        consentDate,
+        threadStarted: false,
         createdAt: now + added,
       };
       this.contacts.set(id, contact);

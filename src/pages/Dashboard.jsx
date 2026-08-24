@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useContacts, useMessages, useOptOuts, useSettings } from '../lib/hooks';
 import { formatPhone, isQuietHours } from '../lib/sms';
+import { getWarmupTier, countSentToday } from '../lib/compliance';
 
 export default function Dashboard() {
   const contacts = useContacts();
@@ -22,6 +23,13 @@ export default function Dashboard() {
 
   const gatewayConfigured = !!(settings.gatewayUrl && settings.gatewayUser && settings.gatewayPass);
   const quiet = settings.respectQuietHours && isQuietHours();
+
+  const allMessages = useMessages();
+  const tier = getWarmupTier(settings.firstSendAt);
+  const cap = settings.dailyCapOverride ?? tier.cap;
+  const sentToday = countSentToday(allMessages);
+  const capPct = Math.min(100, Math.round((sentToday / cap) * 100));
+  const capColor = capPct >= 90 ? 'bg-coral' : capPct >= 70 ? 'bg-amber' : 'bg-primary';
 
   return (
     <div className="min-h-dvh bg-bg pb-nav">
@@ -52,6 +60,32 @@ export default function Dashboard() {
           🌙 Quiet hours (9pm–8am). Sends are disabled to protect your reputation. Disable in Settings if needed.
         </div>
       )}
+
+      <section className="px-5 mb-4">
+        <div className="bg-white rounded-[14px] border border-border p-4">
+          <div className="flex items-baseline justify-between mb-1.5">
+            <div>
+              <div className="text-[0.65rem] text-muted uppercase tracking-wider font-semibold">Today's sends</div>
+              <div className="text-2xl font-extrabold text-ink">
+                {sentToday.toLocaleString()} <span className="text-muted font-semibold text-base">/ {cap.toLocaleString()}</span>
+              </div>
+            </div>
+            <div className="text-right">
+              <div className="text-[0.65rem] text-muted uppercase tracking-wider font-semibold">Tier</div>
+              <div className="text-sm font-bold text-primary">{tier.name}</div>
+            </div>
+          </div>
+          <div className="w-full h-2 bg-surface-2 rounded-full overflow-hidden mb-1.5">
+            <div className={`h-full transition-all ${capColor}`} style={{ width: `${capPct}%` }} />
+          </div>
+          <div className="flex items-center justify-between text-[0.7rem] text-muted">
+            <span>{tier.description}</span>
+            {tier.nextTier && (
+              <span>→ {tier.nextTier.cap.toLocaleString()}/day in {tier.daysUntilNextTier}d</span>
+            )}
+          </div>
+        </div>
+      </section>
 
       <section className="px-5 grid grid-cols-2 gap-3 mb-5">
         <Stat label="Sent today" value={stats.sentToday} accent="text-primary" />

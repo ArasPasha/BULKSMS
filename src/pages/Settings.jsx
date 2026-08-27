@@ -295,10 +295,16 @@ export default function Settings() {
 
         <Section title="Sending behavior">
           <Field label="Throttle between sends (ms)">
-            <input type="number" min={500} step={100}
+            <input type="number" min={500} step={1000}
               value={form.sendThrottleMs} onChange={e => update('sendThrottleMs', e.target.value)} />
             <p className="text-[0.7rem] text-muted mt-1">
-              1500ms = ~40/min. Lower = faster but higher carrier-flag risk.
+              {(() => {
+                const ms = parseInt(form.sendThrottleMs, 10) || 30000;
+                const per_min = Math.round(60000 / ms * 10) / 10;
+                const per_hour = Math.round(3600000 / ms);
+                return `${(ms/1000).toFixed(1)}s between sends → ~${per_min}/min → ~${per_hour.toLocaleString()}/hour`;
+              })()}
+              . Applied globally to every send. 30000+ (30 sec) is safe; 1500 is bot-fast and risky.
             </p>
           </Field>
           <Toggle label="Respect quiet hours (9pm–8am)"

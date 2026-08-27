@@ -117,6 +117,9 @@ export async function gatewayPing({ url, user, pass }) {
 }
 
 export async function gatewaySend({ url, user, pass, to, body }) {
+  // Global rate limiter — guarantees the configured throttle applies to
+  // EVERY send, regardless of source path. Prevents rapid-fire bursts.
+  await enforceGlobalThrottle();
   const payload = {
     message: body,
     phoneNumbers: [normalizePhone(to)],
@@ -263,6 +266,20 @@ export async function sendSms({ to, body, contactId = null, skipPreflight = fals
 // (fixed intervals are almost as detectable as no interval)
 function jitteredDelay(baseMs) {
   return Math.round(baseMs * (0.7 + Math.random() * 0.6));
+}
+
+// Global rate limiter — enforces the throttle across EVERY send path
+// (single, broadcast, auto-reply, manual reply). Without this, rapid clicks
+// or the auto-reply engine could fire faster than settings.sendThrottleMs.
+let _lastGatewaySendAt = 0;
+async function enforceGlobalThrottle() {
+  const base = store.settings.sendThrottleMs || 1500;
+  const requiredGap = jitteredDelay(base);
+  const elapsed = Date.now() - _lastGatewaySendAt;
+  if (_lastGatewaySendAt && elapsed < requiredGap) {
+    await new Promise(res => setTimeout(res, requiredGap - elapsed));
+  }
+  _lastGatewaySendAt = Date.now();
 }
 
 // Every 15-25 sends we take a longer "human break" of 30-90 seconds.

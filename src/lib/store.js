@@ -17,7 +17,7 @@ const DEFAULT_SETTINGS = {
   gatewayPass: '',
   senderName: '',   // Your name — used to replace [Sender] in template bodies
   optOutKeywords: ['STOP', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT'],
-  sendThrottleMs: 1500,
+  sendThrottleMs: 30_000,  // 30s between sends → ~2/min → realistic human pace; lower if you want to move faster
   respectQuietHours: true,
   // Strict send window (in recipient local time). The app also enforces the
   // legal minimums on top of this (federal 8am-9pm, strict states 8am-8pm) —

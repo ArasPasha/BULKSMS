@@ -15,6 +15,7 @@ const DEFAULT_SETTINGS = {
   gatewayUrl: '',
   gatewayUser: '',
   gatewayPass: '',
+  senderName: '',   // Your name — used to replace [Sender] in template bodies
   optOutKeywords: ['STOP', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT'],
   sendThrottleMs: 1500,
   respectQuietHours: true,

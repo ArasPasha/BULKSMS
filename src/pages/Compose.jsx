@@ -24,6 +24,8 @@ export default function Compose() {
   const [phone, setPhone] = useState('');
   const [selected, setSelected] = useState(new Map());
   const [tagFilter, setTagFilter] = useState('');
+  // Contacted filter — "never" hides anyone we've ever sent to; N days = only re-text if it's been that long
+  const [contactedFilter, setContactedFilter] = useState('never'); // 'never' | 'days3' | 'days7' | 'days30' | 'all'
   const [body, setBody] = useState('');
   const [variantMode, setVariantMode] = useState(false);
   const [selectedVariants, setSelectedVariants] = useState(new Set()); // template ids
@@ -36,7 +38,22 @@ export default function Compose() {
     () => [...allContacts].sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0)),
     [allContacts]
   );
-  const eligible = useMemo(() => sortedAll.filter(c => !c.optedOut), [sortedAll]);
+  const eligible = useMemo(() => {
+    const notOptedOut = sortedAll.filter(c => !c.optedOut);
+    if (contactedFilter === 'all') return notOptedOut;
+    const now = Date.now();
+    const cutoffMs = contactedFilter === 'never' ? Infinity
+      : contactedFilter === 'days3'  ? 3  * 86_400_000
+      : contactedFilter === 'days7'  ? 7  * 86_400_000
+      : contactedFilter === 'days30' ? 30 * 86_400_000
+      : Infinity;
+    return notOptedOut.filter(c => {
+      if (!c.lastOutboundAt) return true; // never contacted → always eligible
+      if (contactedFilter === 'never') return false; // hide anyone we've ever texted
+      return now - c.lastOutboundAt >= cutoffMs; // eligible if enough time passed
+    });
+  }, [sortedAll, contactedFilter]);
+  const hiddenByContactFilter = sortedAll.filter(c => !c.optedOut).length - eligible.length;
   const totalEligible = eligible.length;
   const visible = eligible.slice(0, pageLimit);
 
@@ -370,6 +387,27 @@ export default function Compose() {
                 <button type="button" onClick={clearAll} className="text-muted font-semibold">None</button>
               </div>
             </div>
+            {/* Contacted filter — key anti-double-text feature */}
+            <div className="flex items-center gap-1.5 mb-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
+              <span className="text-[0.65rem] text-muted font-semibold whitespace-nowrap pr-1">SHOW:</span>
+              {[
+                { key: 'never',  label: 'Never texted' },
+                { key: 'days3',  label: '3+ days ago' },
+                { key: 'days7',  label: '7+ days ago' },
+                { key: 'days30', label: '30+ days ago' },
+                { key: 'all',    label: 'Everyone' },
+              ].map(f => (
+                <button type="button" key={f.key} onClick={() => setContactedFilter(f.key)}
+                  className={`px-2.5 py-1 rounded-full text-xs font-semibold whitespace-nowrap ${
+                    contactedFilter === f.key ? 'bg-teal text-white' : 'bg-white border border-border text-muted'
+                  }`}>{f.label}</button>
+              ))}
+            </div>
+            {hiddenByContactFilter > 0 && (
+              <p className="text-[0.7rem] text-muted mb-2 -mt-1">
+                🚫 {hiddenByContactFilter.toLocaleString()} contact{hiddenByContactFilter !== 1 ? 's' : ''} hidden — you've already texted them
+              </p>
+            )}
             {tags.length > 0 && (
               <div className="flex gap-1.5 mb-2 overflow-x-auto scrollbar-hide -mx-1 px-1">
                 <button type="button" onClick={() => setTagFilter('')}

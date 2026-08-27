@@ -286,7 +286,7 @@ export async function broadcastSms({ recipients, body, bodies, throttleMs = 1500
     if (signal?.aborted) break;
     const r = recipients[i];
     const chosenBody = variants[i % variants.length];
-    const personalized = chosenBody.replace(/\{\{\s*name\s*\}\}/g, r.name || 'there');
+    const personalized = personalizeBody(chosenBody, r);
 
     // Per-message preflight — cheap enough (opt-out lookup + tier check + quiet hours)
     const check = preflightCheck({ phone: r.phone, body: personalized });
@@ -488,12 +488,17 @@ export async function runAutoReplyEngine({ from, body }) {
   return { sent: false, source: 'no-match' };
 }
 
-function personalizeBody(body, contact) {
+// Substitute template placeholders. Supports both {{name}} and [[name]]
+// (people typo the braces), plus [Sender] / {{sender}}.
+export function personalizeBody(body, contact) {
+  if (!body) return body;
   const first = (contact?.name || '').split(/\s+/)[0] || 'there';
-  const sender = store.settings.aiReplySenderName || '';
+  const sender = store.settings.aiReplySenderName || store.settings.senderName || '';
   return body
     .replace(/\{\{\s*name\s*\}\}/gi, first)
-    .replace(/\[?Sender\]?/g, sender || '[Sender]');
+    .replace(/\[\[\s*name\s*\]\]/gi, first)
+    .replace(/\{\{\s*sender\s*\}\}/gi, sender || '[Sender]')
+    .replace(/\[Sender\]/g, sender || '[Sender]');
 }
 
 // AI reply generator using Anthropic API directly from the browser.

@@ -10,6 +10,7 @@ export default function Settings() {
   const messages = useMessages();
   const [form, setForm] = useState({
     gatewayUrl: '', gatewayUser: '', gatewayPass: '',
+    senderName: '',
     optOutKeywords: '', sendThrottleMs: 1500, respectQuietHours: true,
     autoAppendStop: true, enforceQuietHours: true, enforceDailyCap: true,
     dailyCapOverride: '',
@@ -35,6 +36,7 @@ export default function Settings() {
       gatewayUrl: settings.gatewayUrl || '',
       gatewayUser: settings.gatewayUser || '',
       gatewayPass: settings.gatewayPass || '',
+      senderName: settings.senderName || settings.aiReplySenderName || '',
       optOutKeywords: (settings.optOutKeywords || []).join(', '),
       sendThrottleMs: settings.sendThrottleMs ?? 1500,
       respectQuietHours: settings.respectQuietHours ?? true,
@@ -68,6 +70,8 @@ export default function Settings() {
         gatewayUrl: form.gatewayUrl.trim(),
         gatewayUser: form.gatewayUser.trim(),
         gatewayPass: form.gatewayPass,
+        senderName: form.senderName.trim(),
+        aiReplySenderName: form.senderName.trim() || form.aiReplySenderName?.trim() || '',
         optOutKeywords: form.optOutKeywords.split(',').map(k => k.trim().toUpperCase()).filter(Boolean),
         sendThrottleMs: Math.max(500, parseInt(form.sendThrottleMs, 10) || 1500),
         respectQuietHours: !!form.respectQuietHours,
@@ -85,7 +89,6 @@ export default function Settings() {
         autoReplyEnabled: !!form.autoReplyEnabled,
         autoReplyCooldownMs: Math.max(60000, parseInt(form.autoReplyCooldownMs, 10) || 3600000),
         aiReplyEnabled: !!form.aiReplyEnabled,
-        aiReplySenderName: form.aiReplySenderName.trim(),
         aiReplyCompanyName: form.aiReplyCompanyName.trim(),
         aiApiKey: form.aiApiKey.trim(),
       });
@@ -197,6 +200,15 @@ export default function Settings() {
               {testResult.ok ? '✓' : '✗'} {testResult.message}
             </div>
           )}
+        </Section>
+
+        <Section title="Your info"
+          subtitle="Used to fill in [Sender] and {{sender}} placeholders in template bodies.">
+          <Field label="Your first name (or how you sign)">
+            <input value={form.senderName}
+              onChange={e => update('senderName', e.target.value)}
+              placeholder="e.g. Tim" />
+          </Field>
         </Section>
 
         <Section title="Compliance guardrails"

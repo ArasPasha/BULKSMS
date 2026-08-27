@@ -25,7 +25,8 @@ export default function Compose() {
   const [selected, setSelected] = useState(new Map());
   const [tagFilter, setTagFilter] = useState('');
   // Contacted filter — "never" hides anyone we've ever sent to; N days = only re-text if it's been that long
-  const [contactedFilter, setContactedFilter] = useState('never'); // 'never' | 'days3' | 'days7' | 'days30' | 'all'
+  const [contactedFilter, setContactedFilter] = useState('never'); // 'never' | 'days3' | 'days7' | 'days30' | 'texted' | 'all'
+  const [recipientSearch, setRecipientSearch] = useState('');
   const [body, setBody] = useState('');
   const [variantMode, setVariantMode] = useState(false);
   const [selectedVariants, setSelectedVariants] = useState(new Set()); // template ids
@@ -41,6 +42,10 @@ export default function Compose() {
   const eligible = useMemo(() => {
     const notOptedOut = sortedAll.filter(c => !c.optedOut);
     if (contactedFilter === 'all') return notOptedOut;
+    if (contactedFilter === 'texted') {
+      // Only show contacts we HAVE already texted (any time)
+      return notOptedOut.filter(c => c.lastOutboundAt);
+    }
     const now = Date.now();
     const cutoffMs = contactedFilter === 'never' ? Infinity
       : contactedFilter === 'days3'  ? 3  * 86_400_000
@@ -64,9 +69,18 @@ export default function Compose() {
   }, [eligible]);
 
   const filtered = useMemo(() => {
-    if (!tagFilter) return visible;
-    return visible.filter(c => c.tags?.includes(tagFilter));
-  }, [visible, tagFilter]);
+    let list = visible;
+    if (tagFilter) list = list.filter(c => c.tags?.includes(tagFilter));
+    if (recipientSearch) {
+      const s = recipientSearch.toLowerCase();
+      list = list.filter(c =>
+        c.name?.toLowerCase().includes(s) ||
+        c.phone?.includes(s) ||
+        c.tags?.some(t => t.toLowerCase().includes(s))
+      );
+    }
+    return list;
+  }, [visible, tagFilter, recipientSearch]);
 
   const seg = countSegments(body);
   const gatewayConfigured = !!(settings.gatewayUrl && settings.gatewayUser && settings.gatewayPass);
@@ -395,6 +409,7 @@ export default function Compose() {
                 { key: 'days3',  label: '3+ days ago' },
                 { key: 'days7',  label: '7+ days ago' },
                 { key: 'days30', label: '30+ days ago' },
+                { key: 'texted', label: 'Texted' },
                 { key: 'all',    label: 'Everyone' },
               ].map(f => (
                 <button type="button" key={f.key} onClick={() => setContactedFilter(f.key)}
@@ -428,6 +443,10 @@ export default function Compose() {
               </div>
             ) : (
               <>
+                <input type="search" placeholder="Search name, phone, or tag"
+                  value={recipientSearch}
+                  onChange={e => setRecipientSearch(e.target.value)}
+                  className="w-full mb-2 px-3 py-2 border border-border rounded text-sm bg-white outline-none focus:border-primary" />
                 <ul className="bg-white rounded-[14px] border border-border max-h-[260px] overflow-y-auto divide-y divide-border">
                   {filtered.map(c => (
                     <li key={c.id}>

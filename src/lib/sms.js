@@ -375,7 +375,24 @@ export async function runAutoReplyEngine({ from, body }) {
     }
   }
 
-  // 2) AI fallback
+  // 2) Generic fallback — a single canned template sent when no rule matched.
+  // Runs BEFORE AI so the user always has a safe, deterministic default.
+  if (s.genericAutoReplyEnabled && s.genericAutoReplyTemplateId) {
+    const template = store.templates.get(s.genericAutoReplyTemplateId);
+    if (template) {
+      const replyBody = personalizeBody(template.body, contact);
+      try {
+        await sendSms({ to: phone, body: replyBody, contactId: contact?.id, skipPreflight: false });
+        await store.recordAutoReplyAt(phone);
+        await store.incrementTemplateUse(template.id);
+        return { sent: true, source: 'generic-fallback' };
+      } catch (e) {
+        return { sent: false, source: 'generic-fallback-blocked', reason: e.message };
+      }
+    }
+  }
+
+  // 3) AI fallback
   if (s.aiReplyEnabled && (import.meta.env.VITE_ANTHROPIC_API_KEY || s.aiApiKey)) {
     try {
       const draft = await aiReplyDraft({ inbound: body, contact });

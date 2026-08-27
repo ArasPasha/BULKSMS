@@ -29,6 +29,9 @@ const DEFAULT_SETTINGS = {
   pollingIntervalMs: 20_000,
   autoReplyEnabled: true,
   autoReplyCooldownMs: 3600_000, // don't auto-reply to same contact more than once per hour
+  // Generic fallback — sent when no rule matches (before AI, if AI enabled)
+  genericAutoReplyEnabled: true,
+  genericAutoReplyTemplateId: null, // set on seed to the "Generic fallback" template
   // AI (Anthropic) settings — API key seeds from .env.local
   aiReplyEnabled: false,        // off by default; user opts in
   aiReplyModel: 'claude-haiku-4-5-20251001',
@@ -112,12 +115,22 @@ class Store {
       { name: 'Obj — rates too high',      body: 'That\'s exactly the reason for the pick-your-rate model. What rate/term are you targeting?',                                              tags: ['objection'] },
       { name: 'Obj — bad credit',          body: 'Approval on deposits, not FICO. If you\'re running the business, you likely qualify. 2 min → thebrokershopinc.com/apply.',                 tags: ['objection'] },
       { name: 'Obj — how much can I get?', body: '$5K to $2M, depends on your monthly deposits. Zero credit hit to see the number: thebrokershopinc.com/apply (2 min).',                    tags: ['objection'] },
+
+      // Generic fallback — sent when NO rule matches the inbound reply.
+      { name: 'Generic fallback',          body: 'Hey {{name}}, thanks for the reply. Fastest way to get real numbers: 2-min pre-qual at thebrokershopinc.com/apply, zero credit hit. Or reply w/ monthly deposits + amount + I\'ll come back to you.', tags: ['fallback'] },
     ];
+    let genericFallbackId = null;
     for (const s of seeds) {
       const id = uid();
       const t = { id, ...s, useCount: 0, createdAt: Date.now() };
       this.templates.set(id, t);
       await stores.templates.setItem(id, omitId(t));
+      if (s.name === 'Generic fallback') genericFallbackId = id;
+    }
+    // Wire the generic fallback into settings if not already set
+    if (genericFallbackId && !this.settings.genericAutoReplyTemplateId) {
+      this.settings = { ...this.settings, genericAutoReplyTemplateId: genericFallbackId };
+      await stores.meta.setItem('settings', this.settings);
     }
 
     // Also seed auto-reply rules that map inbound patterns → templates

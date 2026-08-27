@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useAutoReplyRules, useTemplates } from '../lib/hooks';
+import { useAutoReplyRules, useSettings, useTemplates } from '../lib/hooks';
 import { store } from '../lib/store';
 import { countSegments } from '../lib/sms';
 import { hasStopDisclosure, lintMessageBody } from '../lib/compliance';
@@ -158,10 +158,15 @@ function TemplateForm({ template, onSave, onCancel }) {
 function RulesTab() {
   const rules = useAutoReplyRules();
   const templates = useTemplates();
+  const settings = useSettings();
   const [editing, setEditing] = useState(null);
   const [showAdd, setShowAdd] = useState(false);
 
   const tmplById = useMemo(() => new Map(templates.map(t => [t.id, t])), [templates]);
+
+  async function updateGeneric(patch) {
+    await store.updateSettings(patch);
+  }
 
   async function save(form) {
     if (editing) await store.updateAutoReply(editing.id, form);
@@ -180,8 +185,43 @@ function RulesTab() {
     <div className="px-5">
       <div className="p-3 rounded-[14px] bg-primary-light border border-primary/30 mb-3">
         <p className="text-xs text-ink">
-          <span className="font-semibold">How it works:</span> when an inbound text matches a rule's pattern, the app auto-sends the linked template. Rules run in <b>priority</b> order (lowest number first). If nothing matches and AI is enabled, Claude drafts a reply.
+          <span className="font-semibold">How it works:</span> when an inbound text matches a rule's pattern, the app auto-sends the linked template. Rules run in <b>priority</b> order (lowest number first). If nothing matches, the <b>generic fallback</b> below fires. AI is only used if enabled AND the generic fallback is off or has no template.
         </p>
+      </div>
+
+      {/* Generic fallback card */}
+      <div className="bg-white rounded-[14px] border-2 border-primary/30 p-3.5 mb-3">
+        <div className="flex items-start justify-between gap-2 mb-2">
+          <div>
+            <div className="font-semibold text-ink text-sm">🎯 Generic fallback</div>
+            <div className="text-[0.7rem] text-muted">
+              Sent when no rule matches — your safe default response.
+            </div>
+          </div>
+          <label className="toggle">
+            <input type="checkbox" checked={!!settings.genericAutoReplyEnabled}
+              onChange={e => updateGeneric({ genericAutoReplyEnabled: e.target.checked })} />
+            <span className="toggle-track" />
+          </label>
+        </div>
+        {settings.genericAutoReplyEnabled && (
+          <>
+            <label className="text-[0.7rem] font-semibold text-muted uppercase tracking-wider">Template to send</label>
+            <select value={settings.genericAutoReplyTemplateId || ''}
+              onChange={e => updateGeneric({ genericAutoReplyTemplateId: e.target.value || null })}
+              className="w-full mt-1 px-3 py-2 border border-border rounded text-sm bg-white outline-none focus:border-primary">
+              <option value="">— None (skip fallback) —</option>
+              {templates.map(t => (
+                <option key={t.id} value={t.id}>{t.name}</option>
+              ))}
+            </select>
+            {settings.genericAutoReplyTemplateId && (
+              <p className="text-[0.7rem] text-muted mt-1.5 italic">
+                Preview: "{tmplById.get(settings.genericAutoReplyTemplateId)?.body?.slice(0, 120) || 'template not found'}…"
+              </p>
+            )}
+          </>
+        )}
       </div>
 
       <button onClick={() => { setEditing(null); setShowAdd(true); }}

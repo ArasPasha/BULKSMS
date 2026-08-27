@@ -50,6 +50,19 @@ class Store {
     await stores.optouts.iterate((v, k) => { this.optouts.set(k, { id: k, ...v }); });
     const saved = await stores.meta.getItem('settings');
     if (saved) this.settings = { ...DEFAULT_SETTINGS, ...saved };
+
+    // Seed gateway credentials from .env.local on first launch so the app
+    // works out of the box without hand-entering them. Only fills fields
+    // that are still empty — user-saved values always win.
+    const envUrl = import.meta.env.VITE_DEFAULT_GATEWAY_URL;
+    const envUser = import.meta.env.VITE_DEFAULT_GATEWAY_USER;
+    const envPass = import.meta.env.VITE_DEFAULT_GATEWAY_PASS;
+    let seeded = false;
+    if (envUrl && !this.settings.gatewayUrl) { this.settings.gatewayUrl = envUrl; seeded = true; }
+    if (envUser && !this.settings.gatewayUser) { this.settings.gatewayUser = envUser; seeded = true; }
+    if (envPass && !this.settings.gatewayPass) { this.settings.gatewayPass = envPass; seeded = true; }
+    if (seeded) await stores.meta.setItem('settings', this.settings);
+
     this.loaded = true;
     this.notify();
   }

@@ -46,36 +46,77 @@ export function buildGatewayUrl(rawUrl) {
   return url.replace(/\/+$/, '');
 }
 
-export async function gatewayPing({ url, user, pass }) {
-  const base = buildGatewayUrl(url);
-  if (!base) throw new Error('Gateway URL is empty');
-  const res = await fetch(`${base}/health`, {
-    method: 'GET',
-    headers: { Authorization: 'Basic ' + btoa(`${user}:${pass}`) },
+// Route every phone-gateway call through the Vite dev-server proxy so the
+// browser doesn't get blocked by CORS. The middleware in vite.config.js reads
+// X-Gateway-Target and forwards to the phone. In a production build without
+// the Vite proxy, this will fail — that's intentional; the app is designed
+// to run via `npm run dev`.
+const PROXY_PREFIX = '/gateway-proxy';
+
+function gatewayFetch({ url, user, pass, path, method = 'GET', body }) {
+  const target = buildGatewayUrl(url);
+  if (!target) throw new Error('Gateway URL is empty');
+  const headers = {
+    Authorization: 'Basic ' + btoa(`${user || ''}:${pass || ''}`),
+    'X-Gateway-Target': target,
+  };
+  if (body !== undefined) headers['Content-Type'] = 'application/json';
+  return fetch(`${PROXY_PREFIX}${path}`, {
+    method,
+    headers,
+    body: body !== undefined ? JSON.stringify(body) : undefined,
   });
-  if (!res.ok) throw new Error(`Gateway responded ${res.status}`);
-  return res.json().catch(() => ({ ok: true }));
+}
+
+// The SMS Gateway for Android app changed endpoint paths across versions
+// (v1: /message + /health; newer: /api/v1/message + /api/v1/health).
+// We try modern first, then fall back to legacy.
+const PING_PATHS = ['/health', '/api/v1/health'];
+const SEND_PATHS = ['/message', '/api/v1/message'];
+
+export async function gatewayPing({ url, user, pass }) {
+  let lastErr = null;
+  for (const path of PING_PATHS) {
+    try {
+      const res = await gatewayFetch({ url, user, pass, path });
+      if (res.ok) return res.json().catch(() => ({ ok: true, path }));
+      // 401/403 → server exists but auth failed
+      if (res.status === 401 || res.status === 403) {
+        throw new Error(`Auth failed (${res.status}) — check username/password`);
+      }
+      // 404 → try next path
+      lastErr = new Error(`${path} returned ${res.status}`);
+    } catch (e) {
+      lastErr = e;
+    }
+  }
+  throw lastErr || new Error('Gateway not reachable');
 }
 
 export async function gatewaySend({ url, user, pass, to, body }) {
-  const base = buildGatewayUrl(url);
-  if (!base) throw new Error('Gateway URL not configured');
-  const res = await fetch(`${base}/message`, {
-    method: 'POST',
-    headers: {
-      Authorization: 'Basic ' + btoa(`${user}:${pass}`),
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      message: body,
-      phoneNumbers: [normalizePhone(to)],
-    }),
-  });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    throw new Error(data?.message || data?.error || `Gateway error ${res.status}`);
+  const payload = {
+    message: body,
+    phoneNumbers: [normalizePhone(to)],
+  };
+  let lastErr = null;
+  for (const path of SEND_PATHS) {
+    try {
+      const res = await gatewayFetch({ url, user, pass, path, method: 'POST', body: payload });
+      const data = await res.json().catch(() => ({}));
+      if (res.ok) return data;
+      if (res.status === 401 || res.status === 403) {
+        throw new Error(`Auth failed (${res.status}) — check username/password`);
+      }
+      lastErr = new Error(data?.message || data?.error || `Gateway ${path} → ${res.status}`);
+      // If it's not a 404, don't bother trying the next path — same server rejected us
+      if (res.status !== 404) throw lastErr;
+    } catch (e) {
+      lastErr = e;
+      // Only try next path if we hit a 404-style path miss; other errors propagate
+      if (!/404|not\s+found/i.test(e.message)) throw e;
+    }
   }
-  return data;
+  throw lastErr || new Error('Gateway send failed');
 }
 
 // Runs every gate a single send has to pass. Returns { ok, reason?, code? }.

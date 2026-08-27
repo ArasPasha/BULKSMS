@@ -210,8 +210,25 @@ export default function Settings() {
                 onChange={e => update('sendEndHour', e.target.value)} />
             </Field>
           </div>
+          <div className="flex gap-2 -mt-1">
+            <button type="button"
+              onClick={() => { update('sendStartHour', 8); update('sendEndHour', 21); }}
+              className="flex-1 py-2 px-2 rounded bg-white border border-border text-xs font-semibold text-ink">
+              📋 Legal min (8–21)
+            </button>
+            <button type="button"
+              onClick={() => { update('sendStartHour', 10); update('sendEndHour', 18); }}
+              className="flex-1 py-2 px-2 rounded bg-white border border-border text-xs font-semibold text-ink">
+              👔 Business (10–18)
+            </button>
+            <button type="button"
+              onClick={() => { update('sendStartHour', 13); update('sendEndHour', 18); }}
+              className="flex-1 py-2 px-2 rounded bg-white border border-border text-xs font-semibold text-ink">
+              🎯 Peak (13–18)
+            </button>
+          </div>
           <p className="text-[0.7rem] text-muted -mt-1">
-            App uses the STRICTER of your window vs the law (federal 8am–9pm, strict states 8am–8pm). Default 13–18 = 1pm–6pm recipient local. Times are 24-hour.
+            App uses the STRICTER of your window vs the law (federal 8am–9pm, strict states 8am–8pm auto-enforced per recipient). Times in 24-hour. <b>Legal min</b> = whatever the law allows.
           </p>
           <Toggle label='Auto-append "Reply STOP to opt out." to first message'
             value={form.autoAppendStop}

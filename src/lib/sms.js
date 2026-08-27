@@ -39,6 +39,29 @@ export function countSegments(body) {
   return { chars: len, segments: Math.ceil(len / 67), encoding: 'UCS-2' };
 }
 
+// Format minutes-of-day (0-1440) as "H:MMam/pm"
+export function formatMinuteOfDay(min) {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  const period = h >= 12 ? 'pm' : 'am';
+  const display = h % 12 === 0 ? 12 : h % 12;
+  return `${display}:${String(m).padStart(2, '0')}${period}`;
+}
+
+// Convert an <input type="time"> value "HH:MM" to minutes-of-day
+export function timeToMinutes(hhmm) {
+  if (!hhmm || typeof hhmm !== 'string') return 0;
+  const [h, m] = hhmm.split(':').map(x => parseInt(x, 10) || 0);
+  return h * 60 + m;
+}
+
+// Convert minutes-of-day back to "HH:MM" for <input type="time">
+export function minutesToTime(min) {
+  const h = Math.floor(min / 60);
+  const m = min % 60;
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+}
+
 export function buildGatewayUrl(rawUrl) {
   if (!rawUrl) return '';
   let url = String(rawUrl).trim();
@@ -125,6 +148,17 @@ export function preflightCheck({ phone, body, now = new Date() }) {
 
   if (store.isOptedOut(phone)) {
     return { ok: false, code: 'opted-out', reason: `${phone} has opted out` };
+  }
+
+  // Sender-clock guardrail — before anything else, is IT even OK for YOU to be sending right now?
+  if (s.senderWindowEnabled) {
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    if (nowMin < s.senderStartMinute || nowMin >= s.senderEndMinute) {
+      return {
+        ok: false, code: 'sender-window',
+        reason: `Outside your ${formatMinuteOfDay(s.senderStartMinute)}–${formatMinuteOfDay(s.senderEndMinute)} send window (your local ${formatMinuteOfDay(nowMin)})`,
+      };
+    }
   }
 
   // Daily cap (warmup tier)

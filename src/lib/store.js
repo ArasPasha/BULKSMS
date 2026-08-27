@@ -21,8 +21,16 @@ const DEFAULT_SETTINGS = {
   // Strict send window (in recipient local time). The app also enforces the
   // legal minimums on top of this (federal 8am-9pm, strict states 8am-8pm) —
   // whichever is stricter wins.
-  sendStartHour: 8,    // federal TCPA legal minimum
+  sendStartHour: 8,    // federal TCPA legal minimum (recipient local)
   sendEndHour: 21,     // federal TCPA legal max — app auto-tightens to 8pm for strict states per recipient
+  // Sender-clock guardrail: never send outside YOUR local time, regardless
+  // of recipient. Belt and suspenders for anyone doing nationwide outreach
+  // who only wants to work certain hours. Stored as minutes since midnight
+  // for minute-level precision (so you can start at 11:05, not just 11:00 —
+  // helps avoid the "exactly on the hour" bot pattern).
+  senderWindowEnabled: true,
+  senderStartMinute: 11 * 60 + 5,  // 11:05 AM
+  senderEndMinute: 18 * 60 + 50,   // 6:50 PM
   firstSendAt: null,           // ms since epoch — set on first successful send; drives warmup tier
   autoAppendStop: true,         // append "Reply STOP to opt out." to first thread message
   enforceQuietHours: true,      // per-recipient timezone gate on send

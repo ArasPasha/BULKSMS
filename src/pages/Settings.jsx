@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useContacts, useMessages, useOptOuts, useSettings } from '../lib/hooks';
 import { store } from '../lib/store';
-import { gatewayPing, setOptOut, formatPhone } from '../lib/sms';
+import { gatewayPing, setOptOut, formatPhone, timeToMinutes, minutesToTime } from '../lib/sms';
 
 export default function Settings() {
   const settings = useSettings();
@@ -13,7 +13,10 @@ export default function Settings() {
     optOutKeywords: '', sendThrottleMs: 1500, respectQuietHours: true,
     autoAppendStop: true, enforceQuietHours: true, enforceDailyCap: true,
     dailyCapOverride: '',
-    sendStartHour: 13, sendEndHour: 18,
+    sendStartHour: 8, sendEndHour: 21,
+    senderWindowEnabled: true,
+    senderStartTime: '11:05',
+    senderEndTime: '18:50',
     pollingEnabled: true, pollingIntervalMs: 20000,
     autoReplyEnabled: true, autoReplyCooldownMs: 3600000,
     aiReplyEnabled: false, aiReplySenderName: '', aiReplyCompanyName: 'The Broker Shop',
@@ -39,8 +42,11 @@ export default function Settings() {
       enforceQuietHours: settings.enforceQuietHours ?? true,
       enforceDailyCap: settings.enforceDailyCap ?? true,
       dailyCapOverride: settings.dailyCapOverride ?? '',
-      sendStartHour: settings.sendStartHour ?? 13,
-      sendEndHour: settings.sendEndHour ?? 18,
+      sendStartHour: settings.sendStartHour ?? 8,
+      sendEndHour: settings.sendEndHour ?? 21,
+      senderWindowEnabled: settings.senderWindowEnabled ?? true,
+      senderStartTime: minutesToTime(settings.senderStartMinute ?? (11 * 60 + 5)),
+      senderEndTime: minutesToTime(settings.senderEndMinute ?? (18 * 60 + 50)),
       pollingEnabled: settings.pollingEnabled ?? true,
       pollingIntervalMs: settings.pollingIntervalMs ?? 20000,
       autoReplyEnabled: settings.autoReplyEnabled ?? true,
@@ -69,8 +75,11 @@ export default function Settings() {
         enforceQuietHours: !!form.enforceQuietHours,
         enforceDailyCap: !!form.enforceDailyCap,
         dailyCapOverride: form.dailyCapOverride === '' ? null : Math.max(1, parseInt(form.dailyCapOverride, 10) || 0) || null,
-        sendStartHour: Math.max(8, Math.min(20, parseInt(form.sendStartHour, 10) || 13)),
-        sendEndHour: Math.max(9, Math.min(21, parseInt(form.sendEndHour, 10) || 18)),
+        sendStartHour: Math.max(8, Math.min(20, parseInt(form.sendStartHour, 10) || 8)),
+        sendEndHour: Math.max(9, Math.min(21, parseInt(form.sendEndHour, 10) || 21)),
+        senderWindowEnabled: !!form.senderWindowEnabled,
+        senderStartMinute: timeToMinutes(form.senderStartTime),
+        senderEndMinute: timeToMinutes(form.senderEndTime),
         pollingEnabled: !!form.pollingEnabled,
         pollingIntervalMs: Math.max(5000, parseInt(form.pollingIntervalMs, 10) || 20000),
         autoReplyEnabled: !!form.autoReplyEnabled,
@@ -230,6 +239,34 @@ export default function Settings() {
           <p className="text-[0.7rem] text-muted -mt-1">
             App uses the STRICTER of your window vs the law (federal 8am–9pm, strict states 8am–8pm auto-enforced per recipient). Times in 24-hour. <b>Legal min</b> = whatever the law allows.
           </p>
+
+          {/* Sender-clock guardrail — separate from recipient window */}
+          <div className="pt-3 mt-1 border-t border-border">
+            <Toggle
+              label={`Sender-clock guardrail (${form.senderStartTime}–${form.senderEndTime} your local)`}
+              value={form.senderWindowEnabled}
+              onChange={v => update('senderWindowEnabled', v)}
+            />
+            {form.senderWindowEnabled && (
+              <>
+                <div className="grid grid-cols-2 gap-2 mt-2">
+                  <Field label="Your earliest send time">
+                    <input type="time"
+                      value={form.senderStartTime}
+                      onChange={e => update('senderStartTime', e.target.value)} />
+                  </Field>
+                  <Field label="Your latest send time">
+                    <input type="time"
+                      value={form.senderEndTime}
+                      onChange={e => update('senderEndTime', e.target.value)} />
+                  </Field>
+                </div>
+                <p className="text-[0.7rem] text-muted mt-1">
+                  Nothing sends outside these hours in YOUR local time, regardless of recipient. Belt-and-suspenders for nationwide outreach.
+                </p>
+              </>
+            )}
+          </div>
           <Toggle label='Auto-append "Reply STOP to opt out." to first message'
             value={form.autoAppendStop}
             onChange={v => update('autoAppendStop', v)} />

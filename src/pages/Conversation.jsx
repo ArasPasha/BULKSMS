@@ -94,6 +94,10 @@ export default function Conversation() {
     await store.setContactStatus(contact.id, status);
   }
 
+  async function toggleAutoReplyMute() {
+    await store.setAutoReplyMuted(contact.id, !contact.autoReplyMuted);
+  }
+
   async function saveNotes() {
     await store.setContactNotes(contact.id, notes);
   }
@@ -111,6 +115,17 @@ export default function Conversation() {
             <div className="text-[0.7rem] text-muted">{formatPhone(contact.phone)} · {consentLabel}</div>
           </div>
           <a href={`tel:${contact.phone}`} className="text-primary text-xs font-semibold px-2">Call</a>
+        </div>
+        <div className="flex items-center justify-between mb-2 -mt-1">
+          <button type="button" onClick={toggleAutoReplyMute}
+            className={`text-[0.7rem] font-semibold px-2 py-1 rounded ${
+              contact.autoReplyMuted
+                ? 'bg-surface-2 text-muted'
+                : 'bg-teal-light text-teal'
+            }`}>
+            🤖 Auto-reply: {contact.autoReplyMuted ? 'OFF (you drive)' : 'ON'}
+            {contact.autoReplyMuted && ' — tap to re-enable'}
+          </button>
         </div>
         <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1">
           {STATUS_OPTIONS.map(s => (

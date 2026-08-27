@@ -444,6 +444,18 @@ export async function runAutoReplyEngine({ from, body }) {
   const phone = normalizePhone(from);
   const contact = store.findContactByPhone(phone);
 
+  // One-and-done mute: if we've already fired an auto-reply to this contact,
+  // stop firing. From here the user takes over manually. Only two outcomes
+  // are meaningful: opt-out OR link-sent-once.
+  if (contact?.autoReplyMuted) {
+    await store.logMessage({
+      direction: 'system', to: phone, status: 'auto-reply-skipped',
+      body: 'Auto-reply muted — you already sent them the info. Take over manually 👆',
+      contactId: contact.id,
+    });
+    return { sent: false, source: 'muted' };
+  }
+
   // Cooldown: skip if EITHER we auto-replied recently, OR the user manually
   // texted this contact recently. The manual-send check makes the bot back
   // off when a real conversation is happening.

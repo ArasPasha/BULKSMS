@@ -206,6 +206,8 @@ class Store {
       lastInboundBody: '',
       lastOutboundAt: null,
       lastAutoReplyAt: null,   // cooldown tracker
+      autoReplyMuted: false,   // set true after the first successful auto-reply — "one and done"
+      autoReplyMutedAt: null,  // when muting happened
       ...data,
     };
     this.contacts.set(id, contact);
@@ -291,10 +293,31 @@ class Store {
   async recordAutoReplyAt(phone) {
     const c = this.findContactByPhone(phone);
     if (!c) return;
-    const next = { ...c, lastAutoReplyAt: Date.now() };
+    // One and done: also flip the mute flag so the engine never auto-replies
+    // to this contact again. User takes over manually from here.
+    const next = {
+      ...c,
+      lastAutoReplyAt: Date.now(),
+      autoReplyMuted: true,
+      autoReplyMutedAt: c.autoReplyMutedAt || Date.now(),
+    };
     this.contacts.set(c.id, next);
     await stores.contacts.setItem(c.id, omitId(next));
     this.notify();
+  }
+
+  async setAutoReplyMuted(contactId, muted) {
+    const c = this.contacts.get(contactId);
+    if (!c) return null;
+    const next = {
+      ...c,
+      autoReplyMuted: !!muted,
+      autoReplyMutedAt: muted ? Date.now() : null,
+    };
+    this.contacts.set(contactId, next);
+    await stores.contacts.setItem(contactId, omitId(next));
+    this.notify();
+    return next;
   }
 
   // ---------- Templates ----------

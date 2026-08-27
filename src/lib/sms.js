@@ -198,13 +198,19 @@ export function preflightCheck({ phone, body, now = new Date() }) {
 export async function sendSms({ to, body, contactId = null, skipPreflight = false }) {
   const phone = normalizePhone(to);
   const s = store.settings;
+  const contact = contactId ? store.contacts.get(contactId) : store.findContactByPhone(phone);
+
+  // Personalize FIRST — replaces {{name}}, [[name]], [Sender], {{sender}}
+  // so every send path (single, broadcast, auto-reply) gets consistent
+  // substitution, not just broadcasts.
+  let finalBody = personalizeBody(body, contact);
 
   // Preflight
   if (!skipPreflight) {
-    const check = preflightCheck({ phone, body });
+    const check = preflightCheck({ phone, body: finalBody });
     if (!check.ok) {
       await store.logMessage({
-        direction: 'out', to: phone, body,
+        direction: 'out', to: phone, body: finalBody,
         status: check.code === 'opted-out' ? 'blocked-optout' : 'blocked',
         error: check.reason, contactId,
       });
@@ -213,8 +219,6 @@ export async function sendSms({ to, body, contactId = null, skipPreflight = fals
   }
 
   // Auto-append STOP disclosure on first message to this contact
-  let finalBody = body;
-  const contact = contactId ? store.contacts.get(contactId) : store.findContactByPhone(phone);
   const isFirstThreadMsg = !contact?.threadStarted;
   if (s.autoAppendStop && isFirstThreadMsg && !hasStopDisclosure(finalBody)) {
     finalBody = appendStopDisclosure(finalBody);
@@ -382,13 +386,14 @@ export function startInboxPolling() {
       const list = await res.json().catch(() => []);
       if (!Array.isArray(list)) return;
       for (const item of list) {
-        // Shape (best-effort — the gateway app has slightly different fields
-        // across versions): { id, phoneNumber, message, receivedAt }
-        const id = item.id || item.messageId || `${item.phoneNumber}-${item.receivedAt || ''}`;
+        // Actual /inbox shape (SMS Gateway v1.72+):
+        //   { id, sender, recipient, contentPreview, createdAt, simNumber, type, attachments }
+        // Older versions might use phoneNumber/message — we accept both.
+        const id = item.id || item.messageId || `${item.sender || item.phoneNumber}-${item.createdAt || item.receivedAt || ''}`;
         if (_seenInboxIds.has(id)) continue;
         _seenInboxIds.add(id);
-        const from = item.phoneNumber || item.from || '';
-        const body = item.message || item.body || item.text || '';
+        const from = item.sender || item.phoneNumber || item.from || '';
+        const body = item.contentPreview || item.content || item.message || item.body || item.text || '';
         if (!from || !body) continue;
         // Skip if we've already logged this message with the same body from this phone in the last 5 minutes
         const dupe = Array.from(store.messages.values()).find(m =>

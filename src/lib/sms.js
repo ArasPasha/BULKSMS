@@ -218,12 +218,33 @@ export async function sendSms({ to, body, contactId = null, skipPreflight = fals
   return gatewayResult;
 }
 
+// Jittered delay: baseMs +/- 30% variance so we don't look robotic
+// (fixed intervals are almost as detectable as no interval)
+function jitteredDelay(baseMs) {
+  return Math.round(baseMs * (0.7 + Math.random() * 0.6));
+}
+
+// Every 15-25 sends we take a longer "human break" of 30-90 seconds.
+// Real people don't machine-gun 100 texts in a row.
+function shouldTakeBreak(indexInBatch, nextBreakAt) {
+  return indexInBatch >= nextBreakAt;
+}
+function nextBreakInterval() {
+  return 15 + Math.floor(Math.random() * 11); // 15 to 25 messages
+}
+function humanBreakMs() {
+  return 30_000 + Math.floor(Math.random() * 60_000); // 30-90 seconds
+}
+
 export async function broadcastSms({ recipients, body, bodies, throttleMs = 1500, onProgress, signal }) {
   const sent = [];
   const failed = [];
   const skipped = [];
   // Variant rotation: if bodies array is passed, round-robin per recipient
   const variants = Array.isArray(bodies) && bodies.length > 0 ? bodies : [body];
+  let sentSinceBreak = 0;
+  let nextBreakAt = nextBreakInterval();
+
   for (let i = 0; i < recipients.length; i++) {
     if (signal?.aborted) break;
     const r = recipients[i];
@@ -242,7 +263,7 @@ export async function broadcastSms({ recipients, body, bodies, throttleMs = 1500
       });
       onProgress?.({ index: i + 1, total: recipients.length, sent: sent.length, failed: failed.length, skipped: skipped.length });
       if (i < recipients.length - 1 && !signal?.aborted) {
-        await new Promise(res => setTimeout(res, throttleMs));
+        await new Promise(res => setTimeout(res, jitteredDelay(throttleMs)));
       }
       continue;
     }
@@ -250,12 +271,26 @@ export async function broadcastSms({ recipients, body, bodies, throttleMs = 1500
     try {
       await sendSms({ to: r.phone, body: personalized, contactId: r.id, skipPreflight: true });
       sent.push(r);
+      sentSinceBreak++;
     } catch (e) {
       failed.push({ ...r, error: e.message });
     }
     onProgress?.({ index: i + 1, total: recipients.length, sent: sent.length, failed: failed.length, skipped: skipped.length });
     if (i < recipients.length - 1 && !signal?.aborted) {
-      await new Promise(res => setTimeout(res, throttleMs));
+      // Human break every 15-25 sends — real people don't machine-gun 100 texts
+      if (shouldTakeBreak(sentSinceBreak, nextBreakAt)) {
+        const breakMs = humanBreakMs();
+        onProgress?.({
+          index: i + 1, total: recipients.length,
+          sent: sent.length, failed: failed.length, skipped: skipped.length,
+          breakMs, breakUntil: Date.now() + breakMs,
+        });
+        await new Promise(res => setTimeout(res, breakMs));
+        sentSinceBreak = 0;
+        nextBreakAt = nextBreakInterval();
+      } else {
+        await new Promise(res => setTimeout(res, jitteredDelay(throttleMs)));
+      }
     }
   }
   return { sent, failed, skipped };
@@ -355,6 +390,10 @@ export async function runAutoReplyEngine({ from, body }) {
     return { sent: false, source: 'cooldown' };
   }
 
+  // Small "typing" delay so auto-replies don't look like they fired in 50ms
+  // (real people take 5-20 seconds to read + reply). Skipped if disabled.
+  const humanDelayMs = 5_000 + Math.floor(Math.random() * 16_000);
+
   // 1) Rule-based match
   for (const rule of store.autoReplyList()) {
     if (!rule.active || !rule.pattern || !rule.templateId) continue;
@@ -365,6 +404,7 @@ export async function runAutoReplyEngine({ from, body }) {
     if (!template) continue;
     const replyBody = personalizeBody(template.body, contact);
     try {
+      await new Promise(res => setTimeout(res, humanDelayMs));
       await sendSms({ to: phone, body: replyBody, contactId: contact?.id, skipPreflight: false });
       await store.recordAutoReplyAt(phone);
       await store.incrementTemplateUse(template.id);
@@ -382,6 +422,7 @@ export async function runAutoReplyEngine({ from, body }) {
     if (template) {
       const replyBody = personalizeBody(template.body, contact);
       try {
+        await new Promise(res => setTimeout(res, humanDelayMs));
         await sendSms({ to: phone, body: replyBody, contactId: contact?.id, skipPreflight: false });
         await store.recordAutoReplyAt(phone);
         await store.incrementTemplateUse(template.id);
@@ -397,6 +438,7 @@ export async function runAutoReplyEngine({ from, body }) {
     try {
       const draft = await aiReplyDraft({ inbound: body, contact });
       if (draft) {
+        await new Promise(res => setTimeout(res, humanDelayMs));
         await sendSms({ to: phone, body: draft, contactId: contact?.id, skipPreflight: false });
         await store.recordAutoReplyAt(phone);
         return { sent: true, source: 'ai', body: draft };

@@ -545,6 +545,11 @@ export default function Compose() {
               <div className="h-full bg-primary transition-all"
                 style={{ width: `${(progress.index / progress.total) * 100}%` }} />
             </div>
+            {progress.breakMs && (
+              <p className="text-[0.7rem] text-amber mt-2 font-semibold">
+                ☕ Taking a {Math.round(progress.breakMs / 1000)}s break (looks human to carriers)…
+              </p>
+            )}
           </div>
         )}
 

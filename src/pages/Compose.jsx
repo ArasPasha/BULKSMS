@@ -418,9 +418,17 @@ export default function Compose() {
                   }`}>{f.label}</button>
               ))}
             </div>
-            {hiddenByContactFilter > 0 && (
-              <p className="text-[0.7rem] text-muted mb-2 -mt-1">
+            {hiddenByContactFilter > 0 && (contactedFilter === 'never' || contactedFilter === 'days3' || contactedFilter === 'days7' || contactedFilter === 'days30') && (
+              <button type="button"
+                onClick={() => setContactedFilter('texted')}
+                className="w-full text-left text-[0.7rem] text-muted mb-2 -mt-1 hover:text-primary transition-colors">
                 🚫 {hiddenByContactFilter.toLocaleString()} contact{hiddenByContactFilter !== 1 ? 's' : ''} hidden — you've already texted them
+                <span className="text-primary font-semibold ml-1">→ show them</span>
+              </button>
+            )}
+            {contactedFilter === 'texted' && filtered.length > 0 && (
+              <p className="text-[0.7rem] text-teal mb-2 -mt-1 font-semibold">
+                📋 Showing {filtered.length.toLocaleString()} contact{filtered.length !== 1 ? 's' : ''} you've already texted
               </p>
             )}
             {tags.length > 0 && (
@@ -454,8 +462,21 @@ export default function Compose() {
                         <input type="checkbox" checked={selected.has(c.id)} onChange={() => toggle(c)}
                           className="w-4 h-4 accent-primary" />
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-semibold text-ink truncate">{c.name || formatPhone(c.phone)}</div>
-                          <div className="text-xs text-muted">{formatPhone(c.phone)}</div>
+                          <div className="text-sm font-semibold text-ink truncate flex items-center gap-1.5">
+                            {c.name || formatPhone(c.phone)}
+                            {c.lastOutboundAt && (
+                              <span className="text-[0.6rem] bg-primary-light text-primary px-1.5 py-0.5 rounded font-semibold flex-shrink-0"
+                                title={`Last texted ${new Date(c.lastOutboundAt).toLocaleString()}`}>
+                                ✓ texted
+                              </span>
+                            )}
+                          </div>
+                          <div className="text-xs text-muted">
+                            {formatPhone(c.phone)}
+                            {c.lastOutboundAt && (
+                              <span className="ml-2 text-[0.65rem]">· {timeAgoShort(c.lastOutboundAt)}</span>
+                            )}
+                          </div>
                         </div>
                       </label>
                     </li>
@@ -696,6 +717,16 @@ function DangerBanner({ tier, count, eta }) {
       <p className="text-xs">{messages[tier]}</p>
     </div>
   );
+}
+
+function timeAgoShort(ts) {
+  const s = Math.floor((Date.now() - ts) / 1000);
+  if (s < 60) return `${s}s ago`;
+  if (s < 3600) return `${Math.floor(s / 60)}m ago`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h ago`;
+  const d = Math.floor(s / 86400);
+  if (d < 30) return `${d}d ago`;
+  return `${Math.floor(d / 30)}mo ago`;
 }
 
 function formatDuration(ms) {

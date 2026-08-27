@@ -124,7 +124,7 @@ export default function Conversation() {
         </div>
       </header>
 
-      <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-2" style={{ paddingBottom: '180px' }}>
+      <div ref={listRef} className="flex-1 overflow-y-auto px-4 py-3 space-y-2" style={{ paddingBottom: '260px' }}>
         {messages.length === 0 ? (
           <div className="text-center py-8 text-muted text-sm">No messages yet — send the first one below.</div>
         ) : (

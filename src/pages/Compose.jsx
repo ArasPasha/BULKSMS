@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useContacts, useMessages, useSettings } from '../lib/hooks';
+import { useContacts, useMessages, useSettings, useTemplates } from '../lib/hooks';
 import {
   sendSms, broadcastSms, normalizePhone, formatPhone,
   countSegments, isQuietHours,
@@ -17,12 +17,15 @@ export default function Compose() {
   const allContacts = useContacts();
   const allMessages = useMessages();
   const settings = useSettings();
+  const templates = useTemplates();
   const [pageLimit, setPageLimit] = useState(PAGE_SIZE);
   const [mode, setMode] = useState('single');
   const [phone, setPhone] = useState('');
   const [selected, setSelected] = useState(new Map());
   const [tagFilter, setTagFilter] = useState('');
   const [body, setBody] = useState('');
+  const [variantMode, setVariantMode] = useState(false);
+  const [selectedVariants, setSelectedVariants] = useState(new Set()); // template ids
   const [sending, setSending] = useState(false);
   const [progress, setProgress] = useState(null);
   const [result, setResult] = useState(null);
@@ -146,13 +149,29 @@ export default function Compose() {
       setError('Pick at least one recipient.');
       return;
     }
-    if (!body.trim()) {
+    // In variant mode, must have at least one template selected
+    if (variantMode && selectedVariants.size === 0) {
+      setError('Pick at least one template variant.');
+      return;
+    }
+    if (!variantMode && !body.trim()) {
       setError('Message body is empty.');
       return;
     }
 
-    // Content linter — hard errors block send
-    if (lintErrors.length > 0) {
+    // Content linter — hard errors block send.
+    // In variant mode, lint each selected variant separately.
+    if (variantMode) {
+      for (const t of templates) {
+        if (!selectedVariants.has(t.id)) continue;
+        const issues = lintMessageBody(t.body);
+        const hard = issues.find(i => i.severity === 'error');
+        if (hard) {
+          setError(`Variant "${t.name}" blocked: ${hard.message}`);
+          return;
+        }
+      }
+    } else if (lintErrors.length > 0) {
       setError(`Message blocked by linter: ${lintErrors[0].message}`);
       return;
     }
@@ -206,12 +225,20 @@ export default function Compose() {
     setSending(true);
     setProgress({ index: 0, total: recipients.length, sent: 0, failed: 0 });
     try {
+      // Build the body pool for broadcasts: variant mode picks bodies from
+      // selected templates (rotated round-robin), otherwise single body.
+      const bodies = variantMode && selectedVariants.size > 0
+        ? templates.filter(t => selectedVariants.has(t.id)).map(t => t.body)
+        : null;
       if (recipients.length === 1) {
-        await sendSms({ to: recipients[0].phone, body, contactId: recipients[0].id });
+        const oneBody = bodies?.[0] || body;
+        await sendSms({ to: recipients[0].phone, body: oneBody, contactId: recipients[0].id });
         setResult({ sent: 1, failed: 0, skipped: 0 });
       } else {
         const r = await broadcastSms({
-          recipients, body, throttleMs, onProgress: setProgress,
+          recipients,
+          ...(bodies ? { bodies } : { body }),
+          throttleMs, onProgress: setProgress,
         });
         setResult({
           sent: r.sent.length,
@@ -374,9 +401,50 @@ export default function Compose() {
           </div>
         )}
 
-        <div>
+        {/* Variant broadcast toggle — only shown in broadcast mode */}
+        {mode === 'broadcast' && templates.length > 0 && (
+          <div className="bg-white rounded-[14px] border border-border p-3">
+            <label className="flex items-center justify-between gap-3 cursor-pointer">
+              <div>
+                <div className="text-sm font-semibold text-ink">🎲 Variant broadcast (recommended)</div>
+                <div className="text-[0.7rem] text-muted mt-0.5">
+                  Rotates {selectedVariants.size || 'N'} templates round-robin — dodges carrier fingerprint filters
+                </div>
+              </div>
+              <span className="toggle">
+                <input type="checkbox" checked={variantMode} onChange={e => setVariantMode(e.target.checked)} />
+                <span className="toggle-track" />
+              </span>
+            </label>
+            {variantMode && (
+              <div className="mt-3 max-h-48 overflow-y-auto space-y-1">
+                {templates.map(t => (
+                  <label key={t.id} className="flex items-start gap-2 p-2 rounded hover:bg-surface-2 cursor-pointer">
+                    <input type="checkbox" checked={selectedVariants.has(t.id)}
+                      onChange={() => {
+                        setSelectedVariants(prev => {
+                          const n = new Set(prev);
+                          n.has(t.id) ? n.delete(t.id) : n.add(t.id);
+                          return n;
+                        });
+                      }}
+                      className="mt-0.5 w-4 h-4 accent-primary flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <div className="text-xs font-semibold text-ink truncate">{t.name}</div>
+                      <div className="text-[0.65rem] text-muted line-clamp-1">{t.body}</div>
+                    </div>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className={variantMode && mode === 'broadcast' ? 'opacity-50 pointer-events-none' : ''}>
           <div className="flex items-center justify-between mb-1.5">
-            <label className="text-[0.7rem] font-semibold text-muted uppercase tracking-wider">Message</label>
+            <label className="text-[0.7rem] font-semibold text-muted uppercase tracking-wider">
+              {variantMode && mode === 'broadcast' ? 'Message (disabled — using variants)' : 'Message'}
+            </label>
             <span className="text-[0.65rem] text-muted">
               {seg.chars} chars · {seg.segments} segment{seg.segments !== 1 ? 's' : ''} · {seg.encoding}
             </span>
@@ -481,13 +549,18 @@ export default function Compose() {
         )}
 
         <button type="submit"
-          disabled={sending || recipientCount === 0 || !body.trim() || lintErrors.length > 0}
+          disabled={
+            sending || recipientCount === 0 ||
+            (variantMode ? selectedVariants.size === 0 : (!body.trim() || lintErrors.length > 0))
+          }
           className="w-full py-3.5 rounded-lg bg-primary text-white font-semibold text-[0.95rem] disabled:opacity-50 active:scale-[.98]">
           {sending
             ? `Sending… ${progress?.index || 0}/${progress?.total || 0}`
-            : lintErrors.length > 0
-              ? 'Fix message errors first'
-              : `Send${recipientCount > 1 ? ` to ${recipientCount.toLocaleString()}` : ''}`}
+            : variantMode && selectedVariants.size === 0
+              ? 'Pick at least 1 variant'
+              : !variantMode && lintErrors.length > 0
+                ? 'Fix message errors first'
+                : `Send${recipientCount > 1 ? ` to ${recipientCount.toLocaleString()}` : ''}${variantMode ? ` · ${selectedVariants.size} variants` : ''}`}
         </button>
 
         {!gatewayConfigured && (

@@ -208,21 +208,27 @@ export async function sendSms({ to, body, contactId = null, skipPreflight = fals
 
   if (status === 'sent') {
     await store.markFirstSendIfNeeded();
-    if (contact) await store.markThreadStarted(phone);
+    if (contact) {
+      await store.markThreadStarted(phone);
+      await store.markOutbound(phone);
+    }
   }
 
   if (error) throw new Error(error);
   return gatewayResult;
 }
 
-export async function broadcastSms({ recipients, body, throttleMs = 1500, onProgress, signal }) {
+export async function broadcastSms({ recipients, body, bodies, throttleMs = 1500, onProgress, signal }) {
   const sent = [];
   const failed = [];
   const skipped = [];
+  // Variant rotation: if bodies array is passed, round-robin per recipient
+  const variants = Array.isArray(bodies) && bodies.length > 0 ? bodies : [body];
   for (let i = 0; i < recipients.length; i++) {
     if (signal?.aborted) break;
     const r = recipients[i];
-    const personalized = body.replace(/\{\{\s*name\s*\}\}/g, r.name || 'there');
+    const chosenBody = variants[i % variants.length];
+    const personalized = chosenBody.replace(/\{\{\s*name\s*\}\}/g, r.name || 'there');
 
     // Per-message preflight — cheap enough (opt-out lookup + tier check + quiet hours)
     const check = preflightCheck({ phone: r.phone, body: personalized });
@@ -256,16 +262,213 @@ export async function broadcastSms({ recipients, body, throttleMs = 1500, onProg
 }
 
 // Record an inbound reply. If it matches an opt-out pattern (fuzzy or literal),
-// auto-add the sender to the opt-out list. Callable from a webhook or manually.
-export async function recordInboundReply({ from, body }) {
+// auto-add the sender to the opt-out list. Then run auto-reply engine.
+// Callable from a webhook, the inbox poller, or the manual "log reply" button.
+export async function recordInboundReply({ from, body, gatewayId = null, skipAutoReply = false }) {
   const phone = normalizePhone(from);
-  await store.logMessage({ direction: 'in', from: phone, body, status: 'received' });
+  await store.logMessage({ direction: 'in', from: phone, body, status: 'received', gatewayId });
+  await store.markInbound(phone, body);
+
   const extra = store.settings.optOutKeywords || [];
   if (isOptOutReply(body, extra)) {
     await store.setOptOut(phone, true);
-    return { optedOut: true };
+    const contact = store.findContactByPhone(phone);
+    if (contact) await store.setContactStatus(contact.id, 'opted-out');
+    return { optedOut: true, autoReplied: false };
   }
-  return { optedOut: false };
+
+  if (!skipAutoReply && store.settings.autoReplyEnabled) {
+    const replied = await runAutoReplyEngine({ from: phone, body });
+    return { optedOut: false, autoReplied: replied.sent, replySource: replied.source };
+  }
+  return { optedOut: false, autoReplied: false };
+}
+
+// Poll the phone's /inbox endpoint on an interval, ingest new inbound messages,
+// and trigger auto-reply. Returns a stop() function.
+let _pollTimer = null;
+let _pollBusy = false;
+const _seenInboxIds = new Set();
+
+export function startInboxPolling() {
+  const s = store.settings;
+  if (!s.pollingEnabled) return () => {};
+  const interval = Math.max(5_000, s.pollingIntervalMs || 20_000);
+
+  const tick = async () => {
+    if (_pollBusy) return;
+    if (!store.settings.gatewayUrl) return;
+    _pollBusy = true;
+    try {
+      const res = await gatewayFetch({
+        url: store.settings.gatewayUrl,
+        user: store.settings.gatewayUser,
+        pass: store.settings.gatewayPass,
+        path: '/inbox',
+      });
+      if (!res.ok) return;
+      const list = await res.json().catch(() => []);
+      if (!Array.isArray(list)) return;
+      for (const item of list) {
+        // Shape (best-effort — the gateway app has slightly different fields
+        // across versions): { id, phoneNumber, message, receivedAt }
+        const id = item.id || item.messageId || `${item.phoneNumber}-${item.receivedAt || ''}`;
+        if (_seenInboxIds.has(id)) continue;
+        _seenInboxIds.add(id);
+        const from = item.phoneNumber || item.from || '';
+        const body = item.message || item.body || item.text || '';
+        if (!from || !body) continue;
+        // Skip if we've already logged this message with the same body from this phone in the last 5 minutes
+        const dupe = Array.from(store.messages.values()).find(m =>
+          m.direction === 'in' && m.from === normalizePhone(from) && m.body === body &&
+          m.createdAt > Date.now() - 5 * 60 * 1000
+        );
+        if (dupe) continue;
+        await recordInboundReply({ from, body, gatewayId: id });
+      }
+    } catch {
+      // network hiccup — try again next tick
+    } finally {
+      _pollBusy = false;
+    }
+  };
+
+  clearInterval(_pollTimer);
+  _pollTimer = setInterval(tick, interval);
+  // Kick off immediately too
+  tick();
+  return () => {
+    clearInterval(_pollTimer);
+    _pollTimer = null;
+  };
+}
+
+// Auto-reply engine — tries rule matches first, then AI if enabled + configured.
+// Respects the per-contact cooldown to avoid bot loops.
+export async function runAutoReplyEngine({ from, body }) {
+  const s = store.settings;
+  const phone = normalizePhone(from);
+  const contact = store.findContactByPhone(phone);
+
+  // Cooldown: skip if we auto-replied recently
+  if (contact?.lastAutoReplyAt && Date.now() - contact.lastAutoReplyAt < (s.autoReplyCooldownMs || 3600_000)) {
+    return { sent: false, source: 'cooldown' };
+  }
+
+  // 1) Rule-based match
+  for (const rule of store.autoReplyList()) {
+    if (!rule.active || !rule.pattern || !rule.templateId) continue;
+    let re;
+    try { re = new RegExp(rule.pattern, 'i'); } catch { continue; }
+    if (!re.test(body)) continue;
+    const template = store.templates.get(rule.templateId);
+    if (!template) continue;
+    const replyBody = personalizeBody(template.body, contact);
+    try {
+      await sendSms({ to: phone, body: replyBody, contactId: contact?.id, skipPreflight: false });
+      await store.recordAutoReplyAt(phone);
+      await store.incrementTemplateUse(template.id);
+      return { sent: true, source: 'rule', ruleId: rule.id };
+    } catch (e) {
+      // preflight blocked (e.g. quiet hours) — abort silently, don't fall through to AI
+      return { sent: false, source: 'rule-blocked', reason: e.message };
+    }
+  }
+
+  // 2) AI fallback
+  if (s.aiReplyEnabled && (import.meta.env.VITE_ANTHROPIC_API_KEY || s.aiApiKey)) {
+    try {
+      const draft = await aiReplyDraft({ inbound: body, contact });
+      if (draft) {
+        await sendSms({ to: phone, body: draft, contactId: contact?.id, skipPreflight: false });
+        await store.recordAutoReplyAt(phone);
+        return { sent: true, source: 'ai', body: draft };
+      }
+    } catch (e) {
+      console.warn('AI reply failed:', e.message);
+    }
+  }
+
+  return { sent: false, source: 'no-match' };
+}
+
+function personalizeBody(body, contact) {
+  const first = (contact?.name || '').split(/\s+/)[0] || 'there';
+  const sender = store.settings.aiReplySenderName || '';
+  return body
+    .replace(/\{\{\s*name\s*\}\}/gi, first)
+    .replace(/\[?Sender\]?/g, sender || '[Sender]');
+}
+
+// AI reply generator using Anthropic API directly from the browser.
+// Requires the user to opt in (aiReplyEnabled) and provide an API key
+// (either via .env.local as VITE_ANTHROPIC_API_KEY or saved in settings).
+export async function aiReplyDraft({ inbound, contact }) {
+  const s = store.settings;
+  const apiKey = import.meta.env.VITE_ANTHROPIC_API_KEY || s.aiApiKey;
+  if (!apiKey) throw new Error('No Anthropic API key');
+
+  const model = s.aiReplyModel || 'claude-haiku-4-5-20251001';
+  const senderName = s.aiReplySenderName || '[Sender]';
+  const company = s.aiReplyCompanyName || 'The Broker Shop';
+
+  const systemPrompt = s.aiReplySystemPrompt?.trim() || buildDefaultBrokerSystemPrompt({ senderName, company });
+
+  const contactContext = contact
+    ? `Contact: ${contact.name || 'unknown'} (${contact.phone}). Status: ${contact.status || 'new'}. Notes: ${contact.notes || 'none'}.`
+    : `Unknown contact ${contact?.phone || ''}.`;
+
+  const userMsg = `${contactContext}\n\nInbound text from them:\n"${inbound}"\n\nDraft your one-message reply (SMS — 160 char budget):`;
+
+  const res = await fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST',
+    headers: {
+      'content-type': 'application/json',
+      'x-api-key': apiKey,
+      'anthropic-version': '2023-06-01',
+      'anthropic-dangerous-direct-browser-access': 'true',
+    },
+    body: JSON.stringify({
+      model,
+      max_tokens: 200,
+      system: systemPrompt,
+      messages: [{ role: 'user', content: userMsg }],
+    }),
+  });
+  if (!res.ok) {
+    const err = await res.text().catch(() => '');
+    throw new Error(`Anthropic ${res.status}: ${err.slice(0, 200)}`);
+  }
+  const data = await res.json();
+  const text = data?.content?.[0]?.text?.trim();
+  if (!text) throw new Error('Empty AI response');
+  return text.replace(/^["']|["']$/g, '').slice(0, 500); // hard cap for safety
+}
+
+function buildDefaultBrokerSystemPrompt({ senderName, company }) {
+  return `You are ${senderName}, a real human broker at ${company}, replying to inbound SMS from small business owners. Speak like a person, not a chatbot.
+
+About the business (facts you can share):
+- Approval based on monthly deposits, NOT credit score
+- $5K to $2M available, funded in 24–72 hours
+- Zero credit impact to pre-qualify
+- All 50 US states
+- Application: thebrokershopinc.com/apply (takes 2 minutes)
+- UNIQUE: the merchant picks their own rate and offer (most brokers dictate terms)
+
+Rules:
+1. Reply in ONE message, ideally under 160 characters. Casual, direct, contractions. No greetings like "hope this finds you well."
+2. NEVER quote a specific rate or APR. If asked, redirect: "That's the point — you pick it. Depends which offer you like."
+3. NEVER guarantee approval. Say "approvals" or "options" not "guaranteed."
+4. NEVER claim to be AI or a bot. If asked directly whether you're a person, say: "Yeah, ${senderName} — happy to hop on a call if easier."
+5. When they show interest, always point to the 2-min pre-qual: thebrokershopinc.com/apply. Zero credit hit.
+6. For complex/legal/rate-specific questions, hand off: "Let me have ${senderName} call you — what's the best time today?"
+7. NEVER discuss compliance, TCPA, licensing, or anything legal.
+8. Never use words carriers filter: "loan", "cash advance", "guaranteed", "free money", "MCA".
+9. If they seem angry or say "not interested" or anything like STOP, do not send anything (the system handles opt-outs before you see them).
+10. End every message either with a next step ("Reply Y for the link") or the URL, unless it's a soft/closing "have a good one" type reply.
+
+Output ONLY the SMS reply text. No explanations, no quotes, no formatting. Just the message you'd send.`;
 }
 
 // Re-export the check functions so pages can preview compliance state.

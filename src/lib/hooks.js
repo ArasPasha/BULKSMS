@@ -36,3 +36,39 @@ export function useSettings() {
   useStoreVersion();
   return store.settings;
 }
+
+export function useTemplates() {
+  useStoreVersion();
+  return store.templatesList();
+}
+
+export function useAutoReplyRules() {
+  useStoreVersion();
+  return store.autoReplyList();
+}
+
+// Returns contacts sorted for the Conversations list: unread inbound first,
+// then most recent activity, then name.
+export function useConversations() {
+  useStoreVersion();
+  const contacts = store.contactsList();
+  const scored = contacts.map(c => {
+    const lastActivity = Math.max(c.lastInboundAt || 0, c.lastOutboundAt || 0, c.createdAt || 0);
+    const hasUnread = (c.lastInboundAt || 0) > (c.lastReadAt || 0);
+    return { ...c, lastActivity, hasUnread };
+  });
+  return scored.sort((a, b) => {
+    // Unread inbound bubbles to the top
+    if (a.hasUnread !== b.hasUnread) return a.hasUnread ? -1 : 1;
+    return (b.lastActivity || 0) - (a.lastActivity || 0);
+  });
+}
+
+// Messages filtered to a single conversation with one phone number.
+export function useConversation(phone) {
+  useStoreVersion();
+  if (!phone) return [];
+  return Array.from(store.messages.values())
+    .filter(m => (m.direction === 'in' && m.from === phone) || (m.direction === 'out' && m.to === phone))
+    .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
+}

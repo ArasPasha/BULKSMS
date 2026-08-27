@@ -3,10 +3,12 @@ import localforage from 'localforage';
 const DB = 'sms-sender';
 
 const stores = {
-  contacts: localforage.createInstance({ name: DB, storeName: 'contacts' }),
-  messages: localforage.createInstance({ name: DB, storeName: 'messages' }),
-  optouts: localforage.createInstance({ name: DB, storeName: 'optouts' }),
-  meta:     localforage.createInstance({ name: DB, storeName: 'meta' }),
+  contacts:  localforage.createInstance({ name: DB, storeName: 'contacts' }),
+  messages:  localforage.createInstance({ name: DB, storeName: 'messages' }),
+  optouts:   localforage.createInstance({ name: DB, storeName: 'optouts' }),
+  templates: localforage.createInstance({ name: DB, storeName: 'templates' }),
+  autoreply: localforage.createInstance({ name: DB, storeName: 'autoreply' }),
+  meta:      localforage.createInstance({ name: DB, storeName: 'meta' }),
 };
 
 const DEFAULT_SETTINGS = {
@@ -22,6 +24,17 @@ const DEFAULT_SETTINGS = {
   enforceDailyCap: true,        // block sends past warmup-tier cap
   canaryNumbers: [],           // [{ phone, carrier }]
   dailyCapOverride: null,      // set to override the auto-calculated tier cap (advanced)
+  // Inbox polling + auto-reply
+  pollingEnabled: true,
+  pollingIntervalMs: 20_000,
+  autoReplyEnabled: true,
+  autoReplyCooldownMs: 3600_000, // don't auto-reply to same contact more than once per hour
+  // AI (Anthropic) settings — API key seeds from .env.local
+  aiReplyEnabled: false,        // off by default; user opts in
+  aiReplyModel: 'claude-haiku-4-5-20251001',
+  aiReplySenderName: '',
+  aiReplyCompanyName: 'The Broker Shop',
+  aiReplySystemPrompt: '',      // set on first-launch seed if empty
 };
 
 class Store {
@@ -29,6 +42,8 @@ class Store {
     this.contacts = new Map();
     this.messages = new Map();
     this.optouts = new Map();
+    this.templates = new Map();
+    this.autoreply = new Map();
     this.settings = { ...DEFAULT_SETTINGS };
     this.subscribers = new Set();
     this.loaded = false;
@@ -48,6 +63,8 @@ class Store {
     await stores.contacts.iterate((v, k) => { this.contacts.set(k, { id: k, ...v }); });
     await stores.messages.iterate((v, k) => { this.messages.set(k, { id: k, ...v }); });
     await stores.optouts.iterate((v, k) => { this.optouts.set(k, { id: k, ...v }); });
+    await stores.templates.iterate((v, k) => { this.templates.set(k, { id: k, ...v }); });
+    await stores.autoreply.iterate((v, k) => { this.autoreply.set(k, { id: k, ...v }); });
     const saved = await stores.meta.getItem('settings');
     if (saved) this.settings = { ...DEFAULT_SETTINGS, ...saved };
 
@@ -63,8 +80,67 @@ class Store {
     if (envPass && !this.settings.gatewayPass) { this.settings.gatewayPass = envPass; seeded = true; }
     if (seeded) await stores.meta.setItem('settings', this.settings);
 
+    // Seed default templates + auto-reply rules once, if empty.
+    if (this.templates.size === 0) {
+      await this._seedDefaultTemplates();
+    }
+
     this.loaded = true;
     this.notify();
+  }
+
+  async _seedDefaultTemplates() {
+    const seeds = [
+      // First-touch cold variants
+      { name: 'Cold — deposits+choice',    body: '{{name}}, [Sender] w/ Broker Shop. Approval on deposits, not credit. You pick your rate + offer, $5K-$2M in 24 hrs. Reply Y.',            tags: ['cold', 'first-touch'] },
+      { name: 'Cold — curiosity opener',   body: '{{name}}, [Sender] here. Ever pick your own rate on a funding offer? Broker Shop approves on deposits, not FICO. Reply Y.',              tags: ['cold', 'first-touch'] },
+      { name: 'Cold — renewal angle',      body: '{{name}}, [Sender] @ Broker Shop. Renewal soon? Deposits-based approval, YOU pick rate + offer. Up to $2M in 24 hrs. Reply Y.',           tags: ['cold', 'first-touch'] },
+      { name: 'Cold — consolidation',      body: '{{name}}, [Sender] w/ Broker Shop. Stacked positions eating revenue? We consolidate — you pick your rate. Reply Y.',                     tags: ['cold', 'first-touch'] },
+      { name: 'Cold — choice-first',       body: '{{name}}, [Sender] here. Most brokers dictate. Broker Shop lets YOU pick rate + offer, approval on deposits. Reply Y.',                  tags: ['cold', 'first-touch'] },
+
+      // Reply-to-YES follow-ups (P2P convo, link OK)
+      { name: 'Reply Y — qualifier',       body: 'Great. Send me: 1) business name, 2) rough monthly deposits, 3) target amount. I\'ll come back with real numbers same day.',              tags: ['follow-up'] },
+      { name: 'Reply Y — direct to app',   body: 'Nice. 2-min pre-qual, zero credit hit → thebrokershopinc.com/apply. I\'ll call you as soon as it hits.',                                  tags: ['follow-up'] },
+      { name: 'Reply Y — combo',           body: 'Great — 2 min → thebrokershopinc.com/apply. Zero credit hit, and remember you pick your rate + offer. Calling as soon as it comes through.', tags: ['follow-up'] },
+
+      // Objection handlers
+      { name: 'Obj — what rate?',          body: 'That\'s the point — you pick it. Depends on the offer you want. Fastest way: 2 min at thebrokershopinc.com/apply, zero credit hit, I\'ll walk options.', tags: ['objection'] },
+      { name: 'Obj — already stacked',     body: 'Understood. Broker Shop does consolidations on stacks — one payment, you pick the rate. Worth seeing options? Zero credit hit.',           tags: ['objection'] },
+      { name: 'Obj — not interested',      body: 'All good. If it ever changes, this number stays with me. Have a good one.',                                                              tags: ['objection'] },
+      { name: 'Obj — who is this?',        body: '[Sender] with The Broker Shop — B2B funding for restaurants/SMBs. Landed on our list; happy to remove you or send info. Which?',        tags: ['objection'] },
+      { name: 'Obj — send info',           body: '2-min pre-qual → thebrokershopinc.com/apply. Zero credit hit. Once it comes through I\'ll ping you same day.',                             tags: ['objection'] },
+      { name: 'Obj — rates too high',      body: 'That\'s exactly the reason for the pick-your-rate model. What rate/term are you targeting?',                                              tags: ['objection'] },
+      { name: 'Obj — bad credit',          body: 'Approval on deposits, not FICO. If you\'re running the business, you likely qualify. 2 min → thebrokershopinc.com/apply.',                 tags: ['objection'] },
+      { name: 'Obj — how much can I get?', body: '$5K to $2M, depends on your monthly deposits. Zero credit hit to see the number: thebrokershopinc.com/apply (2 min).',                    tags: ['objection'] },
+    ];
+    for (const s of seeds) {
+      const id = uid();
+      const t = { id, ...s, useCount: 0, createdAt: Date.now() };
+      this.templates.set(id, t);
+      await stores.templates.setItem(id, omitId(t));
+    }
+
+    // Also seed auto-reply rules that map inbound patterns → templates
+    // by looking them up by name (stable enough for a fresh seed).
+    const nameToId = new Map();
+    for (const [id, t] of this.templates) nameToId.set(t.name, id);
+    const rules = [
+      { name: 'Positive intent (Y/yes)',           pattern: '\\b(y|yes|sure|ok|okay|send|interested|tell me more)\\b', templateId: nameToId.get('Reply Y — combo'),        priority: 10 },
+      { name: 'What rate / interest / cost',        pattern: '\\b(rate|apr|interest|cost|how much (does|is|will)|expensive|cheap)\\b', templateId: nameToId.get('Obj — what rate?'),   priority: 20 },
+      { name: 'How much can I get',                 pattern: '\\b(how much (can|could|would)|amount|max|limit)\\b',    templateId: nameToId.get('Obj — how much can I get?'), priority: 25 },
+      { name: 'Already stacked / positions',        pattern: '\\b(stack|position|advance|already (have|got|took))\\b', templateId: nameToId.get('Obj — already stacked'),    priority: 30 },
+      { name: 'Not interested / no thanks',         pattern: '\\b(not interested|no thanks|no thank|pass|nope|not now)\\b', templateId: nameToId.get('Obj — not interested'), priority: 40 },
+      { name: 'Who is this',                        pattern: '\\b(who (is|are) (this|you)|why (are you|is this)|what company)\\b', templateId: nameToId.get('Obj — who is this?'), priority: 50 },
+      { name: 'Send info / more info',              pattern: '\\b(send (me )?(info|more|details)|more info|details)\\b', templateId: nameToId.get('Obj — send info'),         priority: 60 },
+      { name: 'Bad credit / credit score',          pattern: '\\b(credit (score|is bad|bad)|fico|bad credit)\\b',      templateId: nameToId.get('Obj — bad credit'),         priority: 70 },
+    ];
+    for (const r of rules) {
+      if (!r.templateId) continue;
+      const id = uid();
+      const rule = { id, active: true, createdAt: Date.now(), ...r };
+      this.autoreply.set(id, rule);
+      await stores.autoreply.setItem(id, omitId(rule));
+    }
   }
 
   // ---------- Settings ----------
@@ -77,6 +153,15 @@ class Store {
   // ---------- Contacts ----------
   contactsList() { return Array.from(this.contacts.values()); }
 
+  async markConversationRead(contactId) {
+    const c = this.contacts.get(contactId);
+    if (!c) return;
+    const next = { ...c, lastReadAt: Date.now() };
+    this.contacts.set(contactId, next);
+    await stores.contacts.setItem(contactId, omitId(next));
+    this.notify();
+  }
+
   async addContact(data) {
     const id = uid();
     const contact = {
@@ -87,6 +172,13 @@ class Store {
       consentSource: 'unknown',
       consentDate: null,
       threadStarted: false,
+      // Lead-tracking additions
+      status: 'new',           // new | contacted | replied | interested | question | objection | not-interested | opted-out | funded | dead
+      notes: '',               // freeform per-contact notes
+      lastInboundAt: null,     // ms; used for Conversations sort
+      lastInboundBody: '',
+      lastOutboundAt: null,
+      lastAutoReplyAt: null,   // cooldown tracker
       ...data,
     };
     this.contacts.set(id, contact);
@@ -118,6 +210,133 @@ class Store {
     if (this.settings.firstSendAt) return;
     this.settings = { ...this.settings, firstSendAt: Date.now() };
     await stores.meta.setItem('settings', this.settings);
+    this.notify();
+  }
+
+  async setContactStatus(contactId, status, extras = {}) {
+    const c = this.contacts.get(contactId);
+    if (!c) return null;
+    const next = { ...c, status, ...extras };
+    this.contacts.set(contactId, next);
+    await stores.contacts.setItem(contactId, omitId(next));
+    this.notify();
+    return next;
+  }
+
+  async setContactNotes(contactId, notes) {
+    const c = this.contacts.get(contactId);
+    if (!c) return null;
+    const next = { ...c, notes };
+    this.contacts.set(contactId, next);
+    await stores.contacts.setItem(contactId, omitId(next));
+    this.notify();
+    return next;
+  }
+
+  async markOutbound(phone) {
+    const c = this.findContactByPhone(phone);
+    if (!c) return;
+    const patch = {
+      lastOutboundAt: Date.now(),
+      status: c.status === 'new' ? 'contacted' : c.status,
+    };
+    const next = { ...c, ...patch };
+    this.contacts.set(c.id, next);
+    await stores.contacts.setItem(c.id, omitId(next));
+    this.notify();
+  }
+
+  async markInbound(phone, body) {
+    const c = this.findContactByPhone(phone);
+    if (!c) return null;
+    const patch = {
+      lastInboundAt: Date.now(),
+      lastInboundBody: body,
+      status: c.status === 'contacted' || c.status === 'new' ? 'replied' : c.status,
+    };
+    const next = { ...c, ...patch };
+    this.contacts.set(c.id, next);
+    await stores.contacts.setItem(c.id, omitId(next));
+    this.notify();
+    return next;
+  }
+
+  async recordAutoReplyAt(phone) {
+    const c = this.findContactByPhone(phone);
+    if (!c) return;
+    const next = { ...c, lastAutoReplyAt: Date.now() };
+    this.contacts.set(c.id, next);
+    await stores.contacts.setItem(c.id, omitId(next));
+    this.notify();
+  }
+
+  // ---------- Templates ----------
+  templatesList() {
+    return Array.from(this.templates?.values() || []).sort((a, b) => (a.name || '').localeCompare(b.name || ''));
+  }
+
+  async addTemplate({ name, body, tags = [] }) {
+    if (!this.templates) this.templates = new Map();
+    const id = uid();
+    const t = { id, name: name?.trim() || '', body: body || '', tags, useCount: 0, createdAt: Date.now() };
+    this.templates.set(id, t);
+    await stores.templates.setItem(id, omitId(t));
+    this.notify();
+    return t;
+  }
+
+  async updateTemplate(id, patch) {
+    const cur = this.templates?.get(id);
+    if (!cur) return null;
+    const next = { ...cur, ...patch };
+    this.templates.set(id, next);
+    await stores.templates.setItem(id, omitId(next));
+    this.notify();
+    return next;
+  }
+
+  async deleteTemplate(id) {
+    this.templates?.delete(id);
+    await stores.templates.removeItem(id);
+    this.notify();
+  }
+
+  async incrementTemplateUse(id) {
+    const cur = this.templates?.get(id);
+    if (!cur) return;
+    cur.useCount = (cur.useCount || 0) + 1;
+    await stores.templates.setItem(id, omitId(cur));
+    this.notify();
+  }
+
+  // ---------- Auto-reply rules ----------
+  autoReplyList() {
+    return Array.from(this.autoreply?.values() || []).sort((a, b) => (a.priority ?? 100) - (b.priority ?? 100));
+  }
+
+  async addAutoReply({ name, pattern, templateId, active = true, priority = 100 }) {
+    if (!this.autoreply) this.autoreply = new Map();
+    const id = uid();
+    const r = { id, name: name?.trim() || '', pattern, templateId, active, priority, createdAt: Date.now() };
+    this.autoreply.set(id, r);
+    await stores.autoreply.setItem(id, omitId(r));
+    this.notify();
+    return r;
+  }
+
+  async updateAutoReply(id, patch) {
+    const cur = this.autoreply?.get(id);
+    if (!cur) return null;
+    const next = { ...cur, ...patch };
+    this.autoreply.set(id, next);
+    await stores.autoreply.setItem(id, omitId(next));
+    this.notify();
+    return next;
+  }
+
+  async deleteAutoReply(id) {
+    this.autoreply?.delete(id);
+    await stores.autoreply.removeItem(id);
     this.notify();
   }
 

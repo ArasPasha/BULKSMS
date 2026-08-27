@@ -13,6 +13,10 @@ export default function Settings() {
     optOutKeywords: '', sendThrottleMs: 1500, respectQuietHours: true,
     autoAppendStop: true, enforceQuietHours: true, enforceDailyCap: true,
     dailyCapOverride: '',
+    pollingEnabled: true, pollingIntervalMs: 20000,
+    autoReplyEnabled: true, autoReplyCooldownMs: 3600000,
+    aiReplyEnabled: false, aiReplySenderName: '', aiReplyCompanyName: 'The Broker Shop',
+    aiApiKey: '',
   });
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState(null);
@@ -34,6 +38,14 @@ export default function Settings() {
       enforceQuietHours: settings.enforceQuietHours ?? true,
       enforceDailyCap: settings.enforceDailyCap ?? true,
       dailyCapOverride: settings.dailyCapOverride ?? '',
+      pollingEnabled: settings.pollingEnabled ?? true,
+      pollingIntervalMs: settings.pollingIntervalMs ?? 20000,
+      autoReplyEnabled: settings.autoReplyEnabled ?? true,
+      autoReplyCooldownMs: settings.autoReplyCooldownMs ?? 3600000,
+      aiReplyEnabled: settings.aiReplyEnabled ?? false,
+      aiReplySenderName: settings.aiReplySenderName ?? '',
+      aiReplyCompanyName: settings.aiReplyCompanyName ?? 'The Broker Shop',
+      aiApiKey: settings.aiApiKey ?? '',
     });
   }, [settings]);
 
@@ -54,6 +66,14 @@ export default function Settings() {
         enforceQuietHours: !!form.enforceQuietHours,
         enforceDailyCap: !!form.enforceDailyCap,
         dailyCapOverride: form.dailyCapOverride === '' ? null : Math.max(1, parseInt(form.dailyCapOverride, 10) || 0) || null,
+        pollingEnabled: !!form.pollingEnabled,
+        pollingIntervalMs: Math.max(5000, parseInt(form.pollingIntervalMs, 10) || 20000),
+        autoReplyEnabled: !!form.autoReplyEnabled,
+        autoReplyCooldownMs: Math.max(60000, parseInt(form.autoReplyCooldownMs, 10) || 3600000),
+        aiReplyEnabled: !!form.aiReplyEnabled,
+        aiReplySenderName: form.aiReplySenderName.trim(),
+        aiReplyCompanyName: form.aiReplyCompanyName.trim(),
+        aiApiKey: form.aiApiKey.trim(),
       });
       setSavedAt(Date.now());
       setTimeout(() => setSavedAt(null), 2500);
@@ -236,6 +256,54 @@ export default function Settings() {
             ))}
           </ul>
         )}
+      </Section>
+
+      <Section title="Inbox polling & auto-reply"
+        subtitle="How the app checks for inbound replies and responds to them."
+        className="mt-5">
+        <Toggle label="Poll phone gateway for inbound messages"
+          value={form.pollingEnabled}
+          onChange={v => update('pollingEnabled', v)} />
+        <Field label="Poll every N milliseconds (5000+)">
+          <input type="number" min={5000} step={1000}
+            value={form.pollingIntervalMs}
+            onChange={e => update('pollingIntervalMs', e.target.value)} />
+        </Field>
+        <Toggle label="Auto-reply to inbound (rule-based first, then AI if enabled)"
+          value={form.autoReplyEnabled}
+          onChange={v => update('autoReplyEnabled', v)} />
+        <Field label="Auto-reply cooldown per contact (ms)">
+          <input type="number" min={60000} step={60000}
+            value={form.autoReplyCooldownMs}
+            onChange={e => update('autoReplyCooldownMs', e.target.value)} />
+          <p className="text-[0.7rem] text-muted mt-1">Prevents bot loops. 3600000 = 1 hour.</p>
+        </Field>
+      </Section>
+
+      <Section title="AI auto-reply (Claude)"
+        subtitle="When rule-based matching doesn't fire, Claude drafts a contextual response. Uses your Anthropic API key. Costs about $0.01 per reply."
+        className="mt-5">
+        <Toggle label="Enable AI fallback for unmatched inbound replies"
+          value={form.aiReplyEnabled}
+          onChange={v => update('aiReplyEnabled', v)} />
+        <Field label="Your name (how Claude signs replies)">
+          <input value={form.aiReplySenderName}
+            onChange={e => update('aiReplySenderName', e.target.value)}
+            placeholder="e.g. Tim" />
+        </Field>
+        <Field label="Company name">
+          <input value={form.aiReplyCompanyName}
+            onChange={e => update('aiReplyCompanyName', e.target.value)}
+            placeholder="The Broker Shop" />
+        </Field>
+        <Field label="Anthropic API key (or set VITE_ANTHROPIC_API_KEY in .env.local)">
+          <input type="password" value={form.aiApiKey}
+            onChange={e => update('aiApiKey', e.target.value)}
+            placeholder="sk-ant-…" />
+          <p className="text-[0.7rem] text-muted mt-1">
+            Get one at <span className="text-primary">console.anthropic.com</span>. Also usable manually from the Chat's 🪄 button.
+          </p>
+        </Field>
       </Section>
 
       <Section title="Backup & sync" subtitle="Move your data to another computer or browser. Settings, contacts, messages, and opt-outs are all included." className="mt-5">

@@ -57,30 +57,48 @@ function getRecipientLocalHour(e164, now = new Date()) {
   } catch { return null; }
 }
 
-// Returns { allowed, reason, state, tz, hour, cutoffHour }
-export function checkRecipientQuietHours(e164, now = new Date(), { respectQuietHours = true } = {}) {
+// Returns { allowed, reason, state, tz, hour, effectiveStart, effectiveEnd }
+// userStartHour / userEndHour let you enforce STRICTER hours than the law
+// requires (e.g. 10am-7pm instead of the legal 8am-9pm). The stricter of
+// the two always wins.
+export function checkRecipientQuietHours(e164, now = new Date(), {
+  respectQuietHours = true,
+  userStartHour = null,
+  userEndHour = null,
+} = {}) {
   if (!respectQuietHours) return { allowed: true };
   const state = getRecipientState(e164);
   const tz = getRecipientTimezone(e164);
   const hour = getRecipientLocalHour(e164, now);
   const isStrict = state && STRICT_STATES.has(state);
-  const cutoffHour = isStrict ? 20 : 21; // 8pm strict, 9pm federal
-  const startHour = 8;
+
+  // Legal minimums (federal + strict-state overlay)
+  const legalStart = 8;
+  const legalEnd = isStrict ? 20 : 21; // 8pm strict, 9pm federal
+
+  // Combine: user-configured hours + legal — take the stricter of each
+  const effectiveStart = Math.max(legalStart, Number.isFinite(userStartHour) ? userStartHour : legalStart);
+  const effectiveEnd = Math.min(legalEnd, Number.isFinite(userEndHour) ? userEndHour : legalEnd);
 
   // Unknown state — apply federal window using sender's own local time (conservative fallback).
   if (hour === null) {
     const localHour = now.getHours();
-    const allowed = localHour >= startHour && localHour < 21;
+    const allowed = localHour >= effectiveStart && localHour < effectiveEnd;
     return {
-      allowed, state: null, tz: null, hour: localHour, cutoffHour: 21,
-      reason: allowed ? null : 'Outside 8am–9pm sender local time (recipient timezone unknown)',
+      allowed, state: null, tz: null, hour: localHour, effectiveStart, effectiveEnd,
+      reason: allowed ? null : `Outside ${effectiveStart}am–${effectiveEnd > 12 ? effectiveEnd - 12 : effectiveEnd}${effectiveEnd >= 12 ? 'pm' : 'am'} sender local time (recipient timezone unknown)`,
     };
   }
 
-  const allowed = hour >= startHour && hour < cutoffHour;
+  const allowed = hour >= effectiveStart && hour < effectiveEnd;
+  const beforeStart = hour < effectiveStart;
   return {
-    allowed, state, tz, hour, cutoffHour,
-    reason: allowed ? null : `${state}: ${hour < startHour ? 'before 8am' : `after ${cutoffHour === 20 ? '8pm (strict state)' : '9pm'}`} local`,
+    allowed, state, tz, hour, effectiveStart, effectiveEnd,
+    reason: allowed ? null : `${state}: ${
+      beforeStart
+        ? `before ${effectiveStart}am`
+        : `after ${effectiveEnd > 12 ? effectiveEnd - 12 : effectiveEnd}${effectiveEnd >= 12 ? 'pm' : 'am'}`
+    } local (${isStrict ? 'strict state' : 'federal'} cutoff ${legalEnd > 12 ? legalEnd - 12 : legalEnd}${legalEnd >= 12 ? 'pm' : 'am'})`,
   };
 }
 

@@ -8,6 +8,7 @@ import {
 import {
   getWarmupTier, countSentToday, checkRecipientQuietHours,
   lintMessageBody, hasStopDisclosure, getConsentRisk,
+  getRecipientTimezone,
 } from '../lib/compliance';
 
 const PAGE_SIZE = 500;
@@ -78,16 +79,29 @@ export default function Compose() {
     const now = new Date();
     const quietViolations = [];
     const consentRisks = { low: 0, medium: 0, high: 0 };
+    const tzBreakdown = {};  // tz -> { total, inWindow, outOfWindow }
     for (const r of recipients) {
+      const tz = getRecipientTimezone(r.phone) || 'Unknown';
+      if (!tzBreakdown[tz]) tzBreakdown[tz] = { total: 0, inWindow: 0, outOfWindow: 0 };
+      tzBreakdown[tz].total++;
       if (settings.enforceQuietHours && settings.respectQuietHours) {
-        const q = checkRecipientQuietHours(r.phone, now);
-        if (!q.allowed) quietViolations.push({ ...r, reason: q.reason });
+        const q = checkRecipientQuietHours(r.phone, now, {
+          userStartHour: settings.sendStartHour,
+          userEndHour: settings.sendEndHour,
+        });
+        if (q.allowed) tzBreakdown[tz].inWindow++;
+        else {
+          tzBreakdown[tz].outOfWindow++;
+          quietViolations.push({ ...r, reason: q.reason });
+        }
+      } else {
+        tzBreakdown[tz].inWindow++;
       }
       const risk = getConsentRisk(r.consentSource);
       consentRisks[risk] = (consentRisks[risk] || 0) + 1;
     }
-    return { quietViolations, consentRisks };
-  }, [recipients, settings.enforceQuietHours, settings.respectQuietHours]);
+    return { quietViolations, consentRisks, tzBreakdown };
+  }, [recipients, settings.enforceQuietHours, settings.respectQuietHours, settings.sendStartHour, settings.sendEndHour]);
   const wouldExceedCap = settings.enforceDailyCap && recipientCount > remaining;
 
   const etaText = formatDuration(recipientCount * throttleMs);
@@ -500,6 +514,31 @@ export default function Compose() {
             </p>
           )}
         </div>
+
+        {/* Timezone breakdown — who's currently in-window vs blocked */}
+        {mode === 'broadcast' && recipientCount > 0 && Object.keys(complianceScan.tzBreakdown).length > 0 && (
+          <div className="bg-white rounded-[14px] border border-border p-3">
+            <div className="text-[0.7rem] font-semibold text-muted uppercase tracking-wider mb-2">
+              Right now · window {settings.sendStartHour}:00–{settings.sendEndHour}:00 recipient local
+            </div>
+            <ul className="space-y-1 text-xs">
+              {Object.entries(complianceScan.tzBreakdown)
+                .sort((a, b) => b[1].total - a[1].total)
+                .map(([tz, data]) => {
+                  const tzShort = tz.split('/').pop().replace(/_/g, ' ');
+                  return (
+                    <li key={tz} className="flex items-center justify-between">
+                      <span className="text-ink">{tzShort}</span>
+                      <span>
+                        <span className="text-teal font-semibold">{data.inWindow}</span>
+                        {data.outOfWindow > 0 && <span className="text-coral font-semibold"> · {data.outOfWindow} blocked</span>}
+                      </span>
+                    </li>
+                  );
+                })}
+            </ul>
+          </div>
+        )}
 
         {/* Per-recipient quiet-hours warning */}
         {mode === 'broadcast' && complianceScan.quietViolations.length > 0 && (

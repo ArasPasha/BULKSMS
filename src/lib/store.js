@@ -18,6 +18,11 @@ const DEFAULT_SETTINGS = {
   optOutKeywords: ['STOP', 'UNSUBSCRIBE', 'CANCEL', 'END', 'QUIT'],
   sendThrottleMs: 1500,
   respectQuietHours: true,
+  // Strict send window (in recipient local time). The app also enforces the
+  // legal minimums on top of this (federal 8am-9pm, strict states 8am-8pm) —
+  // whichever is stricter wins.
+  sendStartHour: 13,   // no sends before 1pm recipient local — peak-engagement window
+  sendEndHour: 18,     // no sends after 6pm recipient local — full workday buffer
   firstSendAt: null,           // ms since epoch — set on first successful send; drives warmup tier
   autoAppendStop: true,         // append "Reply STOP to opt out." to first thread message
   enforceQuietHours: true,      // per-recipient timezone gate on send

@@ -140,9 +140,12 @@ export function preflightCheck({ phone, body, now = new Date() }) {
     }
   }
 
-  // Per-recipient quiet hours
+  // Per-recipient quiet hours (with the user's stricter window layered on top)
   if (s.enforceQuietHours && s.respectQuietHours) {
-    const q = checkRecipientQuietHours(phone, now);
+    const q = checkRecipientQuietHours(phone, now, {
+      userStartHour: s.sendStartHour,
+      userEndHour: s.sendEndHour,
+    });
     if (!q.allowed) {
       return { ok: false, code: 'quiet-hours', reason: `Quiet hours: ${q.reason}` };
     }

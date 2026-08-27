@@ -65,10 +65,16 @@ export function useConversations() {
 }
 
 // Messages filtered to a single conversation with one phone number.
+// Includes 'system' direction (auto-reply skip notes etc.) so the thread
+// tells the full story of what happened.
 export function useConversation(phone) {
   useStoreVersion();
   if (!phone) return [];
   return Array.from(store.messages.values())
-    .filter(m => (m.direction === 'in' && m.from === phone) || (m.direction === 'out' && m.to === phone))
+    .filter(m =>
+      (m.direction === 'in' && m.from === phone) ||
+      (m.direction === 'out' && m.to === phone) ||
+      (m.direction === 'system' && m.to === phone)
+    )
     .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0));
 }

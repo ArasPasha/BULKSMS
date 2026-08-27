@@ -42,7 +42,7 @@ const DEFAULT_SETTINGS = {
   pollingEnabled: true,
   pollingIntervalMs: 20_000,
   autoReplyEnabled: true,
-  autoReplyCooldownMs: 3600_000, // don't auto-reply to same contact more than once per hour
+  autoReplyCooldownMs: 5 * 60_000, // 5 minutes — quick enough to feel responsive, long enough to avoid loops
   // Generic fallback — sent when no rule matches (before AI, if AI enabled)
   genericAutoReplyEnabled: true,
   genericAutoReplyTemplateId: null, // set on seed to the "Generic fallback" template

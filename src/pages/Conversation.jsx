@@ -186,7 +186,19 @@ export default function Conversation() {
 
 function MessageBubble({ m }) {
   const isIn = m.direction === 'in';
+  const isSystem = m.direction === 'system';
   const isFailed = m.status === 'failed' || m.status === 'blocked' || m.status === 'blocked-optout';
+
+  if (isSystem) {
+    return (
+      <div className="flex justify-center my-1">
+        <div className="text-[0.65rem] text-muted italic px-3 py-1 bg-surface-2 rounded-full">
+          🤖 {m.body} · {new Date(m.createdAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`flex ${isIn ? 'justify-start' : 'justify-end'}`}>
       <div className={`max-w-[85%] px-3 py-2 rounded-2xl text-sm ${

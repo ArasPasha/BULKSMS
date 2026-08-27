@@ -427,8 +427,24 @@ export async function runAutoReplyEngine({ from, body }) {
   const phone = normalizePhone(from);
   const contact = store.findContactByPhone(phone);
 
-  // Cooldown: skip if we auto-replied recently
-  if (contact?.lastAutoReplyAt && Date.now() - contact.lastAutoReplyAt < (s.autoReplyCooldownMs || 3600_000)) {
+  // Cooldown: skip if EITHER we auto-replied recently, OR the user manually
+  // texted this contact recently. The manual-send check makes the bot back
+  // off when a real conversation is happening.
+  const lastActivity = Math.max(
+    contact?.lastAutoReplyAt || 0,
+    contact?.lastOutboundAt || 0
+  );
+  const cooldownMs = s.autoReplyCooldownMs || 300_000;
+  if (lastActivity && Date.now() - lastActivity < cooldownMs) {
+    const nextAt = new Date(lastActivity + cooldownMs);
+    const wasManual = (contact.lastOutboundAt || 0) > (contact.lastAutoReplyAt || 0);
+    await store.logMessage({
+      direction: 'system', to: phone, status: 'auto-reply-skipped',
+      body: wasManual
+        ? `Auto-reply paused — you're chatting with them (unlocks at ${nextAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })})`
+        : `Auto-reply cooldown — next allowed at ${nextAt.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}`,
+      contactId: contact?.id,
+    });
     return { sent: false, source: 'cooldown' };
   }
 

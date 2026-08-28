@@ -144,7 +144,10 @@ const STOP_DISCLOSURE = ' Reply STOP to opt out.';
 
 export function hasStopDisclosure(body) {
   if (!body) return false;
-  return /reply\s+stop/i.test(body) || /\bstop\s+to\s+(?:opt\s*out|unsubscribe|end|cancel)\b/i.test(body);
+  // Accept: reply STOP, reply "STOP", reply 'STOP', reply "Stop" to opt out, etc.
+  return /reply\s+["']?stop["']?/i.test(body)
+      || /\bstop\s+to\s+(?:opt\s*out|unsubscribe|end|cancel)\b/i.test(body)
+      || /["']?stop["']?\s+to\s+(?:opt\s*out|unsubscribe|end|cancel)/i.test(body);
 }
 
 export function appendStopDisclosure(body) {

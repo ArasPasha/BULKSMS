@@ -140,7 +140,7 @@ export function isOptOutReply(text, extraKeywords = []) {
 // STOP disclosure — mandatory on first message in a new thread.
 // ============================================================
 
-const STOP_DISCLOSURE = ' Reply STOP to opt out.';
+const STOP_DISCLOSURE = ' Reply "Stop" to opt out';
 
 export function hasStopDisclosure(body) {
   if (!body) return false;

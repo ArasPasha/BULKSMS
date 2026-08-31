@@ -177,6 +177,7 @@ export default function Contacts() {
                 </div>
                 {importSummary.dupesInDb > 0 && <div>{importSummary.dupesInDb.toLocaleString()} already in your contacts</div>}
                 {importSummary.dupesInFile > 0 && <div>{importSummary.dupesInFile.toLocaleString()} duplicates inside the file</div>}
+                {importSummary.optedOutBlocked > 0 && <div className="text-coral font-semibold">🚫 {importSummary.optedOutBlocked.toLocaleString()} blocked — previously opted out</div>}
                 {importSummary.invalid > 0 && <div>{importSummary.invalid.toLocaleString()} invalid phone numbers</div>}
               </div>
               <button onClick={() => setImportSummary(null)} className="text-muted text-lg leading-none">×</button>

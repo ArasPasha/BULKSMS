@@ -425,8 +425,15 @@ class Store {
       onProgress?.({ stage: 'checking', done: 0, total: cleaned.length });
       this.contacts.forEach(c => existing.add(c.phone));
     }
-    const toWrite = cleaned.filter(r => !existing.has(r.phone));
-    const dupesInDb = cleaned.length - toWrite.length;
+    // Also filter against the opt-out list — never re-add someone who said STOP,
+    // even if you delete their contact and re-import the CSV weeks later.
+    const optedOutPhones = new Set(Array.from(this.optouts.keys()));
+
+    const afterDupeCheck = cleaned.filter(r => !existing.has(r.phone));
+    const dupesInDb = cleaned.length - afterDupeCheck.length;
+
+    const toWrite = afterDupeCheck.filter(r => !optedOutPhones.has(r.phone));
+    const optedOutBlocked = afterDupeCheck.length - toWrite.length;
 
     let added = 0;
     const now = Date.now();
@@ -452,7 +459,12 @@ class Store {
     }
     onProgress?.({ stage: 'writing', done: added, total: toWrite.length });
     this.notify();
-    return { added, skipped: invalid + dupesInFile + dupesInDb, invalid, dupesInFile, dupesInDb, total: rows.length };
+    return {
+      added,
+      skipped: invalid + dupesInFile + dupesInDb + optedOutBlocked,
+      invalid, dupesInFile, dupesInDb, optedOutBlocked,
+      total: rows.length,
+    };
   }
 
   // ---------- Messages ----------

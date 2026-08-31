@@ -41,6 +41,11 @@ const DEFAULT_SETTINGS = {
   // Inbox polling + auto-reply
   pollingEnabled: true,
   pollingIntervalMs: 20_000,
+  // Anti-double-text guard — belt AND suspenders on top of the "Never texted"
+  // filter. Prevents any contact from being re-texted within this window,
+  // even if they somehow slip past the UI filter.
+  preventDoubleSendEnabled: true,
+  preventDoubleSendHours: 24,
   autoReplyEnabled: true,
   autoReplyCooldownMs: 5 * 60_000, // 5 minutes — quick enough to feel responsive, long enough to avoid loops
   // Generic fallback — sent when no rule matches (before AI, if AI enabled)
@@ -102,8 +107,36 @@ class Store {
       await this._seedDefaultTemplates();
     }
 
+    // Backfill: for every contact with a prior outbound message log entry
+    // but no lastOutboundAt flag, set the flag to that message's timestamp.
+    // Corrects for the old bug where blocked/failed sends didn't mark the
+    // contact — which made "Never texted" show them again.
+    await this._backfillLastOutbound();
+
     this.loaded = true;
     this.notify();
+  }
+
+  async _backfillLastOutbound() {
+    // Build a phone -> latest outbound timestamp map from the message log
+    const latest = new Map();
+    for (const m of this.messages.values()) {
+      if (m.direction !== 'out') continue;
+      const t = m.createdAt || 0;
+      if (!latest.has(m.to) || latest.get(m.to) < t) latest.set(m.to, t);
+    }
+    let updated = 0;
+    for (const [id, c] of this.contacts) {
+      if (c.lastOutboundAt) continue;
+      const t = latest.get(c.phone);
+      if (t) {
+        const next = { ...c, lastOutboundAt: t, status: c.status === 'new' ? 'contacted' : c.status };
+        this.contacts.set(id, next);
+        await stores.contacts.setItem(id, omitId(next));
+        updated++;
+      }
+    }
+    if (updated) console.info(`[BULKSMS] Backfilled lastOutboundAt on ${updated} contacts`);
   }
 
   async _seedDefaultTemplates() {

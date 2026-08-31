@@ -14,6 +14,7 @@ export default function Settings() {
     optOutKeywords: '', sendThrottleMs: 1500, respectQuietHours: true,
     autoAppendStop: true, enforceQuietHours: true, enforceDailyCap: true,
     dailyCapOverride: '',
+    preventDoubleSendEnabled: true, preventDoubleSendHours: 24,
     sendStartHour: 8, sendEndHour: 21,
     senderWindowEnabled: true,
     senderStartTime: '11:05',
@@ -44,6 +45,8 @@ export default function Settings() {
       enforceQuietHours: settings.enforceQuietHours ?? true,
       enforceDailyCap: settings.enforceDailyCap ?? true,
       dailyCapOverride: settings.dailyCapOverride ?? '',
+      preventDoubleSendEnabled: settings.preventDoubleSendEnabled ?? true,
+      preventDoubleSendHours: settings.preventDoubleSendHours ?? 24,
       sendStartHour: settings.sendStartHour ?? 8,
       sendEndHour: settings.sendEndHour ?? 21,
       senderWindowEnabled: settings.senderWindowEnabled ?? true,
@@ -79,6 +82,8 @@ export default function Settings() {
         enforceQuietHours: !!form.enforceQuietHours,
         enforceDailyCap: !!form.enforceDailyCap,
         dailyCapOverride: form.dailyCapOverride === '' ? null : Math.max(1, parseInt(form.dailyCapOverride, 10) || 0) || null,
+        preventDoubleSendEnabled: !!form.preventDoubleSendEnabled,
+        preventDoubleSendHours: Math.max(1, parseInt(form.preventDoubleSendHours, 10) || 24),
         sendStartHour: Math.max(8, Math.min(20, parseInt(form.sendStartHour, 10) || 8)),
         sendEndHour: Math.max(9, Math.min(21, parseInt(form.sendEndHour, 10) || 21)),
         senderWindowEnabled: !!form.senderWindowEnabled,
@@ -216,6 +221,19 @@ export default function Settings() {
           <Toggle label="Enforce daily send cap (warmup tier)"
             value={form.enforceDailyCap}
             onChange={v => update('enforceDailyCap', v)} />
+          <Toggle label="Never re-text a contact within window"
+            value={form.preventDoubleSendEnabled}
+            onChange={v => update('preventDoubleSendEnabled', v)} />
+          {form.preventDoubleSendEnabled && (
+            <Field label="Anti-double-text window (hours)">
+              <input type="number" min={1} max={720} step={1}
+                value={form.preventDoubleSendHours}
+                onChange={e => update('preventDoubleSendHours', e.target.value)} />
+              <p className="text-[0.7rem] text-muted mt-1">
+                Hard block: any contact texted (or attempted) within {form.preventDoubleSendHours}h can't be re-sent to, no matter what filter you use. Set to 168 (7 days) or 720 (30 days) for stricter no-repeat behavior.
+              </p>
+            </Field>
+          )}
           <Toggle label="Enforce per-recipient quiet hours (state-aware)"
             value={form.enforceQuietHours}
             onChange={v => update('enforceQuietHours', v)} />

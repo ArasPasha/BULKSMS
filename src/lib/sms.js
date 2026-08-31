@@ -153,6 +153,24 @@ export function preflightCheck({ phone, body, now = new Date() }) {
     return { ok: false, code: 'opted-out', reason: `${phone} has opted out` };
   }
 
+  // Anti-double-text guard: never re-text a contact within the configured
+  // window. This is a hard preflight block, not just a UI filter.
+  if (s.preventDoubleSendEnabled) {
+    const contactPeek = store.findContactByPhone(phone);
+    const hoursGuard = s.preventDoubleSendHours || 24;
+    if (contactPeek?.lastOutboundAt) {
+      const elapsedMs = Date.now() - contactPeek.lastOutboundAt;
+      const guardMs = hoursGuard * 3600_000;
+      if (elapsedMs < guardMs) {
+        const hoursSince = (elapsedMs / 3600_000).toFixed(1);
+        return {
+          ok: false, code: 'double-send',
+          reason: `Already texted ${hoursSince}h ago — anti-double-text guard active (${hoursGuard}h window)`,
+        };
+      }
+    }
+  }
+
   // Sender-clock guardrail — before anything else, is IT even OK for YOU to be sending right now?
   if (s.senderWindowEnabled) {
     const nowMin = now.getHours() * 60 + now.getMinutes();
@@ -217,6 +235,8 @@ export async function sendSms({ to, body, contactId = null, skipPreflight = fals
         status: check.code === 'opted-out' ? 'blocked-optout' : 'blocked',
         error: check.reason, contactId,
       });
+      // Still mark as attempted so they don't pop back up in "Never texted"
+      if (contact) await store.markOutbound(phone);
       throw new Error(check.reason);
     }
   }
@@ -250,12 +270,18 @@ export async function sendSms({ to, body, contactId = null, skipPreflight = fals
     stopAppended: finalBody !== body,
   });
 
+  // Always mark the contact as ATTEMPTED — even if the send failed or got
+  // blocked. This is what powers the "Never texted" filter, and users need
+  // it to be accurate: an attempted contact should never bubble back into
+  // the "never texted" pool just because the send didn't go through.
+  if (contact) {
+    await store.markOutbound(phone);
+    if (status === 'sent') {
+      await store.markThreadStarted(phone);
+    }
+  }
   if (status === 'sent') {
     await store.markFirstSendIfNeeded();
-    if (contact) {
-      await store.markThreadStarted(phone);
-      await store.markOutbound(phone);
-    }
   }
 
   if (error) throw new Error(error);
@@ -319,6 +345,8 @@ export async function broadcastSms({ recipients, body, bodies, throttleMs = 1500
         status: check.code === 'opted-out' ? 'blocked-optout' : 'blocked',
         error: check.reason, contactId: r.id,
       });
+      // Mark as attempted so this recipient doesn't pop back into "Never texted"
+      if (r.id) await store.markOutbound(r.phone);
       onProgress?.({ index: i + 1, total: recipients.length, sent: sent.length, failed: failed.length, skipped: skipped.length });
       if (i < recipients.length - 1 && !signal?.aborted) {
         await new Promise(res => setTimeout(res, jitteredDelay(throttleMs)));

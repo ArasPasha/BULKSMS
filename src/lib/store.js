@@ -313,11 +313,21 @@ class Store {
       ...c,
       autoReplyMuted: !!muted,
       autoReplyMutedAt: muted ? Date.now() : null,
+      muteNoticeLogged: muted ? c.muteNoticeLogged : false, // reset when unmuting
     };
     this.contacts.set(contactId, next);
     await stores.contacts.setItem(contactId, omitId(next));
     this.notify();
     return next;
+  }
+
+  async setMuteNoticeLogged(contactId) {
+    const c = this.contacts.get(contactId);
+    if (!c || c.muteNoticeLogged) return;
+    const next = { ...c, muteNoticeLogged: true };
+    this.contacts.set(contactId, next);
+    await stores.contacts.setItem(contactId, omitId(next));
+    this.notify();
   }
 
   // ---------- Templates ----------
@@ -487,6 +497,19 @@ class Store {
     this.messages.clear();
     await stores.messages.clear();
     this.notify();
+  }
+
+  async clearSystemMessages() {
+    let removed = 0;
+    for (const [id, m] of Array.from(this.messages.entries())) {
+      if (m.direction === 'system') {
+        this.messages.delete(id);
+        await stores.messages.removeItem(id);
+        removed++;
+      }
+    }
+    if (removed) this.notify();
+    return removed;
   }
 
   // ---------- Backup / Restore ----------

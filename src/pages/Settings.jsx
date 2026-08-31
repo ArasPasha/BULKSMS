@@ -430,6 +430,13 @@ export default function Settings() {
         <p className="text-xs text-muted mb-2">
           All data lives only in this browser's IndexedDB. Clearing site data or using another browser starts fresh.
         </p>
+        <button type="button" onClick={async () => {
+          const n = await store.clearSystemMessages();
+          alert(`Cleared ${n} system notes from history.`);
+        }}
+          className="w-full py-2.5 mb-2 rounded-lg bg-white border border-border text-ink font-semibold text-sm">
+          🧹 Clear system notes only
+        </button>
         <button type="button" onClick={clearAllData}
           className="w-full py-3 rounded-lg bg-white border border-coral/40 text-coral font-semibold text-sm">
           Wipe all local data

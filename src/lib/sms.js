@@ -412,10 +412,12 @@ export function startInboxPolling() {
         const from = item.sender || item.phoneNumber || item.from || '';
         const body = item.contentPreview || item.content || item.message || item.body || item.text || '';
         if (!from || !body) continue;
-        // Skip if we've already logged this message with the same body from this phone in the last 5 minutes
+        // Skip if we've already logged this same inbound before. Was 5 min —
+        // too short: a page refresh reset _seenInboxIds and old messages got
+        // re-ingested. 7 days covers any realistic session-restart window.
         const dupe = Array.from(store.messages.values()).find(m =>
           m.direction === 'in' && m.from === normalizePhone(from) && m.body === body &&
-          m.createdAt > Date.now() - 5 * 60 * 1000
+          m.createdAt > Date.now() - 7 * 24 * 60 * 60 * 1000
         );
         if (dupe) continue;
         await recordInboundReply({ from, body, gatewayId: id });
@@ -448,11 +450,16 @@ export async function runAutoReplyEngine({ from, body }) {
   // stop firing. From here the user takes over manually. Only two outcomes
   // are meaningful: opt-out OR link-sent-once.
   if (contact?.autoReplyMuted) {
-    await store.logMessage({
-      direction: 'system', to: phone, status: 'auto-reply-skipped',
-      body: 'Auto-reply muted — you already sent them the info. Take over manually 👆',
-      contactId: contact.id,
-    });
+    // Only log the "muted" notice ONCE per contact — otherwise every inbound
+    // spams the thread with the same reminder.
+    if (!contact.muteNoticeLogged) {
+      await store.logMessage({
+        direction: 'system', to: phone, status: 'auto-reply-skipped',
+        body: 'Auto-reply muted — you already sent them the info. Take over manually 👆',
+        contactId: contact.id,
+      });
+      await store.setMuteNoticeLogged(contact.id);
+    }
     return { sent: false, source: 'muted' };
   }
 

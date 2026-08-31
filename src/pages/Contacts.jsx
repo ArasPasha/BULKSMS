@@ -1,6 +1,7 @@
 import { useMemo, useRef, useState } from 'react';
 import Papa from 'papaparse';
 import { useContacts } from '../lib/hooks';
+import { store } from '../lib/store';
 import {
   addContact, updateContact, deleteContact, bulkAddContacts,
   formatPhone, normalizePhone, setOptOut,
@@ -28,6 +29,17 @@ export default function Contacts() {
   );
   const totalCount = allContacts.length;
   const contacts = sorted.slice(0, pageLimit);
+  const unnamedCount = useMemo(() => allContacts.filter(c => !c.name || !c.name.trim()).length, [allContacts]);
+
+  async function handleDeleteUnnamed() {
+    const ok = confirm(
+      `Delete ${unnamedCount.toLocaleString()} contacts with no name?\n\n` +
+      `These are contacts imported with just a phone number and nothing else.`
+    );
+    if (!ok) return;
+    const removed = await store.deleteUnnamedContacts();
+    alert(`Removed ${removed.toLocaleString()} unnamed contact${removed !== 1 ? 's' : ''}.`);
+  }
 
   const filtered = useMemo(() => {
     if (!search) return contacts;
@@ -159,6 +171,13 @@ export default function Contacts() {
           </button>
           <input ref={fileRef} type="file" accept=".csv" onChange={handleCsvFile} />
         </div>
+        {unnamedCount > 0 && (
+          <button
+            onClick={handleDeleteUnnamed}
+            className="w-full mt-2 py-2 rounded-lg bg-white border border-coral/40 text-coral text-xs font-semibold">
+            🗑 Delete {unnamedCount.toLocaleString()} contact{unnamedCount !== 1 ? 's' : ''} with no name
+          </button>
+        )}
         {importStatus && (
           <div className="mt-2 text-xs text-primary font-semibold">{importStatus}</div>
         )}

@@ -416,6 +416,19 @@ class Store {
     this.notify();
   }
 
+  async deleteUnnamedContacts() {
+    let removed = 0;
+    for (const [id, c] of Array.from(this.contacts.entries())) {
+      if (!c.name || !c.name.trim()) {
+        this.contacts.delete(id);
+        await stores.contacts.removeItem(id);
+        removed++;
+      }
+    }
+    if (removed) this.notify();
+    return removed;
+  }
+
   async bulkAddContacts(rows, opts = {}) {
     const { onProgress, dedupeExisting = true } = opts;
     const cleaned = [];

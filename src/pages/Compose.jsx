@@ -182,6 +182,23 @@ export default function Compose() {
 
   function clearAll() { setSelected(new Map()); }
 
+  // Add the next N contacts from the currently filtered list to the selection.
+  // Skips anyone already selected, so consecutive taps march through the list.
+  function selectNext(n) {
+    setSelected(prev => {
+      const next = new Map(prev);
+      let added = 0;
+      for (const c of filtered) {
+        if (added >= n) break;
+        if (!next.has(c.id)) {
+          next.set(c.id, c);
+          added++;
+        }
+      }
+      return next;
+    });
+  }
+
   async function handleSend(e) {
     e.preventDefault();
     setError('');
@@ -451,6 +468,23 @@ export default function Compose() {
               </div>
             ) : (
               <>
+                {/* Quick-add: grab the next N contacts from the filtered list */}
+                <div className="flex items-center gap-1.5 mb-2 flex-wrap">
+                  <span className="text-[0.65rem] text-muted font-semibold whitespace-nowrap pr-1">QUICK ADD:</span>
+                  {[25, 50, 100, 150, 200].map(n => {
+                    const remaining = filtered.filter(c => !selected.has(c.id)).length;
+                    const canAdd = Math.min(n, remaining);
+                    return (
+                      <button type="button" key={n}
+                        onClick={() => selectNext(n)}
+                        disabled={remaining === 0}
+                        className="px-2.5 py-1 rounded-full text-xs font-semibold bg-primary-light text-primary disabled:opacity-40 disabled:cursor-not-allowed"
+                        title={`Add the next ${n} contacts (will add ${canAdd})`}>
+                        +{n}
+                      </button>
+                    );
+                  })}
+                </div>
                 <input type="search" placeholder="Search name, phone, or tag"
                   value={recipientSearch}
                   onChange={e => setRecipientSearch(e.target.value)}

@@ -133,6 +133,18 @@ export function isOptOutReply(text, extraKeywords = []) {
   for (const kw of extraKeywords) {
     if (upperFirstWord === kw.toUpperCase()) return true;
   }
+  // Short messages (≤40 chars) — check for any opt-out keyword as a whole
+  // word anywhere in the message. Catches carrier-prefixed opt-outs like
+  // "SOS L: STOP" or "SPAM: STOP" that don't start with STOP.
+  if (normalized.length <= 40) {
+    const tokens = normalized.toUpperCase().split(/[^A-Z]+/).filter(Boolean);
+    for (const t of tokens) {
+      if (OPT_OUT_KEYWORDS.has(t)) return true;
+      for (const kw of extraKeywords) {
+        if (t === kw.toUpperCase()) return true;
+      }
+    }
+  }
   return FUZZY_OPT_OUT_PHRASES.some(re => re.test(normalized));
 }
 

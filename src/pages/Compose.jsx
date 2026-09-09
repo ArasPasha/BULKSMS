@@ -471,7 +471,7 @@ export default function Compose() {
                 {/* Quick-add: grab the next N contacts from the filtered list */}
                 <div className="flex items-center gap-1.5 mb-2 flex-wrap">
                   <span className="text-[0.65rem] text-muted font-semibold whitespace-nowrap pr-1">QUICK ADD:</span>
-                  {[25, 50, 100, 150, 200].map(n => {
+                  {[25, 50, 100, 150, 200, 250, 500].map(n => {
                     const remaining = filtered.filter(c => !selected.has(c.id)).length;
                     const canAdd = Math.min(n, remaining);
                     return (

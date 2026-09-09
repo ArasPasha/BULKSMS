@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useContacts, useConversation, useSettings, useTemplates } from '../lib/hooks';
 import { store } from '../lib/store';
-import { sendSms, formatPhone, aiReplyDraft } from '../lib/sms';
+import { sendSms, formatPhone, aiReplyDraft, setOptOut } from '../lib/sms';
 import { CONSENT_SOURCES } from '../lib/compliance';
 
 const STATUS_OPTIONS = [
@@ -98,6 +98,21 @@ export default function Conversation() {
     await store.setAutoReplyMuted(contact.id, !contact.autoReplyMuted);
   }
 
+  async function toggleOptOut() {
+    const currentlyOut = contact.optedOut;
+    const label = contact.name || formatPhone(contact.phone);
+    if (currentlyOut) {
+      const ok = confirm(`Un-block ${label}? They'll be reachable again — only do this if they asked to re-opt-in.`);
+      if (!ok) return;
+      await setOptOut(contact.phone, false);
+    } else {
+      const ok = confirm(`Opt out ${label}? They will NEVER receive another text from you (blocked across all future broadcasts and imports).`);
+      if (!ok) return;
+      await setOptOut(contact.phone, true);
+      await store.setContactStatus(contact.id, 'opted-out');
+    }
+  }
+
   async function saveNotes() {
     await store.setContactNotes(contact.id, notes);
   }
@@ -116,7 +131,7 @@ export default function Conversation() {
           </div>
           <a href={`tel:${contact.phone}`} className="text-primary text-xs font-semibold px-2">Call</a>
         </div>
-        <div className="flex items-center justify-between mb-2 -mt-1">
+        <div className="flex items-center gap-2 mb-2 -mt-1 flex-wrap">
           <button type="button" onClick={toggleAutoReplyMute}
             className={`text-[0.7rem] font-semibold px-2 py-1 rounded ${
               contact.autoReplyMuted
@@ -125,6 +140,14 @@ export default function Conversation() {
             }`}>
             🤖 Auto-reply: {contact.autoReplyMuted ? 'OFF (you drive)' : 'ON'}
             {contact.autoReplyMuted && ' — tap to re-enable'}
+          </button>
+          <button type="button" onClick={toggleOptOut}
+            className={`text-[0.7rem] font-semibold px-2 py-1 rounded ${
+              contact.optedOut
+                ? 'bg-coral text-white'
+                : 'bg-coral-light text-coral'
+            }`}>
+            {contact.optedOut ? '🚫 OPTED OUT — tap to unblock' : '🚫 Opt them out'}
           </button>
         </div>
         <div className="flex gap-1.5 overflow-x-auto scrollbar-hide -mx-1 px-1">

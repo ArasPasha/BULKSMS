@@ -430,6 +430,17 @@ export function startInboxPolling() {
       if (!res.ok) return;
       const list = await res.json().catch(() => []);
       if (!Array.isArray(list)) return;
+
+      // Build a one-shot dedup set from the last 7 days of inbound messages —
+      // much faster than scanning store.messages inside the per-item loop.
+      const cutoff = Date.now() - 7 * 24 * 60 * 60 * 1000;
+      const seenBodies = new Set();
+      for (const m of store.messages.values()) {
+        if (m.direction === 'in' && m.createdAt > cutoff) {
+          seenBodies.add(`${m.from}::${m.body}`);
+        }
+      }
+
       for (const item of list) {
         // Actual /inbox shape (SMS Gateway v1.72+):
         //   { id, sender, recipient, contentPreview, createdAt, simNumber, type, attachments }
@@ -440,14 +451,9 @@ export function startInboxPolling() {
         const from = item.sender || item.phoneNumber || item.from || '';
         const body = item.contentPreview || item.content || item.message || item.body || item.text || '';
         if (!from || !body) continue;
-        // Skip if we've already logged this same inbound before. Was 5 min —
-        // too short: a page refresh reset _seenInboxIds and old messages got
-        // re-ingested. 7 days covers any realistic session-restart window.
-        const dupe = Array.from(store.messages.values()).find(m =>
-          m.direction === 'in' && m.from === normalizePhone(from) && m.body === body &&
-          m.createdAt > Date.now() - 7 * 24 * 60 * 60 * 1000
-        );
-        if (dupe) continue;
+        // Skip if we've already logged this same inbound within the last 7 days.
+        // O(1) via the pre-built seenBodies set instead of scanning every poll.
+        if (seenBodies.has(`${normalizePhone(from)}::${body}`)) continue;
         await recordInboundReply({ from, body, gatewayId: id });
       }
     } catch {

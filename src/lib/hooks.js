@@ -48,19 +48,24 @@ export function useAutoReplyRules() {
 }
 
 // Returns contacts sorted for the Conversations list: unread inbound first,
-// then most recent activity, then name.
+// then most recent activity, then name. Only shows contacts that have ANY
+// activity (inbound or outbound) — no need to show the entire contact list
+// as "conversations" when most were never texted.
 export function useConversations() {
   useStoreVersion();
   const contacts = store.contactsList();
-  const scored = contacts.map(c => {
-    const lastActivity = Math.max(c.lastInboundAt || 0, c.lastOutboundAt || 0, c.createdAt || 0);
-    const hasUnread = (c.lastInboundAt || 0) > (c.lastReadAt || 0);
-    return { ...c, lastActivity, hasUnread };
-  });
-  return scored.sort((a, b) => {
-    // Unread inbound bubbles to the top
+  const active = [];
+  for (const c of contacts) {
+    const lastInboundAt = c.lastInboundAt || 0;
+    const lastOutboundAt = c.lastOutboundAt || 0;
+    if (!lastInboundAt && !lastOutboundAt) continue;
+    const lastActivity = Math.max(lastInboundAt, lastOutboundAt);
+    const hasUnread = lastInboundAt > (c.lastReadAt || 0);
+    active.push({ ...c, lastActivity, hasUnread });
+  }
+  return active.sort((a, b) => {
     if (a.hasUnread !== b.hasUnread) return a.hasUnread ? -1 : 1;
-    return (b.lastActivity || 0) - (a.lastActivity || 0);
+    return b.lastActivity - a.lastActivity;
   });
 }
 

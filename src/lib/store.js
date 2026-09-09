@@ -47,7 +47,10 @@ const DEFAULT_SETTINGS = {
   preventDoubleSendEnabled: true,
   preventDoubleSendHours: 24,
   autoReplyEnabled: true,
-  autoReplyCooldownMs: 5 * 60_000, // 5 minutes — quick enough to feel responsive, long enough to avoid loops
+  autoReplyCooldownMs: 5 * 60_000,
+  // Internal flag — once the one-time backfill of lastOutboundAt has run,
+  // set this so we never re-scan the whole message log again.
+  backfillCompleted: false, // 5 minutes — quick enough to feel responsive, long enough to avoid loops
   // Generic fallback — sent when no rule matches (before AI, if AI enabled)
   genericAutoReplyEnabled: true,
   genericAutoReplyTemplateId: null, // set on seed to the "Generic fallback" template
@@ -109,9 +112,12 @@ class Store {
 
     // Backfill: for every contact with a prior outbound message log entry
     // but no lastOutboundAt flag, set the flag to that message's timestamp.
-    // Corrects for the old bug where blocked/failed sends didn't mark the
-    // contact — which made "Never texted" show them again.
-    await this._backfillLastOutbound();
+    // Runs ONCE ever per install — guarded by settings.backfillCompleted.
+    if (!this.settings.backfillCompleted) {
+      await this._backfillLastOutbound();
+      this.settings = { ...this.settings, backfillCompleted: true };
+      await stores.meta.setItem('settings', this.settings);
+    }
 
     this.loaded = true;
     this.notify();

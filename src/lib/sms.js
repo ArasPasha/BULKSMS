@@ -94,7 +94,10 @@ function gatewayFetch({ url, user, pass, path, method = 'GET', body }) {
 // The SMS Gateway for Android app changed endpoint paths across versions
 // (v1: /message + /health; newer: /api/v1/message + /api/v1/health).
 // We try modern first, then fall back to legacy.
-const PING_PATHS = ['/health', '/api/v1/health'];
+// Reachability probes, tried in order. If any returns 2xx OR an auth error
+// (401/403), the server is up. Adding /message as a final fallback because
+// some SMS Gateway versions have a broken /health endpoint returning 500.
+const PING_PATHS = ['/health', '/api/v1/health', '/message', '/'];
 const SEND_PATHS = ['/message', '/api/v1/message'];
 
 export async function gatewayPing({ url, user, pass }) {
@@ -103,11 +106,11 @@ export async function gatewayPing({ url, user, pass }) {
     try {
       const res = await gatewayFetch({ url, user, pass, path });
       if (res.ok) return res.json().catch(() => ({ ok: true, path }));
-      // 401/403 → server exists but auth failed
       if (res.status === 401 || res.status === 403) {
         throw new Error(`Auth failed (${res.status}) — check username/password`);
       }
-      // 404 → try next path
+      // 404/500/etc → server responded, but not with a usable health payload.
+      // Try the next path. Only give up after all four fail.
       lastErr = new Error(`${path} returned ${res.status}`);
     } catch (e) {
       lastErr = e;

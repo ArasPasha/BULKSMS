@@ -291,6 +291,24 @@ export async function sendSms({ to, body, contactId = null, skipPreflight = fals
   return gatewayResult;
 }
 
+// Recognize phone-side / carrier system messages that show up in /inbox
+// but aren't real replies. Common patterns from SMS Gateway for Android
+// echoing outbox events plus carrier delivery notifications.
+const GATEWAY_NOISE_PATTERNS = [
+  /^message to \d+ deleted\.?$/i,
+  /^delivered to \d+/i,
+  /^unable to deliver/i,
+  /^failed to send/i,
+  /^message expired/i,
+  /^sms delivery status/i,
+  /^\[sms\]/i,
+];
+function isGatewaySystemNoise(body) {
+  const trimmed = (body || '').trim();
+  if (!trimmed) return true;
+  return GATEWAY_NOISE_PATTERNS.some(re => re.test(trimmed));
+}
+
 // Jittered delay: baseMs +/- 30% variance so we don't look robotic
 // (fixed intervals are almost as detectable as no interval)
 function jitteredDelay(baseMs) {
@@ -454,6 +472,11 @@ export function startInboxPolling() {
         const from = item.sender || item.phoneNumber || item.from || '';
         const body = item.contentPreview || item.content || item.message || item.body || item.text || '';
         if (!from || !body) continue;
+
+        // Filter out phone-gateway / carrier system pseudo-messages. These
+        // show up in /inbox but they aren't real replies — they're status
+        // events the phone is echoing back to itself.
+        if (isGatewaySystemNoise(body)) continue;
         // Skip if we've already logged this same inbound within the last 7 days.
         // O(1) via the pre-built seenBodies set instead of scanning every poll.
         if (seenBodies.has(`${normalizePhone(from)}::${body}`)) continue;

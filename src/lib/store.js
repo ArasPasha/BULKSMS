@@ -564,6 +564,33 @@ class Store {
     return removed;
   }
 
+  async clearGatewayNoise() {
+    // Purge inbound messages that match phone-gateway system-noise patterns
+    // (delivered/deleted/failed carrier notices that shouldn't have been
+    // ingested as real replies).
+    const patterns = [
+      /^message to \d+ deleted\.?$/i,
+      /^delivered to \d+/i,
+      /^unable to deliver/i,
+      /^failed to send/i,
+      /^message expired/i,
+      /^sms delivery status/i,
+      /^\[sms\]/i,
+    ];
+    let removed = 0;
+    for (const [id, m] of Array.from(this.messages.entries())) {
+      if (m.direction !== 'in') continue;
+      const body = (m.body || '').trim();
+      if (patterns.some(re => re.test(body))) {
+        this.messages.delete(id);
+        await stores.messages.removeItem(id);
+        removed++;
+      }
+    }
+    if (removed) this.notify();
+    return removed;
+  }
+
   // ---------- Backup / Restore ----------
   exportAll() {
     return {

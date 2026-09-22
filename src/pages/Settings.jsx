@@ -455,6 +455,13 @@ export default function Settings() {
           className="w-full py-2.5 mb-2 rounded-lg bg-white border border-border text-ink font-semibold text-sm">
           🧹 Clear system notes only
         </button>
+        <button type="button" onClick={async () => {
+          const n = await store.clearGatewayNoise();
+          alert(`Removed ${n} phone-gateway noise messages ("delivered", "deleted", "failed", etc.)`);
+        }}
+          className="w-full py-2.5 mb-2 rounded-lg bg-white border border-border text-ink font-semibold text-sm">
+          🧹 Purge phone-gateway noise from history
+        </button>
         <button type="button" onClick={clearAllData}
           className="w-full py-3 rounded-lg bg-white border border-coral/40 text-coral font-semibold text-sm">
           Wipe all local data

@@ -100,9 +100,12 @@ class Store {
     const envUser = import.meta.env.VITE_DEFAULT_GATEWAY_USER;
     const envPass = import.meta.env.VITE_DEFAULT_GATEWAY_PASS;
     let seeded = false;
-    if (envUrl && !this.settings.gatewayUrl) { this.settings.gatewayUrl = envUrl; seeded = true; }
-    if (envUser && !this.settings.gatewayUser) { this.settings.gatewayUser = envUser; seeded = true; }
-    if (envPass && !this.settings.gatewayPass) { this.settings.gatewayPass = envPass; seeded = true; }
+    // env values ALWAYS override saved settings if set — makes .env.local the
+    // source of truth for gateway config (survives wipes AND updates take
+    // effect on server restart without manually re-saving in the UI).
+    if (envUrl && this.settings.gatewayUrl !== envUrl) { this.settings.gatewayUrl = envUrl; seeded = true; }
+    if (envUser && this.settings.gatewayUser !== envUser) { this.settings.gatewayUser = envUser; seeded = true; }
+    if (envPass && this.settings.gatewayPass !== envPass) { this.settings.gatewayPass = envPass; seeded = true; }
     if (seeded) await stores.meta.setItem('settings', this.settings);
 
     // Seed default templates + auto-reply rules once, if empty.
